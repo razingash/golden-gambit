@@ -16,7 +16,7 @@ DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = ['127.0.0.1']
 
-
+AUTH_USER_MODEL = 'stock.Player'
 # Application definition
 
 INSTALLED_APPS = [

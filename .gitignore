@@ -1,2 +1,4 @@
 /venv/
 /.idea
+/macroeconomics_simulator/db.sqlite3
+/macroeconomics_simulator/media
