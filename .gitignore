@@ -2,3 +2,5 @@
 /.idea
 /macroeconomics_simulator/db.sqlite3
 /macroeconomics_simulator/media
+/macroeconomics_simulator/stock/migrations
+!macroeconomics_simulator/stock/migrations/__init__.py
