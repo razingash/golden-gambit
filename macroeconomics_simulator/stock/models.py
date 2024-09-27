@@ -1,4 +1,7 @@
+import json
 import os
+import time
+from decimal import Decimal
 from uuid import uuid4
 
 from django.contrib.auth.models import AbstractUser
@@ -11,7 +14,8 @@ from stock.utils import ProductTypes, CompanyTypes, SharesTypes, EventTypes
 
 class Player(AbstractUser):
     uuid = models.UUIDField(primary_key=False, default=uuid4, unique=True, editable=False, blank=False, null=False)
-    silver = models.PositiveBigIntegerField(default=0, blank=False, null=False)
+    silver = models.DecimalField(default=0, validators=[MinValueValidator(Decimal(0))], max_digits=10, decimal_places=2,
+                                 blank=False, null=False)
     gold = models.PositiveBigIntegerField(default=0, blank=False, null=False)
 
     class Meta:
@@ -89,18 +93,58 @@ class CompanyRecipe(models.Model):
 
 
 class Company(models.Model): # mb add share price, but the load will be too high
-    type = models.OneToOneField(CompanyType, on_delete=models.DO_NOTHING)
-    ticker = models.CharField(max_length=8, validators=[MinLengthValidator(4)], blank=False, null=False)
+    type = models.ForeignKey(CompanyType, on_delete=models.DO_NOTHING)
+    ticker = models.CharField(max_length=8, validators=[MinLengthValidator(4)], blank=False, null=False, unique=True)
+    name = models.CharField(max_length=120, validators=[MinLengthValidator(6)], blank=False, null=False, unique=True)
     shares_amount = models.PositiveBigIntegerField(blank=False, null=False)
     preferred_shares_amount = models.PositiveSmallIntegerField(blank=False, null=False)
-    shares_price = models.PositiveSmallIntegerField(blank=False, null=False)
-    silver_reserve = models.PositiveBigIntegerField(default=1000, blank=False, null=False)
+    share_price = models.PositiveBigIntegerField(blank=False, null=False)
+    silver_reserve = models.DecimalField(default=1000, validators=[MinValueValidator(Decimal(0))], max_digits=10,
+                                         decimal_places=2, blank=False, null=False)
     gold_reserve = models.PositiveBigIntegerField(default=0, blank=False, null=False)
     company_price = models.IntegerField(blank=False, null=False)
-    dividendes_percent = models.PositiveSmallIntegerField(blank=False, null=False)
+    dividendes_percent = models.DecimalField(max_digits=10, decimal_places=2, blank=False, null=False)
     history = models.FilePathField(path=os.path.join(settings.MEDIA_ROOT, 'companies'), match='.*\.json$',
                                    blank=False, null=False)
     founding_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
+
+    def save(self, *args, **kwargs): # учесть золото
+        json_path = os.path.join(settings.MEDIA_ROOT, 'companies', f"{self.ticker}.json")
+        if not self.pk:
+            os.makedirs(os.path.dirname(json_path), exist_ok=True)
+            json_schema = {
+                "ticker": self.ticker,
+                "company_type": self.type_id,
+                "founding date": int(time.time()),
+                "contents": []
+            }
+
+            with open(json_path, 'w') as json_file:
+                json.dump(json_schema, json_file, indent=2)
+
+            self.history = json_path
+            share_price = int(self.silver_reserve / (3 * self.shares_amount))
+            commitment = int(self.shares_amount * share_price * self.dividendes_percent / 100)
+
+            company_price = (self.silver_reserve + 0 * self.type.cartoonist) - commitment
+
+            self.company_price = company_price
+            self.share_price = int(company_price / self.shares_amount)
+
+        else: # don't change
+            with open(json_path, 'r') as json_file:
+                json_data = json.load(json_file)
+            json_data["contents"].append({
+                "timestamp": int(time.time()),
+                "company_price": self.company_price,
+                "silver_reserve": float(round(self.silver_reserve, 2)),
+                "gold_reserve": self.gold_reserve
+            })
+
+            with open(json_path, 'w') as json_file:
+                json.dump(json_data, json_file, indent=2)
+
+        super(Company, self).save(*args, **kwargs)
 
     class Meta:
         db_table = 'dt_Company'
@@ -132,8 +176,8 @@ class PlayerCompanies(models.Model):
     company = models.ForeignKey(Company, on_delete=models.DO_NOTHING) # add a scenario for merging companies
     shares_amount = models.PositiveBigIntegerField(blank=False, null=False)
     preferred_shares_amount = models.PositiveBigIntegerField(blank=False, null=False)
-    isFounder = models.BooleanField(blank=False, null=False)
-    isHead = models.BooleanField(blank=False, null=False)
+    isFounder = models.BooleanField(default=True, blank=False, null=False)
+    isHead = models.BooleanField(default=True, blank=False, null=False)
 
     class Meta:
         db_table = 'dt_PlayerCompanies'

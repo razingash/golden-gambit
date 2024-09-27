@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404 # проверить отличия с drf
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -7,7 +8,11 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from rest_framework_simplejwt.views import TokenVerifyView
 
-from stock.serializers import RegisterSerializer
+from stock.models import Company
+from stock.serializers import RegisterSerializer, CompanyCreateSerializer, CompanySerializer, PlayerSerializer, \
+    PlayerCompaniesSerializer, CompanyUpdateSerializer
+from stock.services import create_new_company, get_player, get_user_companies, get_companies
+from stock.utils import custom_exception
 
 
 class RegisterView(APIView):
@@ -54,3 +59,55 @@ class TokenVerifyWithBlacklistView(TokenVerifyView):
             return super().post(request, *args, **kwargs)
         except TokenError as e:
             raise InvalidToken(e.args[0])
+
+
+class UserApiView(APIView):
+    #add some permissions
+    def get(self, request, user_id):
+        player = get_player(user_id)
+
+        return Response(PlayerSerializer(player, many=False).data)
+
+
+class UserCompaniesView(APIView):
+    #permission_classes = (IsAuthenticated, )
+
+    def get(self, request, user_id):
+        companies = get_user_companies(user_id)
+
+        return Response(PlayerCompaniesSerializer(companies, many=True).data)
+
+    @custom_exception
+    def post(self, request, user_id):
+        serializer = CompanyCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        company = create_new_company(user_id=user_id, request_data=request.data)
+
+        return Response(CompanySerializer(company, many=False).data)
+
+
+class CompanyListView(APIView):
+    def get(self, request):
+        page = request.query_params.get('page')
+        limit = request.query_params.get('limit')
+        companies, has_next = get_companies(page=page, limit=limit)
+        serializer = CompanySerializer(companies, many=True)
+
+        return Response({'data': serializer.data, 'has_next': has_next})
+
+
+class CompanyApiView(APIView):
+    def get(self, request, ticker):
+        company = get_object_or_404(Company, ticker=ticker)
+
+        return Response(CompanySerializer(company, many=False).data)
+
+    def patch(self, request, ticker):
+        company = get_object_or_404(Company, ticker=ticker)
+        serializer = CompanyUpdateSerializer(company, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response(serializer.data)
+

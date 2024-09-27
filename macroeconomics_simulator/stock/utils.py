@@ -1,4 +1,6 @@
 from django.db import models
+from rest_framework.response import Response
+
 
 class CompanyTypes(models.IntegerChoices):
     FARM = 1, 'farm' # 1x
@@ -71,3 +73,16 @@ class EventTypes(models.IntegerChoices):
     EPIDEMIC = 6, 'epidemic'
     PROTESTS = 7, 'Protests'
     WAR = 8, 'war'
+
+
+class CustomException(Exception): # probably postpone all related with error class in exceptions.py
+    def __init__(self, message):
+        super().__init__(message)
+
+def custom_exception(func: callable):
+    def wrapper(request, *args, **kwargs):
+        try:
+            return func(request, *args, **kwargs)
+        except CustomException as e:
+            return Response({"error": f"{e}"}, status=400)
+    return wrapper
