@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
 from django.db.models import Q
-from stock.models import GoldSilverExchange, Company, Player, PlayerCompanies
+from stock.models import GoldSilverExchange, Company, Player, PlayerCompanies, StateLaw, GlobalEvent
 from stock.utils import CustomException
 
 
@@ -78,11 +78,14 @@ def calculate_share_price(company_price, shares_amount):  # | after API, optimiz
     return share_price
 
 
-def get_companies(page, limit=10): # later take into account a different limit for each device
-    limit = limit if limit is not None else 10
+def get_paginated_objects(model: object, query_params): # later take into account a different limit for each device
+    page = query_params.get('page')
+    limit = query_params.get('limit')
+    # add condition if needed
+    limit = int(limit) if limit is not None else 10
     page = int(page) if page is not None else 1
-    companies = Company.objects.all().order_by('-id')
-    paginator = Paginator(companies, limit)
+    objects = model.objects.all().order_by('-id')
+    paginator = Paginator(objects, limit)
     obj = paginator.get_page(page)
     has_next = obj.has_next()
 

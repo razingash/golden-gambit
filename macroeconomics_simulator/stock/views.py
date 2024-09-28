@@ -8,10 +8,10 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from rest_framework_simplejwt.views import TokenVerifyView
 
-from stock.models import Company
+from stock.models import Company, StateLaw, GlobalEvent
 from stock.serializers import RegisterSerializer, CompanyCreateSerializer, CompanySerializer, PlayerSerializer, \
-    PlayerCompaniesSerializer, CompanyUpdateSerializer
-from stock.services import create_new_company, get_player, get_user_companies, get_companies
+    PlayerCompaniesSerializer, CompanyUpdateSerializer, EventsSerializer, LawsSerializer
+from stock.services import create_new_company, get_player, get_user_companies, get_paginated_objects
 from stock.utils import custom_exception
 
 
@@ -88,9 +88,7 @@ class UserCompaniesView(APIView):
 
 class CompanyListView(APIView):
     def get(self, request):
-        page = request.query_params.get('page')
-        limit = request.query_params.get('limit')
-        companies, has_next = get_companies(page=page, limit=limit)
+        companies, has_next = get_paginated_objects(model=Company, query_params=request.query_params)
         serializer = CompanySerializer(companies, many=True)
 
         return Response({'data': serializer.data, 'has_next': has_next})
@@ -111,3 +109,17 @@ class CompanyApiView(APIView):
 
         return Response(serializer.data)
 
+
+class LawsApiView(APIView):
+    def get(self, request):
+        laws, has_next = get_paginated_objects(model=StateLaw, query_params=request.query_params)
+        serializer = LawsSerializer(laws, many=True)
+
+        return Response({'data': serializer.data, 'has_next': has_next})
+
+class EventsApiView(APIView):
+    def get(self, request):
+        events, has_next = get_paginated_objects(model=GlobalEvent, query_params=request.query_params)
+        serializer = EventsSerializer(events, many=True)
+
+        return Response({'data': serializer.data, 'has_next': has_next})

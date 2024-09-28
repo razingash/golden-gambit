@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from stock.models import Player, Company, CompanyType, PlayerCompanies
+from stock.models import Player, Company, PlayerCompanies, StateLaw, GlobalEvent
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -84,3 +84,15 @@ class PlayerCompaniesSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayerCompanies
         fields = ['company', 'shares_amount', 'preferred_shares_amount', 'isFounder', 'isHead']
+
+
+class LawsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StateLaw
+        fields = '__all__'
+
+
+class EventsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GlobalEvent
+        fields = '__all__'

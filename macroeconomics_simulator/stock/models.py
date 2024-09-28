@@ -223,7 +223,7 @@ class ProductsExchange(models.Model):
         db_table = 'dt_ProductsExchange'
 
 
-class StateLaws(models.Model):
+class StateLaw(models.Model):
     """laws are needed to provide minimal information about what can and cannot be done(but there will be an opportunity)"""
     description = models.TextField(max_length=1500, blank=False, null=False)
     since = models.DateField(auto_now_add=True, blank=False, null=False)
@@ -234,7 +234,7 @@ class StateLaws(models.Model):
         db_table = 'dt_StateLaws'
 
 
-class Events(models.Model): # mb improve this model
+class GlobalEvent(models.Model): # mb improve this model | find another name
     """events are needed mainly to stabilize the market and force some players to lose their companies"""
     type = models.CharField(choices=EventTypes.choices, max_length=2, blank=False, null=False)
     since = models.DateField(auto_now_add=True, blank=False, null=False)
