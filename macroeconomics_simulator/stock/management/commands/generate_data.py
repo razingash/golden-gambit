@@ -1,6 +1,7 @@
 from django.core.management import BaseCommand
 
-from stock.models import Player, ProductType, CompanyType, AvailableProductsForProduction, CompanyRecipe, Recipe
+from stock.models import Player, ProductType, CompanyType, AvailableProductsForProduction, CompanyRecipe, Recipe, \
+    GoldSilverExchange
 from stock.utils import CompanyTypes, ProductTypes
 
 
@@ -143,5 +144,8 @@ class Command(BaseCommand):
             add_advanced_company_recipes(advanced_company_type)
 
         for i in range(1, 11): # creating users
-            user = Player.objects.create_user(username=f'djangobot{i}', password=f'djangobot{i}')
+            user = Player.objects.create_user(username=f'djangobot{i}', password=f'djangobot{i}', silver=30000)
             users.append(user)
+
+        #creating Stock
+        GoldSilverExchange.objects.create()

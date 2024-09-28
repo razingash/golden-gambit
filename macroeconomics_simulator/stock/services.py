@@ -1,7 +1,9 @@
+import json
+
 from django.core.paginator import Paginator
 from django.db.models import Q
-from stock.models import GoldSilverExchange, Company, Player, PlayerCompanies, StateLaw, GlobalEvent
-from stock.utils import CustomException
+from stock.models import GoldSilverExchange, Company, Player, PlayerCompanies, CompanyWarehouse
+from stock.utils import CustomException, to_int
 
 
 def check_object(model: object, condition):
@@ -11,27 +13,43 @@ def check_object(model: object, condition):
     else:
         raise CustomException(f'{model.__name__} object with selected conditions does not exists')
 
-def get_object(model: object, condition, fields=None): # не сейчас но позже может быть ошибка с полями(когда дойдет до patch)
+def get_object(model: object, condition, fields=None): # the best way | no need for GoldSilverExchange
+    if fields is None:
+        fields = []
     obj = model.objects.only(*fields).filter(condition).first()
     if obj is None:
         raise CustomException(f'{model.__name__} object with selected conditions does not exists')
     else:
         return obj
 
+def get_company_inventory(ticker):
+    fields = ['amount', 'product', 'company__ticker']
+    objects = CompanyWarehouse.objects.only(*fields).filter(company__ticker=ticker)
+    return objects
 
 
-def calculate_gold_rate(purchased_gold, model): # | after API, optimize via clickhouse or redis
-    obj = get_object(model=GoldSilverExchange, condition=Q(id=1), fields=['current_price', 'amount']) #no need in base_price
-    affordable_gold = obj.amount
-    gold_price = obj.current_price
+def calculate_gold_rice(instance: GoldSilverExchange, amount_of_gold): # | after API, optimize via clickhouse or redis fow webhooks
+    affordable_gold = instance.amount
+    gold_price = instance.current_price
     base_price = 1000
-    fluctuation_level = gold_price * (purchased_gold / affordable_gold)
-    gold_rate = base_price * (100 - fluctuation_level) / 100
+    fluctuation_level = gold_price * (amount_of_gold / affordable_gold)
+    gold_rate = base_price * (100 - fluctuation_level) / 100 # new gold price
+    instance.current_price = gold_rate
+    #no need for saving data
     return fluctuation_level, gold_rate
 
+def update_gold_price(instance: GoldSilverExchange, amount_of_gold) -> None:
+    affordable_gold = instance.amount
+    gold_price = instance.current_price
+    base_price = 1000
+    fluctuation_level = gold_price * (amount_of_gold / affordable_gold)
+    gold_rate = base_price * (100 - fluctuation_level) / 100 # new gold price
+    instance.current_price = gold_rate
+    instance.amount += amount_of_gold
+    instance.save() # сделать кастомный save() чтобы записывалась инфа при минимальном изменении в 1 серебрянную монету
 
 def calculate_gold_price(gold_amount):
-    current_price = get_object(model=GoldSilverExchange, condition=Q(id=1), fields=['current_price'])
+    current_price = get_object(model=GoldSilverExchange, condition=Q(id=1), fields=['current_price']).current_price
     gold_price = current_price * gold_amount
     return gold_price
 
@@ -123,3 +141,55 @@ def get_user_companies(user_id):
     company = PlayerCompanies.objects.select_related('company').filter(player_id=user_id).order_by('-id').only(*fields)
 
     return company
+
+def get_company_history(ticker):
+    obj = get_object(model=Company, condition=Q(ticker=ticker), fields=['history'])
+    history = obj.history
+
+    with open(history, 'r') as file:
+        history = json.load(file)
+
+    return history
+
+
+def get_gold_history():
+    history = GoldSilverExchange.objects.only('history').first().history
+
+    with open(history, 'r') as file:
+        history = json.load(file)
+
+    return history
+
+def purchase_gold(user_id, amount):
+    amount = to_int(amount)
+    gold_silver_exchange = GoldSilverExchange.objects.only('current_price', 'amount').first()
+
+    player = get_object(model=Player, condition=Q(id=user_id), fields=['silver', 'gold'])
+    player_silver, player_gold = player.silver, player.gold
+
+    current_price = gold_silver_exchange.current_price
+    gold_price = current_price * amount
+
+    if player_silver >= gold_price:
+        update_gold_price(instance=gold_silver_exchange, amount_of_gold=-amount)
+
+        player_gold += amount
+        player.save()
+    else:
+        raise CustomException(f'Now you have {player_silver} silver, you need {gold_price} silver to buy {amount} gold coins')
+
+def sell_gold(user_id, amount):
+    amount = to_int(amount)
+    gold_silver_exchange = GoldSilverExchange.objects.only('current_price', 'amount').first()
+
+    player = get_object(model=Player, condition=Q(id=user_id), fields=['silver', 'gold'])
+    player_silver, player_gold = player.silver, player.gold
+
+    if player_gold >= amount:
+        update_gold_price(instance=gold_silver_exchange, amount_of_gold=amount)
+
+        player_gold -= amount
+        player.save()
+    else:
+        raise CustomException('You need more gold')
+

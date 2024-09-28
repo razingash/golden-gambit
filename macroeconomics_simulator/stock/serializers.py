@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from stock.models import Player, Company, PlayerCompanies, StateLaw, GlobalEvent
+from stock.models import Player, Company, PlayerCompanies, StateLaw, GlobalEvent, CompanyWarehouse, GoldSilverExchange
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -84,6 +84,24 @@ class PlayerCompaniesSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayerCompanies
         fields = ['company', 'shares_amount', 'preferred_shares_amount', 'isFounder', 'isHead']
+
+
+class WarehouseSerializer(serializers.ModelSerializer):
+    product = serializers.CharField(source='product.type.type')
+
+    class Meta:
+        model = CompanyWarehouse
+        fields = ['company', 'amount', 'product']
+
+
+class GoldSilverRateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoldSilverExchange
+        fields = ['base_price', 'current_price', 'amount']
+
+
+class GoldAmountSerializer(serializers.Serializer):
+    amount = serializers.IntegerField()
 
 
 class LawsSerializer(serializers.ModelSerializer):
