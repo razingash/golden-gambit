@@ -1,7 +1,7 @@
 from django.core.management import BaseCommand
 
 from stock.models import Player, ProductType, CompanyType, AvailableProductsForProduction, CompanyRecipe, Recipe, \
-    GoldSilverExchange
+    GoldSilverExchange, ProductsExchange
 from stock.utils import CompanyTypes, ProductTypes
 
 
@@ -127,14 +127,36 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('generating data...'))
         users = []
+        pt = ProductTypes
         company_types = [company_type.value for company_type in CompanyTypes]
+        products_tier_1 = [pt.UNPROCESSED_FOOD, pt.MINERALS, pt.BASE_METALS, pt.CONSTRUCTION_RAW_MATERIALS, pt.WOOD,
+                           pt.SLATE, pt.LIMESTONE, pt.CLAY]
+        products_tier_2 = [pt.PROCESSED_FOOD, pt.PROCESSED_WOOD, pt.CHEMICALS, pt.PROCESSED_METALS, pt.BUILDING_MATERIALS,
+                           pt.TEXTILE]
+        products_tier_3 = [pt.MEDICINES, pt.MICROELECTRONICS, pt.MECHANICAL_PARTS, pt.FURNITURES, pt.CLOTHING]
+        products_tier_4 = [pt.OIL]
+        products_tier_5 = [pt.SPECIAL_CLOTHING, pt.WEAPONS, pt.FUEL]
         product_types = [product_type.value for product_type in ProductTypes]
         default_companies = [CompanyTypes.FARM, CompanyTypes.FISH_FARM, CompanyTypes.MINE, CompanyTypes.FOOD_FACTORY,
                              CompanyTypes.QUARRY, CompanyTypes.SAWMILL, CompanyTypes.PLANTATION, CompanyTypes.ORE_MINE]
         advanced_companies = [company_type.value for company_type in CompanyTypes if company_type not in default_companies]
 
         for product_type in product_types: # adding product types
-            ProductType.objects.create(type=product_type)
+            base_price = None
+            if product_type in products_tier_1:
+                base_price = 1
+            elif product_type in products_tier_2:
+                base_price = 2
+            elif product_type in products_tier_3:
+                base_price = 4
+            elif product_type in products_tier_4:
+                base_price = 6
+            elif product_type in products_tier_5:
+                base_price = 8
+            purchase_price = base_price * 100
+
+            product = ProductType.objects.create(type=product_type, base_price=base_price)
+            ProductsExchange.objects.create(product=product, sale_price=base_price, purchase_price=purchase_price)
 
         for company_type in company_types: # adding company types
             company = CompanyType.objects.create(type=company_type)

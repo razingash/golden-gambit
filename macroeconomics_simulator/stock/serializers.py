@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from stock.models import Player, Company, PlayerCompanies, StateLaw, GlobalEvent, CompanyWarehouse, GoldSilverExchange
+from stock.models import Player, Company, PlayerCompanies, StateLaw, GlobalEvent, CompanyWarehouse, GoldSilverExchange, \
+    ProductsExchange
+from stock.utils import ProductTypes
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -87,11 +89,14 @@ class PlayerCompaniesSerializer(serializers.ModelSerializer):
 
 
 class WarehouseSerializer(serializers.ModelSerializer):
-    product = serializers.CharField(source='product.type.type')
+    product_type_display = serializers.SerializerMethodField()
 
     class Meta:
         model = CompanyWarehouse
-        fields = ['company', 'amount', 'product']
+        fields = ['company', 'amount', 'product_type_display']
+
+    def get_product_type_display(self, obj):
+        return obj.product.get_type_display()
 
 
 class GoldSilverRateSerializer(serializers.ModelSerializer):
@@ -102,6 +107,23 @@ class GoldSilverRateSerializer(serializers.ModelSerializer):
 
 class GoldAmountSerializer(serializers.Serializer):
     amount = serializers.IntegerField()
+
+
+class ProductsSerializer(serializers.ModelSerializer):
+    product_type_display = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProductsExchange
+        fields = ['product_type_display', 'purchase_price', 'sale_price']
+
+    def get_product_type_display(self, obj):
+        return obj.product.get_type_display()
+
+
+class ProductsTradingSerializer(serializers.Serializer):
+    amount = serializers.IntegerField()
+    company_ticker = serializers.CharField(max_length=8, min_length=4)
+    product_type = serializers.ChoiceField(choices=ProductTypes.choices)
 
 
 class LawsSerializer(serializers.ModelSerializer):

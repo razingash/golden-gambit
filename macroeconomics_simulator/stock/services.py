@@ -1,19 +1,23 @@
 import json
+from datetime import datetime
 
 from django.core.paginator import Paginator
 from django.db.models import Q
-from stock.models import GoldSilverExchange, Company, Player, PlayerCompanies, CompanyWarehouse
+from django.utils import timezone
+
+from stock.models import GoldSilverExchange, Company, Player, PlayerCompanies, CompanyWarehouse, ProductsExchange, \
+    AvailableProductsForProduction, CompanyCharacteristics
 from stock.utils import CustomException, to_int
 
 
 def check_object(model: object, condition):
     obj = model.objects.filter(condition).exists()
     if obj:
-        return True
+        return obj
     else:
         raise CustomException(f'{model.__name__} object with selected conditions does not exists')
 
-def get_object(model: object, condition, fields=None): # the best way | no need for GoldSilverExchange
+def get_object(model: object, condition, fields=None): # the best way
     if fields is None:
         fields = []
     obj = model.objects.only(*fields).filter(condition).first()
@@ -27,6 +31,45 @@ def get_company_inventory(ticker):
     objects = CompanyWarehouse.objects.only(*fields).filter(company__ticker=ticker)
     return objects
 
+
+def update_produced_products_amount(ticker):
+    company = Company.objects.prefetch_related('companycharacteristics').get(ticker=ticker)
+    company_data = company.companycharacteristics
+    production_speed = company_data.production_speed
+    production_volume = company_data.production_volume
+    warehouse_capacity = company_data.warehouse_capacity
+
+    products = CompanyWarehouse.objects.filter(company=company)
+    products_for_update = AvailableProductsForProduction.objects.filter(company_type=company.type, product_type__in=products.values_list('product', flat=True))
+    updated_products = []
+    for product_for_update in products_for_update:
+        warehouse = products.get(product=product_for_update.product_type)
+        time_now = timezone.now()
+        time_difference = time_now - warehouse.check_date
+        hours_passed = time_difference.total_seconds() / 3600
+
+        produced_per_hour = 60 * production_speed * production_volume
+
+        total_produced = int(produced_per_hour * hours_passed)
+
+        new_amount = warehouse.amount + total_produced
+        remainder = warehouse.remainder or 0
+
+        if new_amount > warehouse_capacity * warehouse.max_amount: # при изменении логики warehouse_capacity!!!
+            remainder += new_amount - warehouse.max_amount
+            new_amount = warehouse.max_amount
+
+        if remainder > 10000:
+            remainder = 10000
+
+        warehouse.amount = new_amount
+        warehouse.remainder = remainder
+        warehouse.check_date = time_now
+        warehouse.save()
+
+        updated_products.append(warehouse)
+
+    return updated_products
 
 def calculate_gold_rice(instance: GoldSilverExchange, amount_of_gold): # | after API, optimize via clickhouse or redis fow webhooks
     affordable_gold = instance.amount
@@ -96,7 +139,14 @@ def calculate_share_price(company_price, shares_amount):  # | after API, optimiz
     return share_price
 
 
+def calculate_products_price(product_id, products_amount: int):
+    stock = get_object(model=ProductsExchange, condition=Q(product_id=product_id), fields=['product', 'sale_price'])
+    silver = int(stock.sale_price * products_amount)
+    return silver
+
+
 def get_paginated_objects(model: object, query_params): # later take into account a different limit for each device
+    """possible improvement - take into account the passed condition in the filter (when there is a search by name)"""
     page = query_params.get('page')
     limit = query_params.get('limit')
     # add condition if needed
@@ -160,7 +210,7 @@ def get_gold_history():
 
     return history
 
-def purchase_gold(user_id, amount):
+def purchase_gold(user_id, amount) -> None:
     amount = to_int(amount)
     gold_silver_exchange = GoldSilverExchange.objects.only('current_price', 'amount').first()
 
@@ -178,7 +228,7 @@ def purchase_gold(user_id, amount):
     else:
         raise CustomException(f'Now you have {player_silver} silver, you need {gold_price} silver to buy {amount} gold coins')
 
-def sell_gold(user_id, amount):
+def sell_gold(user_id, amount) -> None:
     amount = to_int(amount)
     gold_silver_exchange = GoldSilverExchange.objects.only('current_price', 'amount').first()
 
@@ -192,4 +242,46 @@ def sell_gold(user_id, amount):
         player.save()
     else:
         raise CustomException('You need more gold')
+
+
+def buy_products(ticker, product_type, amount) -> None:
+    amount = to_int(amount)
+    company = Company.objects.prefetch_related('companywarehouse').get(ticker=ticker).only('silver_reserve', 'companywarehouse__amount', 'companywarehouse__product')
+
+    if not company:
+        raise CustomException(f'Company with ticker {ticker} not found')
+
+    try:
+        warehouse = CompanyWarehouse.objects.get(company=company, product__type=product_type)
+    except CompanyWarehouse.DoesNotExist: # if there is no warehouse, then create...
+        warehouse = CompanyWarehouse.objects.create(company=company, product__type=product_type)
+    products_price = calculate_products_price(product_id=warehouse.product.id, products_amount=amount)
+
+    if company.silver_reserve >= products_price:
+        warehouse.amount += amount
+        company.silver_reserve -= products_price
+
+        company.save(), warehouse.save()
+
+def sell_products(ticker, product_type, amount) -> None:
+    amount = to_int(amount)
+    company = Company.objects.prefetch_related('companywarehouse').get(ticker=ticker).only('silver_reserve', 'companywarehouse__amount', 'companywarehouse__product')
+
+    if not company:
+        raise CustomException(f'Company with ticker {ticker} not found')
+
+    try:
+        warehouse = CompanyWarehouse.objects.get(company=company, product__type=product_type)
+    except CompanyWarehouse.DoesNotExist:
+        raise CustomException(f'Warehouse with product type {product_type} not found for company with ticker {ticker}')
+
+    if warehouse.amount >= amount:
+        products_price = calculate_products_price(product_id=warehouse.product.id, products_amount=amount)
+
+        warehouse.amount -= amount
+        company.silver_reserve += products_price
+
+        company.save(), warehouse.save()
+    else:
+        raise CustomException('Company need more products')
 

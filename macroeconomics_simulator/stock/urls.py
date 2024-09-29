@@ -14,25 +14,25 @@ urlpatterns = [
     path('v1/companies/', CompanyListView.as_view(), name='companies'), # | get
     path('v1/companies/<str:ticker>/', CompanyApiView.as_view(), name='company'), # get | patch | delete?
     path('v1/companies/<str:ticker>/warehouse/', CompanyWarehouseApiView.as_view(), name='company_warehouse'), # | get
+    path('v1/companies/<str:ticker>/warehouse/update/', CompanyWarehouseUpdateApiView.as_view(), name='company_warehouse_update'), # | get
     path('v1/companies/<str:ticker>/sell-shares/<int:shares_type>/', CompanySellShareApiView.as_view(), name='company_sell_shares'), # | get | post | delete
     path('v1/companies/<str:ticker>/history/', CompanyHistoryApiView.as_view(), name='company_history'), # | get
     path('v1/stock/gold/', StockGoldApiView.as_view(), name='gold_to_silver_actual_price'), # get
     path('v1/stock/gold/history/', StockGoldHistoryApiView.as_view(), name='gold_to_silver_history'), # get
-    path('v1/stock/gold-exchange/<str:transaction_type>/', GoldExchangeApiView.as_view(), name='gold-exchange'), # post
-    #path('v1/stock/products-exchange/<int:type>/', ProductsExchangeApiView.as_view() name='products-exchange'), # get | post
-    #path('v1/stock/shares-exchange/<int:type>/', ShagesExchange.as_view(), name='shares-exchange'), # get | post
+    path('v1/stock/gold/<str:transaction_type>/', GoldExchangeApiView.as_view(), name='gold-exchange'), # post
+    path('v1/stock/products/', StockProductsApiView.as_view(), name='products-exchange'), # get
+    path('v1/stock/products/<int:transaction_type>/', ProductsExchangeApiView.as_view(), name='products-exchange'), # post
+    #path('v1/stock/shares-exchange/<int:transaction_type>/', ShagesExchange.as_view(), name='shares-exchange'), # get | post
     path('v1/laws/', LawsApiView.as_view(), name='laws'), # get
     path('v1/events/', EventsApiView.as_view(), name='events') # get
 ]
 
 """
-b) продукты
-c) акции
 0) Добавить возможность прокачки компании
 1) добавить permissions для проверки является ли пользователь который запрашивает инфу её автором
 и возможно еще один для компаний - является ли пользователь акционером
 3) апи для биржи
-4) апи для покупки акций(самый гемор)
-5)вебхуки для мониторинга цен компании, золота и, возможно, товаров
+4) апи для акций(самый гемор)
+5)вебхуки для мониторинга цен компании, золота
 * попутно можно разделить сервисы на несколько файлов чтобы не было этой чепухи
 """

@@ -23,7 +23,8 @@ class Player(AbstractUser):
 
 
 class ProductType(models.Model):
-    type = models.CharField(default=ProductTypes.choices, max_length=2, blank=False, null=False)
+    type = models.IntegerField(choices=ProductTypes.choices, blank=False, null=False)
+    base_price = models.PositiveSmallIntegerField(blank=False, null=False)
 
     class Meta:
         db_table = 'dt_ProductType'
@@ -31,7 +32,7 @@ class ProductType(models.Model):
 
 class CompanyType(models.Model):
     """all changes caused by laws and events are reflected on this model, and not on the Company model"""
-    type = models.CharField(default=CompanyTypes.choices, max_length=2, blank=False, null=False)
+    type = models.IntegerField(choices=CompanyTypes.choices, blank=False, null=False)
     cartoonist = models.SmallIntegerField(blank=False, null=False)
 
     def clean(self):
@@ -76,7 +77,7 @@ class AvailableProductsForProduction(models.Model):
 
 
 class Recipe(models.Model):
-    company_type = models.CharField(default=CompanyTypes.choices, max_length=2, blank=False, null=False)
+    company_type = models.IntegerField(choices=CompanyTypes.choices, blank=False, null=False)
     isAvailable = models.BooleanField(default=True, blank=False, null=False)
 
     class Meta:
@@ -154,6 +155,9 @@ class CompanyWarehouse(models.Model):
     company = models.ForeignKey(Company, on_delete=models.PROTECT) # custom scenario
     product = models.ForeignKey(ProductType, on_delete=models.PROTECT)
     amount = models.PositiveIntegerField(default=0, blank=False, null=False)
+    remainder = models.PositiveIntegerField(default=0, blank=True, null=True)
+    max_amount = models.PositiveSmallIntegerField(default=10000, blank=False, null=False)
+    check_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
 
     class Meta:
         db_table = 'dt_CompanyWarehouse'
@@ -163,7 +167,7 @@ class CompanySharesForSale(models.Model): # add scenario for deleting company
     """this model is needed so that the company’s shareholders and the head himself have a chance to buy back
      the shares before they are put up for trading on SharesExchange model"""
     company = models.ForeignKey(Company, on_delete=models.DO_NOTHING)
-    shares_type = models.CharField(choices=SharesTypes.choices, max_length=1, blank=False, null=False)
+    shares_type = models.IntegerField(choices=SharesTypes.choices, blank=False, null=False)
     shares_amount = models.PositiveBigIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
     shares_price = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
 
@@ -183,10 +187,12 @@ class PlayerCompanies(models.Model):
         db_table = 'dt_PlayerCompanies'
 
 
-class CompanyData(models.Model): # improve this to make it is possible to modify these indicators through events
+class CompanyCharacteristics(models.Model):
+    """changes caused by laws and events can be reflected in speed and volume fields"""
     company = models.OneToOneField(Company, on_delete=models.CASCADE)
-    production_speed = models.PositiveSmallIntegerField(blank=False, null=False)
-    production_volume = models.PositiveSmallIntegerField(blank=False, null=False)
+    production_speed = models.PositiveSmallIntegerField(default=1, blank=False, null=False)
+    production_volume = models.PositiveSmallIntegerField(default=1, blank=False, null=False)
+    warehouse_capacity = models.PositiveSmallIntegerField(default=1, blank=False, null=False)
 
     class Meta:
         db_table = 'dt_CompanyData'
@@ -194,7 +200,7 @@ class CompanyData(models.Model): # improve this to make it is possible to modify
 
 class SharesExchange(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE) # custom scenario?
-    shares_type = models.CharField(choices=SharesTypes.choices, max_length=1, blank=False, null=False)
+    shares_type = models.IntegerField(choices=SharesTypes.choices, blank=False, null=False)
     amount = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
     price = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
 
@@ -215,9 +221,10 @@ class GoldSilverExchange(models.Model):
 
 
 class ProductsExchange(models.Model):
-    product = models.CharField(choices=ProductTypes.choices, max_length=2, blank=False, null=False)
-    price = models.PositiveIntegerField(validators=[MinValueValidator(10)], blank=False, null=False)
-    amount = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
+    """changes caused by laws and events can be reflected in fields"""
+    product = models.OneToOneField(ProductType, on_delete=models.CASCADE)
+    purchase_price = models.PositiveIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
+    sale_price = models.PositiveIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
 
     class Meta:
         db_table = 'dt_ProductsExchange'
@@ -236,7 +243,7 @@ class StateLaw(models.Model):
 
 class GlobalEvent(models.Model): # mb improve this model | find another name
     """events are needed mainly to stabilize the market and force some players to lose their companies"""
-    type = models.CharField(choices=EventTypes.choices, max_length=2, blank=False, null=False)
+    type = models.IntegerField(choices=EventTypes.choices, blank=False, null=False)
     since = models.DateField(auto_now_add=True, blank=False, null=False)
     to = models.DateField(blank=True, null=True)
     isActual = models.BooleanField(default=True, blank=False, null=False)
