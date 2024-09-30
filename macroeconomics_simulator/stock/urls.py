@@ -11,13 +11,13 @@ urlpatterns = [
     path('v1/logout/', LogoutView.as_view(), name='logout'),
     path('v1/users/<str:user_id>/', UserApiView.as_view(), name='user'), # get
     path('v1/users/<int:user_id>/companies/', UserCompaniesView.as_view(), name='user_companies'), # get | post
-    path('v1/companies/', CompanyListView.as_view(), name='companies'), # | get
-    path('v1/companies/<str:ticker>/', CompanyApiView.as_view(), name='company'), # get | patch | delete?
+    path('v1/companies/', CompanyListView.as_view(), name='companies'), # get
+    path('v1/companies/<str:ticker>/', CompanyApiView.as_view(), name='company'), # get | patch
     path('v1/companies/<str:ticker>/warehouse/', CompanyWarehouseApiView.as_view(), name='company_warehouse'), # | get
     path('v1/companies/<str:ticker>/warehouse/update/', CompanyWarehouseUpdateApiView.as_view(), name='company_warehouse_update'), # | get
     path('v1/companies/<str:ticker>/exchange/', CompanyIncreaseSharesApiView.as_view(), name='company_increase_shares'), # post
     path('v1/companies/<str:ticker>/sell-shares/', CompanySellShareApiView.as_view(), name='company_sell_shares'), # post
-    path('v1/companies/<str:ticker>/history/', CompanyHistoryApiView.as_view(), name='company_history'), # | get
+    path('v1/companies/<str:ticker>/history/', CompanyHistoryApiView.as_view(), name='company_history'), # get
     path('v1/stock/gold/', StockGoldApiView.as_view(), name='gold_to_silver_actual_price'), # get
     path('v1/stock/gold/history/', StockGoldHistoryApiView.as_view(), name='gold_to_silver_history'), # get
     path('v1/stock/gold/<str:transaction_type>/', GoldExchangeApiView.as_view(), name='gold-exchange'), # post
@@ -29,10 +29,3 @@ urlpatterns = [
     path('v1/events/', EventsApiView.as_view(), name='events') # get
 ]
 
-"""
-0) Добавить возможность прокачки компании
-1) добавить permissions для проверки является ли пользователь который запрашивает инфу её автором
-и возможно еще один для компаний - является ли пользователь акционером
-5)вебхуки для мониторинга цен компании, золота
-* попутно можно разделить сервисы на несколько файлов чтобы не было этой чепухи
-"""

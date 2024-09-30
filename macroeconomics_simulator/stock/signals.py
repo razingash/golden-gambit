@@ -1,6 +1,5 @@
 import json
 import os
-import time
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -34,14 +33,3 @@ def fill_json_template_for_gold_silver_rate(sender, instance, created, **kwargs)
 
         instance.history = json_path
         instance.save()
-    else:
-        with open(json_path, 'r') as file:
-            json_data = json.load(file)
-
-        json_data["contents"].append({
-            "timestamp": int(time.time()),
-            "current price": instance.current_price
-        })
-
-        with open(json_path, 'w') as file:
-            json.dump(json_data, file, indent=2)

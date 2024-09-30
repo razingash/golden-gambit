@@ -125,10 +125,11 @@ class PlayerCompaniesSerializer(serializers.ModelSerializer):
 
 class WarehouseSerializer(serializers.ModelSerializer):
     product_type_display = serializers.SerializerMethodField()
+    ticker = serializers.CharField(source='company.ticker', read_only=True)
 
     class Meta:
         model = CompanyWarehouse
-        fields = ['company', 'amount', 'product_type_display']
+        fields = ['ticker', 'amount', 'product_type_display']
 
     def get_product_type_display(self, obj):
         return obj.product.get_type_display()

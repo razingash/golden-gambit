@@ -1,13 +1,12 @@
 from django.db.models import Q
 from rest_framework import status
-from rest_framework.authentication import get_authorization_header
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
-from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
+from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken, AccessToken
 from rest_framework_simplejwt.views import TokenVerifyView
 
 from services.base import get_paginated_objects, get_object
@@ -17,6 +16,7 @@ from services.stock.S_services import purchase_gold, sell_gold, get_gold_history
     buy_management_shares
 from services.user.U_services import get_player, get_user_companies
 from stock.models import Company, StateLaw, GlobalEvent, GoldSilverExchange, ProductsExchange
+from stock.permissions import IsAuthor, IsHeadOfCompany
 from stock.serializers import RegisterSerializer, CompanyCreateSerializer, CompanySerializer, PlayerSerializer, \
     PlayerCompaniesSerializer, CompanyUpdateSerializer, EventsSerializer, LawsSerializer, WarehouseSerializer, \
     GoldSilverRateSerializer, GoldAmountSerializer, ProductsSerializer, ProductsTradingSerializer, \
@@ -70,19 +70,19 @@ class TokenVerifyWithBlacklistView(TokenVerifyView):
             raise InvalidToken(e.args[0])
 
 
-class UserApiView(APIView):
-    #add some permissions
+class UserApiView(APIView): #add some permissions
+    permission_classes = (IsAuthenticated, IsAuthor)
+
     def get(self, request, user_id):
-        #print(get_authorization_header(request).decode('utf-8').split()[1])
         player = get_player(user_id)
 
         return Response(PlayerSerializer(player, many=False).data)
 
 
 class UserCompaniesView(APIView):
-    #permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, )
 
-    def get(self, request, user_id):
+    def get(self, request, user_id): # mb api for unlogged also
         companies = get_user_companies(user_id)
 
         return Response(PlayerCompaniesSerializer(companies, many=True).data)
@@ -105,12 +105,14 @@ class CompanyListView(APIView):
 
 
 class CompanyApiView(APIView):
-    def get(self, request, ticker):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request, ticker): # make a separate API with different levels of information for logged and unlogged users?
         company = get_object_or_404(Company, ticker=ticker)
 
         return Response(CompanySerializer(company, many=False).data)
 
-    def patch(self, request, ticker):
+    def patch(self, request, ticker): # only for company head
         company = get_object_or_404(Company, ticker=ticker)
         serializer = CompanyUpdateSerializer(company, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -122,21 +124,25 @@ class CompanyApiView(APIView):
 
 class CompanyWarehouseApiView(APIView): # check
     """only receiving the company's inventory, putting it up for sale in another API"""
+    permission_classes = (IsAuthenticated, IsHeadOfCompany)
+
     def get(self, request, ticker):
         inventory = get_company_inventory(ticker)
         return Response(WarehouseSerializer(inventory, many=True).data)
 
-class CompanyWarehouseUpdateApiView(APIView): # check!
+class CompanyWarehouseUpdateApiView(APIView):
     """updates the quantity of the selected resource produced by the company"""
-    #permission_classes = (IsAuthenticated, IsAuthor)
+    permission_classes = (IsAuthenticated, IsHeadOfCompany)
+
     def get(self, request, ticker):
         updated_products = update_produced_products_amount(ticker)
         return Response(WarehouseSerializer(updated_products, many=True).data)
 
 
 class CompanyIncreaseSharesApiView(APIView):
+    permission_classes = (IsAuthenticated, IsHeadOfCompany)
     #Perhaps the logic behind adding new shares is incorrect (considering that they immediately go on sale)
-    # добавить проверку на авторство(на уровне главы компании)
+
     def post(self, request, ticker): # issue of new shares
         serializer = SharesExchangeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -153,6 +159,8 @@ class CompanyIncreaseSharesApiView(APIView):
 
 
 class CompanySellShareApiView(APIView):
+    permission_classes = (IsAuthenticated, IsHeadOfCompany)
+
     def post(self, request, ticker):
         """
         putting up management shares for an internal auction - 1 hour are given to The Head of the company to buy back the
@@ -189,12 +197,17 @@ class StockGoldApiView(APIView):
 
 
 class GoldExchangeApiView(APIView):
+    permission_classes = (IsAuthenticated, )
+
     @custom_exception
     def post(self, request, transaction_type): # if the user doesn't have enough money a custom exception will occur
         serializer = GoldAmountSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         amount = request.data.get('amount')
-        user_id = request.data.get('user_id')  # позже сделать отдельный метод который будет получать id из токена
+
+        auth_header = request.headers.get('Authorization')
+        user_id = AccessToken(auth_header.split()[1])['user_id']
+
         if transaction_type == "buy": # purchase
             purchase_gold(user_id=user_id, amount=amount)
 
@@ -225,6 +238,7 @@ class StockProductsApiView(APIView):
 
 class ProductsExchangeApiView(APIView):
     """buying or selling goods, while there is no point in buying (and isn't planned)"""
+    permission_classes = (IsAuthenticated, )
 
     @custom_exception
     def post(self, request, transaction_type):  # if the user doesn't have enough money a custom exception will occur
@@ -246,6 +260,8 @@ class ProductsExchangeApiView(APIView):
 
 
 class SharesListApiView(APIView):
+    permission_classes = (IsAuthenticated, )
+
     def get(self, request):
         shares, has_next = get_available_shares(request.query_params, user_id=None)
         serializer = SharesExchangeListSerializer(shares, many=True)
@@ -255,6 +271,7 @@ class SharesListApiView(APIView):
 
 class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
     """make webhook for getting actual amount of available shares"""
+    permission_classes = (IsAuthenticated, )
 
     @custom_exception
     def post(self, request, ticker): # improve with permissions
@@ -264,7 +281,9 @@ class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
         shares_type = request.data.get('shares_type')
         amount = request.data.get('amount')
         price = request.data.get('price')
-        user_id = request.data.get('user_id')  # позже сделать отдельный метод который будет получать id из токена
+
+        auth_header = request.headers.get('Authorization')
+        user_id = AccessToken(auth_header.split()[1])['user_id']
 
         if shares_type == 1: # ordinary
             buy_shares(user_id, ticker, amount, price)
