@@ -1,5 +1,6 @@
 from django.db.models import Q
 from rest_framework import status
+from rest_framework.authentication import get_authorization_header
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -9,15 +10,17 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from rest_framework_simplejwt.views import TokenVerifyView
 
+from services.base import get_paginated_objects, get_object
+from services.company.C_services import create_new_company, get_company_inventory, update_produced_products_amount, \
+    make_new_shares, put_up_shares_for_sale, get_company_history, buy_products, sell_products
+from services.stock.S_services import purchase_gold, sell_gold, get_gold_history, get_available_shares, buy_shares, \
+    buy_management_shares
+from services.user.U_services import get_player, get_user_companies
 from stock.models import Company, StateLaw, GlobalEvent, GoldSilverExchange, ProductsExchange
 from stock.serializers import RegisterSerializer, CompanyCreateSerializer, CompanySerializer, PlayerSerializer, \
     PlayerCompaniesSerializer, CompanyUpdateSerializer, EventsSerializer, LawsSerializer, WarehouseSerializer, \
     GoldSilverRateSerializer, GoldAmountSerializer, ProductsSerializer, ProductsTradingSerializer, \
-    CompanySharesForSaleSerializer, SharesExchangePurchaseSerializer, SharesExchangeListSerializer
-from stock.services import create_new_company, get_player, get_user_companies, get_paginated_objects, \
-    get_company_history, get_company_inventory, get_object, get_gold_history, purchase_gold, sell_gold, sell_products, \
-    buy_products, update_produced_products_amount, make_new_shares, put_up_shares_for_sale, get_available_shares, \
-    buy_shares, buy_management_shares
+    SharesExchangeSerializer, SharesExchangeListSerializer, CompanyPrintNewSharesSerializer, SellSharesSerializer
 from stock.utils import custom_exception
 
 
@@ -70,6 +73,7 @@ class TokenVerifyWithBlacklistView(TokenVerifyView):
 class UserApiView(APIView):
     #add some permissions
     def get(self, request, user_id):
+        #print(get_authorization_header(request).decode('utf-8').split()[1])
         player = get_player(user_id)
 
         return Response(PlayerSerializer(player, many=False).data)
@@ -122,7 +126,7 @@ class CompanyWarehouseApiView(APIView): # check
         inventory = get_company_inventory(ticker)
         return Response(WarehouseSerializer(inventory, many=True).data)
 
-class CompanyWarehouseUpdateApiView(APIView):
+class CompanyWarehouseUpdateApiView(APIView): # check!
     """updates the quantity of the selected resource produced by the company"""
     #permission_classes = (IsAuthenticated, IsAuthor)
     def get(self, request, ticker):
@@ -131,28 +135,40 @@ class CompanyWarehouseUpdateApiView(APIView):
 
 
 class CompanyIncreaseSharesApiView(APIView):
+    #Perhaps the logic behind adding new shares is incorrect (considering that they immediately go on sale)
     # добавить проверку на авторство(на уровне главы компании)
-    def post(self, request, ticker, shares_type): # issue of new shares
-        serializer = CompanySharesForSaleSerializer(data=request.data)
+    def post(self, request, ticker): # issue of new shares
+        serializer = SharesExchangeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        shares_type = request.data.get('shares_type')
         amount = request.data.get('amount')
         price = request.data.get('price')
 
         if shares_type == 1 or shares_type == 2: # 1 - ordinary shares & 2 - management shares
-            make_new_shares(ticker, shares_type, amount, price)
+            obj = make_new_shares(ticker, shares_type, amount, price)
+            return Response(CompanyPrintNewSharesSerializer(obj, many=False).data)
         else: # error
             return Response(f'error: Bad Request, {shares_type} is a non-existent share type', status=status.HTTP_400_BAD_REQUEST)
 
 
 class CompanySellShareApiView(APIView):
-    def post(self, request, ticker, shares_type):
+    def post(self, request, ticker):
         """
         putting up management shares for an internal auction - 1 hour are given to The Head of the company to buy back the
         shares or cancel the sale, then 6 hours will be given for shareholders, after which they will go to the stock exchange
         """
+        serializer = SharesExchangeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        shares_type = request.data.get('shares_type')
+        amount = request.data.get('amount')
+        price = request.data.get('price')
+
         if shares_type == 1 or shares_type == 2: # 1 - ordinary shares & 2 - management shares
-            put_up_shares_for_sale(ticker, shares_type)
+            company = get_object_or_404(Company, ticker=ticker)
+            shares = put_up_shares_for_sale(company, shares_type, amount, price)
+            return Response(SellSharesSerializer(shares, many=False).data)
         else: # error
             return Response(f'error: Bad Request, {shares_type} is a non-existent share type', status=status.HTTP_400_BAD_REQUEST)
 
@@ -241,12 +257,15 @@ class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
     """make webhook for getting actual amount of available shares"""
 
     @custom_exception
-    def post(self, request, ticker, shares_type): # only purchase
-        serializer = SharesExchangePurchaseSerializer(data=request.data)
+    def post(self, request, ticker): # improve with permissions
+        serializer = SharesExchangeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        shares_type = request.data.get('shares_type')
         amount = request.data.get('amount')
         price = request.data.get('price')
         user_id = request.data.get('user_id')  # позже сделать отдельный метод который будет получать id из токена
+
         if shares_type == 1: # ordinary
             buy_shares(user_id, ticker, amount, price)
             return Response(status=status.HTTP_200_OK)

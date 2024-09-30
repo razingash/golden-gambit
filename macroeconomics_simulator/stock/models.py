@@ -192,8 +192,8 @@ class SharesExchange(models.Model):
         the shares before they are put up for trading on SharesExchange model"""
     company = models.ForeignKey(Company, on_delete=models.CASCADE) # custom scenario?
     shares_type = models.IntegerField(choices=SharesTypes.choices, blank=False, null=False)
-    amount = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
-    price = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
+    amount = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100000)], blank=False, null=False)
+    price = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10000)], blank=False, null=False)
     owners_right = models.DateTimeField(default=right_of_purchase_for_owners, blank=True, null=True)
     shareholders_right = models.DateTimeField(default=right_of_purchase_for_shareholders, blank=True, null=True)
 

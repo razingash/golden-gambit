@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -38,32 +40,33 @@ class CompanySerializer(serializers.ModelSerializer):
 class CompanyUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
-        fields = ('name', 'shares_amount', 'preferred_shares_amount', 'dividendes_percent')
+        fields = ('name', 'dividendes_percent')
 
     def update(self, instance, validated_data):
         if 'name' in validated_data:
             instance.name = validated_data.get('name', instance.name)
-
-        if 'shares_amount' in validated_data:
-            self.update_shares_amount(instance, validated_data['shares_amount'])
-
-        if 'preferred_shares_amount' in validated_data:
-            self.update_preferred_shares_amount(instance, validated_data['preferred_shares_amount'])
 
         if 'dividendes_percent' in validated_data:
             self.update_dividendes_percent(instance, validated_data['dividendes_percent'])
 
         instance.save()
         return instance
-    # видимо надо будет разделить сервисы на несколько папок чтобы не было неразберихи
-    def update_shares_amount(self, instance, shares_amount):
-        pass # тут надо будет делать перераспределение акций - сделать после добавления функции покупки акций(то есть в конце)
-
-    def update_preferred_shares_amount(self, instance, preferred_shares_amount):
-        pass # по идее повышатся будет после того как владелец внесет голду на счет компании или люди купят акции за золото(которое пойдет компании)
 
     def update_dividendes_percent(self, instance, dividendes_percent):
-        pass # сделать фиксированое колебание - максимум на 0.5 в год
+        permissible_fluctuation = Decimal(3)
+        if abs(dividendes_percent) <= permissible_fluctuation:
+            dividendes = instance.dividendes_percent + dividendes_percent
+            if dividendes_percent == 0:
+                raise serializers.ValidationError(f"Too low fluctuation - {dividendes_percent}%")
+            if dividendes >= 0:
+                if dividendes <= 50:
+                    instance.dividendes_percent += dividendes_percent
+                else:
+                    raise serializers.ValidationError("Dividend percentage cannot be greater than 50")
+            else:
+                raise serializers.ValidationError("Dividend percentage cannot be negative ")
+        else:
+            raise serializers.ValidationError(f"Too high fluctuation for dividends, maximum - {permissible_fluctuation}%")
 
 
 class CompanyCreateSerializer(serializers.ModelSerializer):
@@ -72,31 +75,45 @@ class CompanyCreateSerializer(serializers.ModelSerializer):
         fields = ['type', 'ticker', 'name', 'shares_amount', 'preferred_shares_amount', 'dividendes_percent']
 
 
+class CompanyPrintNewSharesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ['ticker', 'shares_amount', 'preferred_shares_amount']
+
+
 class SharesExchangeListSerializer(serializers.ModelSerializer):
+    ticker = serializers.CharField(source='company.ticker')
+    name = serializers.CharField(source='company.name')
+
+    class Meta:
+        model = SharesExchange
+        fields = ['ticker', 'name', 'shares_type', 'amount', 'price']
+
+
+class SellSharesSerializer(serializers.ModelSerializer):
+    ticker = serializers.CharField(source='company.ticker', read_only=True)
+
+    class Meta:
+        model = SharesExchange
+        fields = ['ticker', 'shares_type', 'amount', 'price']
+
+class SharesExchangeSerializer(serializers.ModelSerializer): # used in 3 places!
     class Meta:
         model = SharesExchange
         fields = ['shares_type', 'amount', 'price']
-
-
-class CompanySharesForSaleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SharesExchange
-        fields = ['shares_type', 'amount', 'price']
-
-
-class SharesExchangePurchaseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SharesExchange
-        fields = ['amount', 'price']
 
 
 class CompanyCreateSerializer2(serializers.ModelSerializer):
-    type = serializers.CharField(source='type.type')
+    company_type_display = serializers.SerializerMethodField()
     cartoonist = serializers.IntegerField(source='type.cartoonist')
 
     class Meta:
         model = Company
-        fields = ['type', 'cartoonist', 'ticker', 'shares_amount', 'preferred_shares_amount', 'dividendes_percent']
+        fields = ['company_type_display', 'cartoonist', 'ticker', 'shares_amount', 'preferred_shares_amount', 'dividendes_percent']
+
+    def get_company_type_display(self, obj):
+        return obj.type.get_type_display()
+
 
 class PlayerCompaniesSerializer(serializers.ModelSerializer):
     company = CompanyCreateSerializer2()
@@ -142,6 +159,11 @@ class ProductsTradingSerializer(serializers.Serializer):
     amount = serializers.IntegerField()
     company_ticker = serializers.CharField(max_length=8, min_length=4)
     product_type = serializers.ChoiceField(choices=ProductTypes.choices)
+
+    def validate_company_ticker(self, value):
+        if not Company.objects.filter(ticker=value).exists():
+            raise serializers.ValidationError(f"Company with ticker {value} does not exist")
+        return value
 
 
 class LawsSerializer(serializers.ModelSerializer):
