@@ -5,11 +5,12 @@ from decimal import Decimal
 from uuid import uuid4
 
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinLengthValidator, MinValueValidator
+from django.core.validators import MinLengthValidator, MinValueValidator, MaxValueValidator
 from django.db import models
 
 from macroeconomics_simulator import settings
-from stock.utils import ProductTypes, CompanyTypes, SharesTypes, EventTypes
+from stock.utils import ProductTypes, CompanyTypes, SharesTypes, EventTypes, right_of_purchase_for_shareholders, \
+    right_of_purchase_for_owners
 
 
 class Player(AbstractUser):
@@ -163,18 +164,6 @@ class CompanyWarehouse(models.Model):
         db_table = 'dt_CompanyWarehouse'
 
 
-class CompanySharesForSale(models.Model): # add scenario for deleting company
-    """this model is needed so that the company’s shareholders and the head himself have a chance to buy back
-     the shares before they are put up for trading on SharesExchange model"""
-    company = models.ForeignKey(Company, on_delete=models.DO_NOTHING)
-    shares_type = models.IntegerField(choices=SharesTypes.choices, blank=False, null=False)
-    shares_amount = models.PositiveBigIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
-    shares_price = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
-
-    class Meta:
-        db_table = 'dt_CompanySharesForSale'
-
-
 class PlayerCompanies(models.Model):
     player = models.ForeignKey(Player, on_delete=models.PROTECT) # user can't be deleted
     company = models.ForeignKey(Company, on_delete=models.DO_NOTHING) # add a scenario for merging companies
@@ -190,19 +179,23 @@ class PlayerCompanies(models.Model):
 class CompanyCharacteristics(models.Model):
     """changes caused by laws and events can be reflected in speed and volume fields"""
     company = models.OneToOneField(Company, on_delete=models.CASCADE)
-    production_speed = models.PositiveSmallIntegerField(default=1, blank=False, null=False)
-    production_volume = models.PositiveSmallIntegerField(default=1, blank=False, null=False)
-    warehouse_capacity = models.PositiveSmallIntegerField(default=1, blank=False, null=False)
+    production_speed = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(5)], blank=False, null=False)
+    production_volume = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(5)], blank=False, null=False)
+    warehouse_capacity = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(5)], blank=False, null=False)
 
     class Meta:
         db_table = 'dt_CompanyData'
 
 
 class SharesExchange(models.Model):
+    """this model is needed so that the company’s shareholders and the head himself have a chance to buy back
+        the shares before they are put up for trading on SharesExchange model"""
     company = models.ForeignKey(Company, on_delete=models.CASCADE) # custom scenario?
     shares_type = models.IntegerField(choices=SharesTypes.choices, blank=False, null=False)
     amount = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
     price = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
+    owners_right = models.DateTimeField(default=right_of_purchase_for_owners, blank=True, null=True)
+    shareholders_right = models.DateTimeField(default=right_of_purchase_for_shareholders, blank=True, null=True)
 
     class Meta:
         db_table = 'dt_SharesExchange'

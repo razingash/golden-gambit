@@ -12,10 +12,12 @@ from rest_framework_simplejwt.views import TokenVerifyView
 from stock.models import Company, StateLaw, GlobalEvent, GoldSilverExchange, ProductsExchange
 from stock.serializers import RegisterSerializer, CompanyCreateSerializer, CompanySerializer, PlayerSerializer, \
     PlayerCompaniesSerializer, CompanyUpdateSerializer, EventsSerializer, LawsSerializer, WarehouseSerializer, \
-    GoldSilverRateSerializer, GoldAmountSerializer, ProductsSerializer, ProductsTradingSerializer
+    GoldSilverRateSerializer, GoldAmountSerializer, ProductsSerializer, ProductsTradingSerializer, \
+    CompanySharesForSaleSerializer, SharesExchangePurchaseSerializer, SharesExchangeListSerializer
 from stock.services import create_new_company, get_player, get_user_companies, get_paginated_objects, \
     get_company_history, get_company_inventory, get_object, get_gold_history, purchase_gold, sell_gold, sell_products, \
-    buy_products, update_produced_products_amount
+    buy_products, update_produced_products_amount, make_new_shares, put_up_shares_for_sale, get_available_shares, \
+    buy_shares, buy_management_shares
 from stock.utils import custom_exception
 
 
@@ -128,17 +130,29 @@ class CompanyWarehouseUpdateApiView(APIView):
         return Response(WarehouseSerializer(updated_products, many=True).data)
 
 
-class CompanySellShareApiView(APIView): # позже доделать еще и методы get и delete(забрать акции из пула)
+class CompanyIncreaseSharesApiView(APIView):
+    # добавить проверку на авторство(на уровне главы компании)
+    def post(self, request, ticker, shares_type): # issue of new shares
+        serializer = CompanySharesForSaleSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        amount = request.data.get('amount')
+        price = request.data.get('price')
+
+        if shares_type == 1 or shares_type == 2: # 1 - ordinary shares & 2 - management shares
+            make_new_shares(ticker, shares_type, amount, price)
+        else: # error
+            return Response(f'error: Bad Request, {shares_type} is a non-existent share type', status=status.HTTP_400_BAD_REQUEST)
+
+
+class CompanySellShareApiView(APIView):
     def post(self, request, ticker, shares_type):
         """
-        putting up management shares for an internal auction - 6 hours are given to The Head of the company to buy back
-        the shares or cancel the sale, then 24 hours will be given for shareholders (if there are none, then immediately
-        to the stock exchange), after which they will go to the stock exchange
+        putting up management shares for an internal auction - 1 hour are given to The Head of the company to buy back the
+        shares or cancel the sale, then 6 hours will be given for shareholders, after which they will go to the stock exchange
         """
-        if shares_type == 1: # ordinary shares
-            pass
-        elif shares_type == 2: # management shares
-            pass
+        if shares_type == 1 or shares_type == 2: # 1 - ordinary shares & 2 - management shares
+            put_up_shares_for_sale(ticker, shares_type)
         else: # error
             return Response(f'error: Bad Request, {shares_type} is a non-existent share type', status=status.HTTP_400_BAD_REQUEST)
 
@@ -213,6 +227,34 @@ class ProductsExchangeApiView(APIView):
         else:
             return Response(f'error: Bad Request, {transaction_type} is a non-existent transaction type',
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+class SharesListApiView(APIView):
+    def get(self, request):
+        shares, has_next = get_available_shares(request.query_params, user_id=None)
+        serializer = SharesExchangeListSerializer(shares, many=True)
+
+        return Response({'data': serializer.data, 'has_next': has_next})
+
+
+class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
+    """make webhook for getting actual amount of available shares"""
+
+    @custom_exception
+    def post(self, request, ticker, shares_type): # only purchase
+        serializer = SharesExchangePurchaseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        amount = request.data.get('amount')
+        price = request.data.get('price')
+        user_id = request.data.get('user_id')  # позже сделать отдельный метод который будет получать id из токена
+        if shares_type == 1: # ordinary
+            buy_shares(user_id, ticker, amount, price)
+            return Response(status=status.HTTP_200_OK)
+        elif shares_type == 2: # management
+            buy_management_shares(user_id, ticker, amount, price)
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(f'error: Bad Request, {shares_type} is a non-existent shares type', status=status.HTTP_400_BAD_REQUEST)
 
 
 class LawsApiView(APIView):

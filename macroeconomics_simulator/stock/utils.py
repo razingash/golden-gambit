@@ -1,6 +1,9 @@
+from datetime import timedelta
+
 from django.db import models
 from rest_framework.response import Response
-
+from django.utils import timezone
+"""Choices, model related functions"""
 
 class CompanyTypes(models.IntegerChoices):
     FARM = 1, 'farm' # 1x
@@ -73,6 +76,12 @@ class EventTypes(models.IntegerChoices):
     EPIDEMIC = 6, 'epidemic'
     PROTESTS = 7, 'Protests'
     WAR = 8, 'war'
+
+def right_of_purchase_for_owners(): # shares are available only to the head of a company | mb owner also
+    return timezone.now() + timedelta(hours=1)
+
+def right_of_purchase_for_shareholders(): # shares are available only to the shareholders, after 6 hours to everyone
+    return timezone.now() + timedelta(hours=6)
 
 
 class CustomException(Exception): # probably postpone all related with error class in exceptions.py

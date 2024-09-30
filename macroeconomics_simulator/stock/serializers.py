@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from stock.models import Player, Company, PlayerCompanies, StateLaw, GlobalEvent, CompanyWarehouse, GoldSilverExchange, \
-    ProductsExchange
+    ProductsExchange, SharesExchange
 from stock.utils import ProductTypes
 
 
@@ -70,6 +70,24 @@ class CompanyCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = ['type', 'ticker', 'name', 'shares_amount', 'preferred_shares_amount', 'dividendes_percent']
+
+
+class SharesExchangeListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SharesExchange
+        fields = ['shares_type', 'amount', 'price']
+
+
+class CompanySharesForSaleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SharesExchange
+        fields = ['shares_type', 'amount', 'price']
+
+
+class SharesExchangePurchaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SharesExchange
+        fields = ['amount', 'price']
 
 
 class CompanyCreateSerializer2(serializers.ModelSerializer):

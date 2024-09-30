@@ -1,12 +1,11 @@
 import json
-from datetime import datetime
 
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
 
 from stock.models import GoldSilverExchange, Company, Player, PlayerCompanies, CompanyWarehouse, ProductsExchange, \
-    AvailableProductsForProduction, CompanyCharacteristics
+    AvailableProductsForProduction, SharesExchange
 from stock.utils import CustomException, to_int
 
 
@@ -137,6 +136,127 @@ def calculate_company_price2(company_income, company_cartoonist, company_gold, c
 def calculate_share_price(company_price, shares_amount):  # | after API, optimize via clickhouse
     share_price = company_price / shares_amount
     return share_price
+
+
+def recalculation_of_the_shareholders_influence(instance: Company) -> None:
+    """recalculates the influence of shareholders to determine the current head of the company"""
+    head = PlayerCompanies.objects.filter(company=instance).order_by('-preferred_shares_amount').only('preferred_shares_amount', 'isHead').first()
+    current_head = PlayerCompanies.objects.filter(company=instance, isHead=True).only('isHead').first()
+    if current_head != head:
+        current_head.isHead = False
+        head.isHead = True
+        current_head.save(), head.save()
+
+
+def make_new_shares(ticker, shares_type, amount, price):
+    amount, price = to_int(amount), to_int(price)
+    company = Company.objects.filter(ticker=ticker)
+    company.shares_amount += amount
+    SharesExchange.objects.create(company=company, shares_type=shares_type, shares_amount=amount, shares_price=price)
+
+    if shares_type == 2: # management shares
+        recalculation_of_the_shareholders_influence(company)
+
+    company.save()
+
+
+def put_up_shares_for_sale(ticker, shares_type):
+    if shares_type == 1: # ordinary
+        tz = timezone.now()
+        SharesExchange.objects.create(ticker=ticker, shares_type=shares_type, owners_right=tz, shareholders_right=tz)
+    elif shares_type == 2: # management
+        SharesExchange.objects.create(ticker=ticker, shares_type=shares_type)
+
+
+def get_available_shares_for_everyone(current_time): # unlogged users
+    objects = SharesExchange.objects.filter(shareholders_right__lt=current_time).order_by('-id')
+
+    return objects
+
+def get_availabale_shares_for_shareholders(current_time, user_id): # logged users | shareholders
+    user_companies = PlayerCompanies.objects.filter(player_id=user_id).values_list('company_id', flat=True)
+    objects = SharesExchange.objects.filter(company__in=user_companies, owners_right__lt=current_time).order_by('-id')
+
+    return objects
+
+def get_available_shares_for_owners(user_id): # logged users | owners
+    user_companies = PlayerCompanies.objects.filter(player_id=user_id, isHead=True).values_list('company_id', flat=True)
+    objects = SharesExchange.objects.filter(company__in=user_companies).order_by('-id')
+
+    return objects
+
+def get_available_shares(query_params, user_id=None):
+    availability = query_params.get('availability')  # availability=1
+    page = query_params.get('page')
+    limit = query_params.get('limit')
+    # add condition if needed
+    limit = int(limit) if limit is not None else 10
+    page = int(page) if page is not None else 1
+    if user_id is None:
+        current_time = timezone.now()
+        objects = get_available_shares_for_everyone(current_time)
+    else:
+        if availability is None: #
+            current_time = timezone.now()
+            objects = get_availabale_shares_for_shareholders(current_time, user_id)
+        else: # 1
+            objects = get_available_shares_for_owners(user_id)
+
+    paginator = Paginator(objects, limit)
+    obj = paginator.get_page(page)
+    has_next = obj.has_next()
+
+    return obj, has_next
+
+
+def buy_shares(user_id, ticker, amount, price): # for silver
+    stock_shares = get_object(model=SharesExchange, condition=Q(ticker=ticker))
+    user = get_object(model=Player, condition=Q(user_id=user_id))
+    company = get_object(model=Company, condition=Q(ticker=ticker))
+    full_price = int(amount * price)
+
+
+    if user.silver >= full_price:
+        if stock_shares.amount >= amount:
+            user.silver -= full_price
+            company.silver_reserve += full_price
+            stock_shares.amount -= amount
+
+            if stock_shares.amount == amount:
+                stock_shares.delete()
+            else:
+                stock_shares.save()
+
+            company.save(), user.save()
+        else:
+            raise CustomException(f'The current number of shares on the exchange is {stock_shares.amount}, you need {amount}')
+    else:
+        raise CustomException('You need more silver')
+
+
+def buy_management_shares(user_id, ticker, amount, price):
+    stock_shares = get_object(model=SharesExchange, condition=Q(ticker=ticker))
+    user = get_object(model=Player, condition=Q(user_id=user_id))
+    company = get_object(model=Company, condition=Q(ticker=ticker))
+    full_price = int(amount * price)
+
+    if user.gold >= full_price:
+        if stock_shares.amount >= amount:
+            user.gold -= full_price
+            company.gold_reserve += full_price
+            stock_shares.amount -= amount
+
+            if stock_shares.amount == amount:
+                stock_shares.delete()
+            else:
+                stock_shares.save()
+
+            company.save(), user.save()
+        else:
+            raise CustomException(
+                f'The current number of shares on the exchange is {stock_shares.amount}, you need {amount}')
+    else:
+        raise CustomException('You need more gold')
 
 
 def calculate_products_price(product_id, products_amount: int):
