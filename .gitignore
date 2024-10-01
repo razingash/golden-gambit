@@ -4,3 +4,4 @@
 /macroeconomics_simulator/media
 /macroeconomics_simulator/stock/migrations
 !macroeconomics_simulator/stock/migrations/__init__.py
+/frontend/node_modules
