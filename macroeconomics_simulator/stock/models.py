@@ -7,10 +7,34 @@ from uuid import uuid4
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinLengthValidator, MinValueValidator, MaxValueValidator
 from django.db import models
+from django.db.models import Sum, F
 
 from macroeconomics_simulator import settings
 from stock.utils import ProductTypes, CompanyTypes, SharesTypes, EventTypes, right_of_purchase_for_shareholders, \
     right_of_purchase_for_owners
+
+
+def recalculate_company_price(company_instance): # good
+    """company_cartoonist not included but most likely it is better to ignore it here"""
+    company_silver = company_instance.silver_reserve
+
+    warehouses = CompanyWarehouse.objects.filter(company=company_instance).annotate(
+        sale_price=F('product__productsexchange__sale_price')).aggregate(
+        company_income=Sum(F('amount') * F('sale_price'))
+    )
+    company_income = warehouses['company_income'] if warehouses['company_income'] is not None else 0
+
+    if company_instance.gold_reserve > 0:
+        current_price = GoldSilverExchange.objects.only('current_price').first()
+        gold_price = current_price * company_instance.gold_reserve
+        assets_price = gold_price + company_silver
+    else:
+        assets_price = company_silver
+
+    commitment = round(Decimal(company_instance.shares_amount * company_instance.share_price * company_instance.dividendes_percent / 100), 2)
+
+    company_price = (assets_price + company_income) - commitment
+    return company_price
 
 
 class Player(AbstractUser):
@@ -94,14 +118,15 @@ class CompanyRecipe(models.Model):
         db_table = 'dt_CompanyRecipies'
 
 
-class Company(models.Model): # mb add share price, but the load will be too high
+class Company(models.Model):
     type = models.ForeignKey(CompanyType, on_delete=models.DO_NOTHING)
     ticker = models.CharField(max_length=8, validators=[MinLengthValidator(4)], blank=False, null=False, unique=True)
     name = models.CharField(max_length=120, validators=[MinLengthValidator(6)], blank=False, null=False, unique=True)
     shares_amount = models.PositiveBigIntegerField(blank=False, null=False)
     preferred_shares_amount = models.PositiveSmallIntegerField(blank=False, null=False)
-    share_price = models.PositiveBigIntegerField(blank=False, null=False)
-    silver_reserve = models.DecimalField(default=1000, validators=[MinValueValidator(Decimal(0))], max_digits=10,
+    share_price = models.DecimalField(validators=[MinValueValidator(Decimal(0))], max_digits=10, decimal_places=2,
+                                      default=0, blank=False, null=False)
+    silver_reserve = models.DecimalField(default=10000, validators=[MinValueValidator(Decimal(0))], max_digits=10,
                                          decimal_places=2, blank=False, null=False)
     gold_reserve = models.PositiveBigIntegerField(default=0, blank=False, null=False)
     company_price = models.IntegerField(blank=False, null=False)
@@ -110,8 +135,9 @@ class Company(models.Model): # mb add share price, but the load will be too high
                                    blank=False, null=False)
     founding_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
 
-    def save(self, *args, **kwargs): # учесть золото
+    def save(self, *args, **kwargs):
         json_path = os.path.join(settings.MEDIA_ROOT, 'companies', f"{self.ticker}.json")
+        document = kwargs.pop('document', False)
         if not self.pk:
             os.makedirs(os.path.dirname(json_path), exist_ok=True)
             json_schema = {
@@ -125,21 +151,23 @@ class Company(models.Model): # mb add share price, but the load will be too high
                 json.dump(json_schema, json_file, indent=2)
 
             self.history = json_path
-            share_price = int(self.silver_reserve / (3 * self.shares_amount))
-            commitment = int(self.shares_amount * share_price * self.dividendes_percent / 100)
 
-            company_price = (self.silver_reserve + 0 * self.type.cartoonist) - commitment
+            self.company_price = self.silver_reserve
+            self.share_price = round(Decimal(self.silver_reserve) / Decimal(self.shares_amount), 2)
 
+            document = True
+        if document: # if document is True then the data will be written to json
+
+            company_price = recalculate_company_price(self)
             self.company_price = company_price
-            self.share_price = int(company_price / self.shares_amount)
 
-        else: # don't change
             with open(json_path, 'r') as json_file:
                 json_data = json.load(json_file)
+
             json_data["contents"].append({
                 "timestamp": int(time.time()),
-                "company_price": self.company_price,
-                "silver_reserve": float(round(self.silver_reserve, 2)),
+                "company_price": float(company_price),
+                "silver_reserve": float(self.silver_reserve),
                 "gold_reserve": self.gold_reserve
             })
 

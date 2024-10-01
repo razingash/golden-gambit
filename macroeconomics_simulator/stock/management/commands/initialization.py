@@ -9,7 +9,6 @@ class Command(BaseCommand): # mb change file name to another one
 
         call_command('makemigrations')
         call_command('migrate')
-        #call_command('loaddata', 'recipes.json')
         call_command('generate_data')
 
         self.stdout.write(self.style.SUCCESS('Initialization completed'))

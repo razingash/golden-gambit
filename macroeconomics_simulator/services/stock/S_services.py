@@ -93,7 +93,7 @@ def buy_shares(user_id, ticker, amount, price): # for silver
             else:
                 stock_shares.save()
 
-            company.save(), user.save()
+            company.save(document=True), user.save()
         else:
             raise CustomException(f'The current number of shares on the exchange is {stock_shares.amount}, you need {amount}')
     else:
@@ -118,7 +118,7 @@ def buy_management_shares(user_id, ticker, amount, price):
             else:
                 stock_shares.save()
 
-            company.save(), user.save()
+            company.save(document=True), user.save()
         else:
             raise CustomException(f'The current number of shares on the exchange is {stock_shares.amount}, you need {amount}')
     else:

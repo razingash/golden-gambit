@@ -3,8 +3,8 @@ import json
 from django.db.models import Q
 
 from services.base import get_object, check_object
-from services.stock.S_services import calculate_gold_price, calculate_products_price
-from stock.models import Company, CompanyWarehouse, AvailableProductsForProduction, GoldSilverExchange, PlayerCompanies, \
+from services.stock.S_services import calculate_products_price
+from stock.models import Company, CompanyWarehouse, AvailableProductsForProduction, PlayerCompanies, \
     SharesExchange, Player
 from django.utils import timezone
 
@@ -73,44 +73,6 @@ def update_produced_products_amount(ticker):
     return updated_products
 
 
-def calculate_commitment(company_id=1): # mb change id to something else
-    obj = get_object(model=Company, condition=Q(id=company_id), fields=['share_price', 'shares_amount', 'dividendes_percent'])
-
-    obligations = int(obj.shares_amount * obj.share_price * obj.dividendes_percent / 100)
-    return obligations
-
-
-#not includes products, later improve(mb add new function)
-def calculate_assets_price(company_gold, company_silver): # | after API, optimize via clickhouse #золото + серебро + минимальная стоимость имеющихся продуктов
-    if company_gold > 0:
-        gold_price = calculate_gold_price(company_gold)
-        assets_price = gold_price + company_silver
-    else:
-        assets_price = company_silver
-    return assets_price
-
-def calculate_company_price(company_income, company_cartoonist, company_gold, company_silver): # | after API, optimize via clickhouse
-    assets_price = calculate_assets_price(company_gold, company_silver)
-    commitment = calculate_commitment()
-    company_price = (assets_price + company_income * company_cartoonist) - commitment
-    return company_price
-
-
-def calculate_company_price2(company_income, company_cartoonist, company_gold, company_silver):
-    if company_gold > 0:
-        current_price = get_object(model=GoldSilverExchange, condition=Q(id=1), fields=['current_price'])
-        gold_price = current_price * company_gold
-        assets_price = gold_price + company_silver
-    else:
-        assets_price = company_silver
-    company_id = 1
-    obj = get_object(model=Company, condition=Q(id=company_id), fields=['share_price', 'shares_amount', 'dividendes_percent'])
-    commitment = int(obj.shares_amount * obj.share_price * obj.dividendes_percent / 100)
-
-    company_price = (assets_price + company_income * company_cartoonist) - commitment
-    return company_price
-
-
 def calculate_share_price(company_price, shares_amount):  # | after API, optimize via clickhouse
     share_price = company_price / shares_amount
     return share_price
@@ -166,7 +128,7 @@ def buy_products(ticker, product_type, amount) -> None:
         warehouse.amount += amount
         company.silver_reserve -= products_price
 
-        company.save(), warehouse.save()
+        company.save(document=True), warehouse.save()
 
 def sell_products(ticker, product_type, amount) -> None:
     amount = to_int(amount)
@@ -186,7 +148,7 @@ def sell_products(ticker, product_type, amount) -> None:
         warehouse.amount -= amount
         company.silver_reserve += products_price
 
-        company.save(), warehouse.save()
+        company.save(document=True), warehouse.save()
     else:
         raise CustomException('Company need more products')
 

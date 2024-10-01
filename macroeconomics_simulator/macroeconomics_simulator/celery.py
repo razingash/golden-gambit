@@ -10,8 +10,8 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    'update-gold-silver-rate-every-hour': {
-        'task': 'stock.tasks.update_gold_silver_rate',
+    'document-gold-silver-rate-every-hour': {
+        'task': 'stock.tasks.document_gold_silver_rate',
         'schedule': crontab(hour='1'),
         'options': {'expires': 180}
     },

@@ -7,6 +7,7 @@ from django.dispatch import receiver
 from macroeconomics_simulator import settings
 from stock.models import GoldSilverExchange, CompanyWarehouse, Company, AvailableProductsForProduction, \
     CompanyCharacteristics
+from stock.tasks import document_gold_silver_rate
 
 
 @receiver(post_save, sender=Company)
@@ -33,3 +34,5 @@ def fill_json_template_for_gold_silver_rate(sender, instance, created, **kwargs)
 
         instance.history = json_path
         instance.save()
+
+        document_gold_silver_rate()

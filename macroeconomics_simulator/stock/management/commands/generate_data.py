@@ -1,7 +1,9 @@
+import random
+
 from django.core.management import BaseCommand
 
 from stock.models import Player, ProductType, CompanyType, AvailableProductsForProduction, CompanyRecipe, Recipe, \
-    GoldSilverExchange, ProductsExchange
+    GoldSilverExchange, ProductsExchange, PlayerCompanies, Company
 from stock.utils import CompanyTypes, ProductTypes
 
 
@@ -126,6 +128,20 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('generating data...'))
+        assets = [
+            {"ticker": "TBTA", "name": "Towing Alliance"},
+            {"ticker": "TBAEC", "name": "Alpha Electric"},
+            {"ticker": "TBAES", "name": "Alto Elevators"},
+            {"ticker": "TBASG", "name": "Army Surplus General"},
+            {"ticker": "TBBMP", "name": "Blue Mountain Pioneering"},
+            {"ticker": "TBBLU", "name": "Builders League United"},
+            {"ticker": "TBBBC", "name": "BLU Blast Complex"},
+            {"ticker": "TBCR", "name": "Cerveza Royale"},
+            {"ticker": "TBCDG", "name": "Chaps Dry Goods"},
+            {"ticker": "TBEET", "name": "Elliphany Electric Trains"},
+            {"ticker": "TBFAT", "name": "Freeman Airboat Tours"},
+            {"ticker": "TBMC", "name": "Mann Co."}
+        ]
         users = []
         pt = ProductTypes
         company_types = [company_type.value for company_type in CompanyTypes]
@@ -165,9 +181,17 @@ class Command(BaseCommand):
         for advanced_company_type in advanced_companies: # adding recipes for companies with a tier > 1
             add_advanced_company_recipes(advanced_company_type)
 
-        for i in range(1, 11): # creating users
-            user = Player.objects.create_user(username=f'djangobot{i}', password=f'djangobot{i}', silver=30000)
+        for index, asset in enumerate(assets, 1): # creating users and their companies
+            user = Player.objects.create_user(username=f'djangobot{index}', password=f'djangobot{index}', silver=300000)
             users.append(user)
+            company_type = random.randint(1, 10)
+            shares_amount, preferred_shares_amount = random.randint(100, 10000), random.randint(100, 10000)
+            new_company = Company.objects.create(type_id=company_type, ticker=asset.get('ticker'), name=asset.get('name'),
+                                                 shares_amount=shares_amount,
+                                                 preferred_shares_amount=preferred_shares_amount,
+                                                 dividendes_percent=random.randint(2, 6))
+            PlayerCompanies.objects.create(player=user, company=new_company, shares_amount=shares_amount,
+                                           preferred_shares_amount=preferred_shares_amount)
 
         #creating Stock
         GoldSilverExchange.objects.create()

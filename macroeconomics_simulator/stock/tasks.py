@@ -9,8 +9,8 @@ from stock.models import GoldSilverExchange
 
 
 @shared_task # redis
-def update_gold_silver_rate(): # updates the rate to obtain general, chart data
-    gold_silver_stock = GoldSilverExchange.objects.fisrt()
+def document_gold_silver_rate():
+    gold_silver_stock = GoldSilverExchange.objects.first()
 
     json_path = os.path.join(settings.MEDIA_ROOT, 'gold_silver_rate', f"{gold_silver_stock.id}.json")
 
@@ -25,12 +25,6 @@ def update_gold_silver_rate(): # updates the rate to obtain general, chart data
     with open(json_path, 'w') as file:
         json.dump(json_data, file, indent=2)
 
-
-@shared_task # redis?
-def update_companies_price(): # Do I really need this?
-    pass
-
-
 @shared_task # rabbitMQ
-def dividends_payment(): # firstly add functions -
+def dividends_payment():
     pass
