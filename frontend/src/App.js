@@ -3,13 +3,16 @@ import AppRouter from "./components/AppRouter";
 import React from "react";
 import {BrowserRouter} from "react-router-dom";
 import Header from "./components/UI/Header";
+import {AuthProvider} from "./hooks/context/useAuth";
 
 function App() {
     return (
-        <BrowserRouter>
-            <Header/>
-            <AppRouter/>
-        </BrowserRouter>
+        <AuthProvider>
+            <BrowserRouter>
+                <Header/>
+                <AppRouter/>
+            </BrowserRouter>
+        </AuthProvider>
     );
 }
 

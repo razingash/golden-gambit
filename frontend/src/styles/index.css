@@ -5,10 +5,11 @@
 
 :root {
     --background: #19191fff;
+    --container-background: #2c2c37;
     --lines: #fff306;
-    --selected-element: #00ff22;
+    --hovered-element: #34da49;
     --blocked-element: #ff8742;
-    --hovered-element: #0073F8;
+    --clickable-element: #0073F8;
     --smth: #ff0f4f;
     --smth2: #57a5ff;
 }
@@ -35,10 +36,6 @@ body {
     align-items: center;
     padding: 3px;
     max-height: 60px;
-    position: fixed;
-    left: 0;
-    right: 0;
-    z-index: 2;
     border-bottom: 2px solid var(--lines);
 }
 
@@ -69,7 +66,7 @@ body {
     position: relative;
     margin-left: 8px;
     padding: 8px 8px 8px 0;
-    color: var(--hovered-element);
+    color: var(--clickable-element);
 }
 
 .menu__button {

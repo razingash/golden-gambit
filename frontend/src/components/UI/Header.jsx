@@ -1,6 +1,10 @@
 import React from 'react';
+import {useAuth} from "../../hooks/context/useAuth";
+import {Link} from "react-router-dom";
 
 const Header = () => {
+    const { isAuth, logout } = useAuth();
+
     return (
         <div className={"header__section"}>
             <div className={"header__field"}>
@@ -40,12 +44,21 @@ const Header = () => {
                             </svg>
                             <div>Laws</div>
                         </a>
-                        <a href="#" className="header__dropdown__item">
-                            <svg className="svg__menu_icon">
-                                <use xlinkHref="#icon_exit"></use>
-                            </svg>
-                            <div>log out</div>
-                        </a>
+                        {isAuth ? (
+                            <div onClick={async () => await logout()} className="header__dropdown__item">
+                                <svg className="svg__menu_icon">
+                                    <use xlinkHref="#icon_exit"></use>
+                                </svg>
+                                <div>log out</div>
+                            </div>
+                        ) : (
+                            <Link to={"/authentication"} className="header__dropdown__item">
+                                <svg className="svg__menu_icon">
+                                    <use xlinkHref="#icon_login"></use>
+                                </svg>
+                                <div>log in</div>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>
@@ -54,7 +67,11 @@ const Header = () => {
                 <a href={"#"} className={"header__item"}>Companies</a>
                 <a href={"#"} className={"header__item"}>News</a>
                 <a href={"#"} className={"header__item"}>Laws</a>
-                <a href={"#"} className={"header__item"}>log out</a>
+                {isAuth ? (
+                    <div onClick={async () => await logout()} className={"header__item"}>log out</div>
+                ) : (
+                    <Link to={"/authentication"} className={"header__item"}>log in</Link>
+                )}
             </div>
         </div>
     );
