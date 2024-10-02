@@ -70,7 +70,7 @@
     width: 100%;
     border: 0;
     border-radius: 3px;
-    background: radial-gradient(#8fff00, #00ff0878);
+    background: radial-gradient(#00d9ff, rgb(0, 88, 255, 0.47));
     color: #000000;
     font-family: sans-serif;
     font-weight: 600;
@@ -80,7 +80,10 @@
 }
 
 .button__submit:hover {
-    background: radial-gradient(#00d9ff, rgb(0, 88, 255, 0.47));
+    background: radial-gradient(#8fff00, #00ff0878);
+}
+.button__submit:focus {
+    background: radial-gradient(#ffa500, rgb(255 104 0 / 0.47));
 }
 
 .input__login:focus-visible + .svg__auth-help,

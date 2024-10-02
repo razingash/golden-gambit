@@ -1,0 +1,58 @@
+
+.field__laws, .fields__news {
+    margin: 20px;
+}
+
+.laws__list, .news__list {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /*bind1*/
+    gap: 20px;
+}
+
+.laws__item {
+    background: var(--container-background);
+    padding: 20px 20px 12px 20px;
+    border-radius: 4px;
+    color: #fff;
+    width: 100%; /*bind1*/
+}
+
+.law__title {
+    display: flex;
+    justify-content: center;
+    color: var(--lines);
+}
+
+.law__limits {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.law__start {
+
+}
+
+.law__end {
+
+}
+
+.law__description {
+    margin: 8px;
+}
+
+.law__is-actual {
+
+}
+
+@media (max-width: 789px) {
+    .field__laws {
+        margin: 5px;
+    }
+    .laws__item {
+        padding: 10px 10px 6px 10px;
+    }
+    .law__description {
+        margin: 8px 4px;
+    }
+}

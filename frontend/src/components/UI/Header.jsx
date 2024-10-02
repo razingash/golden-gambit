@@ -1,12 +1,12 @@
-import React from 'react';
 import {useAuth} from "../../hooks/context/useAuth";
 import {Link} from "react-router-dom";
 
 const Header = () => {
     const { isAuth, logout } = useAuth();
+     //because of SPA need to use js to collapse the dropdown
 
     return (
-        <div className={"header__section"}>
+        <div className={"section__header"}>
             <div className={"header__field"}>
                 <input id="menu__toggle" type="checkbox"/>
                 <label htmlFor="menu__toggle" className={"menu__button"}>
@@ -14,36 +14,36 @@ const Header = () => {
                     <span className={"toggle__bar"}></span>
                     <span className={"toggle__bar"}></span>
                 </label>
-                <div className={"header__sitename"}>Roumerchi</div>
+                <Link to={"/"} className={"header__sitename"}>Roumerchi</Link>
                 <div className={"header__dropdown"}>
                     <div className="dropdown__field">
                         <label htmlFor="menu__toggle" className="dropdown__closing">
                             <div className={"cross"}></div>
                         </label>
-                        <a href="#" className="header__dropdown__item">
+                        <Link to={"/stock"} className="header__dropdown__item">
                             <svg className="svg__menu_icon">
                                 <use xlinkHref="#icon_stock"></use>
                             </svg>
                             <div>Stock</div>
-                        </a>
+                        </Link>
                         <a href="#" className="header__dropdown__item">
                             <svg className="svg__menu_icon">
                                 <use xlinkHref="#icon_town-council"></use>
                             </svg>
                             <div>Companies</div>
                         </a>
-                        <a href="#" className="header__dropdown__item">
+                        <Link to={"/news"} className="header__dropdown__item">
                             <svg className="svg__menu_icon">
                                 <use xlinkHref="#icon_newspaper"></use>
                             </svg>
                             <div>News</div>
-                        </a>
-                        <a href="#" className="header__dropdown__item">
+                        </Link>
+                        <Link to={"/laws"} className="header__dropdown__item">
                             <svg className="svg__menu_icon">
                                 <use xlinkHref="#icon_hammer"></use>
                             </svg>
                             <div>Laws</div>
-                        </a>
+                        </Link>
                         {isAuth ? (
                             <div onClick={async () => await logout()} className="header__dropdown__item">
                                 <svg className="svg__menu_icon">
@@ -63,10 +63,10 @@ const Header = () => {
                 </div>
             </div>
             <div className={"header__items"}>
-                <a href={"#"} className={"header__item"}>Stock</a>
+                <Link to={"/stock"} className={"header__item"}>Stock</Link>
                 <a href={"#"} className={"header__item"}>Companies</a>
-                <a href={"#"} className={"header__item"}>News</a>
-                <a href={"#"} className={"header__item"}>Laws</a>
+                <Link to={"/news"} className={"header__item"}>News</Link>
+                <Link to={"/laws"} className={"header__item"}>Laws</Link>
                 {isAuth ? (
                     <div onClick={async () => await logout()} className={"header__item"}>log out</div>
                 ) : (

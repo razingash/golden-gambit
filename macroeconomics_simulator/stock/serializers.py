@@ -170,10 +170,18 @@ class ProductsTradingSerializer(serializers.Serializer):
 class LawsSerializer(serializers.ModelSerializer):
     class Meta:
         model = StateLaw
-        fields = '__all__'
+        fields = ['title', 'description', 'since', 'to', 'isActual']
 
 
 class EventsSerializer(serializers.ModelSerializer):
     class Meta:
         model = GlobalEvent
         fields = '__all__'
+
+
+class TopPlayerSerializer(serializers.ModelSerializer): # could be useless later
+    wealth = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = Player
+        fields = ['username', 'silver', 'gold', 'wealth']

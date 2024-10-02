@@ -1,7 +1,7 @@
-from django.db.models import Q
+from django.db.models import Q, F, Value
 
 from services.base import get_object
-from stock.models import Player, PlayerCompanies
+from stock.models import Player, PlayerCompanies, GoldSilverExchange
 
 
 def get_player(user_id):
@@ -16,3 +16,12 @@ def get_user_companies(user_id):
     company = PlayerCompanies.objects.select_related('company').filter(player_id=user_id).order_by('-id').only(*fields)
 
     return company
+
+def get_top_users(amount=10):
+    current_gold_price = GoldSilverExchange.objects.only('current_price').first().current_price
+
+    users = Player.objects.annotate(
+        converted_gold=F('gold') * Value(current_gold_price), wealth=F('silver') + F('converted_gold')
+    ).order_by('-wealth')[:amount]
+
+    return users

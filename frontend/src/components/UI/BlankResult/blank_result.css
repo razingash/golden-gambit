@@ -1,0 +1,21 @@
+
+.field__blank {
+    padding: 20px;
+    border-radius: 4px;
+    max-width: 420px;
+    width: 100%;
+    background: var(--container-background);
+    color: #fff;
+}
+
+.blank__title {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+    padding-bottom: 2px;
+    border-bottom: 2px solid var(--smth2);
+}
+
+.blank__info {
+
+}

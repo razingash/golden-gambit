@@ -11,16 +11,17 @@ from rest_framework_simplejwt.views import TokenVerifyView
 
 from services.base import get_paginated_objects, get_object
 from services.company.C_services import create_new_company, get_company_inventory, update_produced_products_amount, \
-    make_new_shares, put_up_shares_for_sale, get_company_history, buy_products, sell_products
+    make_new_shares, put_up_shares_for_sale, get_company_history, buy_products, sell_products, get_top_companies
 from services.stock.S_services import purchase_gold, sell_gold, get_gold_history, get_available_shares, buy_shares, \
     buy_management_shares
-from services.user.U_services import get_player, get_user_companies
+from services.user.U_services import get_player, get_user_companies, get_top_users
 from stock.models import Company, StateLaw, GlobalEvent, GoldSilverExchange, ProductsExchange
 from stock.permissions import IsAuthor, IsHeadOfCompany
 from stock.serializers import RegisterSerializer, CompanyCreateSerializer, CompanySerializer, PlayerSerializer, \
     PlayerCompaniesSerializer, CompanyUpdateSerializer, EventsSerializer, LawsSerializer, WarehouseSerializer, \
     GoldSilverRateSerializer, GoldAmountSerializer, ProductsSerializer, ProductsTradingSerializer, \
-    SharesExchangeSerializer, SharesExchangeListSerializer, CompanyPrintNewSharesSerializer, SellSharesSerializer
+    SharesExchangeSerializer, SharesExchangeListSerializer, CompanyPrintNewSharesSerializer, SellSharesSerializer, \
+    TopPlayerSerializer
 from stock.utils import custom_exception
 
 
@@ -80,7 +81,7 @@ class UserApiView(APIView): #add some permissions
 
 
 class UserCompaniesView(APIView):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, IsAuthor)
 
     def get(self, request, user_id): # mb api for unlogged also
         companies = get_user_companies(user_id)
@@ -308,3 +309,16 @@ class EventsApiView(APIView):
         serializer = EventsSerializer(events, many=True)
 
         return Response({'data': serializer.data, 'has_next': has_next})
+
+
+class TopCompaniesApiView(APIView):
+    def get(self, request): # cache request
+        top_companies = get_top_companies()
+
+        return Response(top_companies)
+
+class TopUsersApiView(APIView):
+    def get(self, request): # cache request
+        top_users = get_top_users()
+
+        return Response(TopPlayerSerializer(top_users, many=True).data)

@@ -12,7 +12,7 @@ urlpatterns = [
     path('v1/users/<str:user_id>/', UserApiView.as_view(), name='user'), # get
     path('v1/users/<int:user_id>/companies/', UserCompaniesView.as_view(), name='user_companies'), # get | post
     path('v1/companies/', CompanyListView.as_view(), name='companies'), # get
-    path('v1/companies/<str:ticker>/', CompanyApiView.as_view(), name='company'), # get | patch
+    path('v1/companies/<str:ticker>/', CompanyApiView.as_view(), name='company'), # get | patch ! 1
     path('v1/companies/<str:ticker>/warehouse/', CompanyWarehouseApiView.as_view(), name='company_warehouse'), # | get
     path('v1/companies/<str:ticker>/warehouse/update/', CompanyWarehouseUpdateApiView.as_view(), name='company_warehouse_update'), # | get
     path('v1/companies/<str:ticker>/exchange/', CompanyIncreaseSharesApiView.as_view(), name='company_increase_shares'), # post
@@ -26,6 +26,8 @@ urlpatterns = [
     path('v1/stock/shares-exchange/', SharesListApiView.as_view(), name='shares-list'), # get
     path('v1/stock/shares-exchange/<str:ticker>/', SharesExchangeApiView.as_view(), name='shares-exchange'), # post
     path('v1/laws/', LawsApiView.as_view(), name='laws'), # get
-    path('v1/events/', EventsApiView.as_view(), name='events') # get
+    path('v1/events/', EventsApiView.as_view(), name='events'), # get
+    path('v1/top/companies/', TopCompaniesApiView.as_view(), name='top-companies'), # get
+    path('v1/top/users/', TopUsersApiView.as_view(), name='top-users') # get
 ]
-
+# 1 - разделить уровень инфы который возвращается в зависимости от того кто просит

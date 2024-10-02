@@ -3,7 +3,7 @@ import random
 from django.core.management import BaseCommand
 
 from stock.models import Player, ProductType, CompanyType, AvailableProductsForProduction, CompanyRecipe, Recipe, \
-    GoldSilverExchange, ProductsExchange, PlayerCompanies, Company
+    GoldSilverExchange, ProductsExchange, PlayerCompanies, Company, StateLaw
 from stock.utils import CompanyTypes, ProductTypes
 
 
@@ -142,9 +142,17 @@ class Command(BaseCommand):
             {"ticker": "TBFAT", "name": "Freeman Airboat Tours"},
             {"ticker": "TBMC", "name": "Mann Co."}
         ]
+        laws = [
+            {"title": "Law on Supporting Small Businesses During Gold Market Shortages", "description": "During severe market crises, when there is a shortage of gold on the exchange, developed companies in the higher economic sectors may only purchase gold through a gold auction to protect small businesses and ensure a more equitable distribution of resources."},
+            {"title": "Law on State Monopoly over Gold Mining and Transit", "description": "The exclusive right to mine and transport gold belongs to the state."},
+            {"title": "Law on Progressive Tax for Idle Gold", "description": "Gold that remains unused for an extended period is subject to mandatory purchase by the state."},
+            {"title": "Law on State Support for Shareholding Companies", "description": "The state commits to purchasing products from companies, at a state-determined price, if it owns at least 10% of their shares."},
+        ]
+
         users = []
         pt = ProductTypes
-        company_types = [company_type.value for company_type in CompanyTypes]
+        product_types = [product_type.value for product_type in ProductTypes]
+
         products_tier_1 = [pt.UNPROCESSED_FOOD, pt.MINERALS, pt.BASE_METALS, pt.CONSTRUCTION_RAW_MATERIALS, pt.WOOD,
                            pt.SLATE, pt.LIMESTONE, pt.CLAY]
         products_tier_2 = [pt.PROCESSED_FOOD, pt.PROCESSED_WOOD, pt.CHEMICALS, pt.PROCESSED_METALS, pt.BUILDING_MATERIALS,
@@ -152,7 +160,8 @@ class Command(BaseCommand):
         products_tier_3 = [pt.MEDICINES, pt.MICROELECTRONICS, pt.MECHANICAL_PARTS, pt.FURNITURES, pt.CLOTHING]
         products_tier_4 = [pt.OIL]
         products_tier_5 = [pt.SPECIAL_CLOTHING, pt.WEAPONS, pt.FUEL]
-        product_types = [product_type.value for product_type in ProductTypes]
+
+        company_types = [company_type.value for company_type in CompanyTypes]
         default_companies = [CompanyTypes.FARM, CompanyTypes.FISH_FARM, CompanyTypes.MINE, CompanyTypes.FOOD_FACTORY,
                              CompanyTypes.QUARRY, CompanyTypes.SAWMILL, CompanyTypes.PLANTATION, CompanyTypes.ORE_MINE]
         advanced_companies = [company_type.value for company_type in CompanyTypes if company_type not in default_companies]
@@ -195,3 +204,6 @@ class Command(BaseCommand):
 
         #creating Stock
         GoldSilverExchange.objects.create()
+
+        for law in laws: # creating basic laws
+            StateLaw.objects.create(title=law.get('title'), description=law.get('description'))
