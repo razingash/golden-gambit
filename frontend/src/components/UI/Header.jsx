@@ -64,6 +64,10 @@ const Header = () => {
             </div>
             <div className={"header__items"}>
                 <Link to={"/stock"} className={"header__item"}>Stock</Link>
+                <div className={"header__stock_dropdown"}>
+                    <Link to={"/stock/shares"} className={"header__item"}>Shares</Link>
+                    <Link to={"/stock/products"} className={"header__item"}>Products</Link>
+                </div>
                 <a href={"#"} className={"header__item"}>Companies</a>
                 <Link to={"/news"} className={"header__item"}>News</Link>
                 <Link to={"/laws"} className={"header__item"}>Laws</Link>

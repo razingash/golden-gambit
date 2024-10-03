@@ -11,7 +11,7 @@ from stock.utils import CustomException, to_int
 
 def update_gold_price(instance: GoldSilverExchange, amount_of_gold) -> None:
     affordable_gold = instance.amount
-    gold_price = instance.current_price
+    gold_price = float(round(instance.current_price, 2))
     base_price = 1000
     fluctuation_level = gold_price * (amount_of_gold / affordable_gold)
     gold_rate = base_price * (100 - fluctuation_level) / 100 # new gold price
@@ -22,7 +22,7 @@ def update_gold_price(instance: GoldSilverExchange, amount_of_gold) -> None:
 
 def calculate_gold_price(gold_amount):
     current_price = get_object(model=GoldSilverExchange, condition=Q(id=1), fields=['current_price']).current_price
-    gold_price = current_price * gold_amount
+    gold_price = float(round(current_price * gold_amount, 2))
     return gold_price
 
 

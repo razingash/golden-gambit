@@ -1,9 +1,7 @@
-import random
-
 from django.core.management import BaseCommand
 
-from stock.models import Player, ProductType, CompanyType, AvailableProductsForProduction, CompanyRecipe, Recipe, \
-    GoldSilverExchange, ProductsExchange, PlayerCompanies, Company, StateLaw
+from stock.models import ProductType, CompanyType, AvailableProductsForProduction, CompanyRecipe, Recipe, \
+    ProductsExchange, StateLaw
 from stock.utils import CompanyTypes, ProductTypes
 
 
@@ -124,32 +122,18 @@ def add_advanced_company_recipes(company_type):  # adds recipes for companies wh
 
 
 class Command(BaseCommand):
-    help = "command for filling database"
+    help = "command to fill database with static data"
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.NOTICE('generating data...'))
-        assets = [
-            {"ticker": "TBTA", "name": "Towing Alliance"},
-            {"ticker": "TBAEC", "name": "Alpha Electric"},
-            {"ticker": "TBAES", "name": "Alto Elevators"},
-            {"ticker": "TBASG", "name": "Army Surplus General"},
-            {"ticker": "TBBMP", "name": "Blue Mountain Pioneering"},
-            {"ticker": "TBBLU", "name": "Builders League United"},
-            {"ticker": "TBBBC", "name": "BLU Blast Complex"},
-            {"ticker": "TBCR", "name": "Cerveza Royale"},
-            {"ticker": "TBCDG", "name": "Chaps Dry Goods"},
-            {"ticker": "TBEET", "name": "Elliphany Electric Trains"},
-            {"ticker": "TBFAT", "name": "Freeman Airboat Tours"},
-            {"ticker": "TBMC", "name": "Mann Co."}
-        ]
+        self.stdout.write(self.style.NOTICE('generating static data...'))
         laws = [
             {"title": "Law on Supporting Small Businesses During Gold Market Shortages", "description": "During severe market crises, when there is a shortage of gold on the exchange, developed companies in the higher economic sectors may only purchase gold through a gold auction to protect small businesses and ensure a more equitable distribution of resources."},
             {"title": "Law on State Monopoly over Gold Mining and Transit", "description": "The exclusive right to mine and transport gold belongs to the state."},
             {"title": "Law on Progressive Tax for Idle Gold", "description": "Gold that remains unused for an extended period is subject to mandatory purchase by the state."},
             {"title": "Law on State Support for Shareholding Companies", "description": "The state commits to purchasing products from companies, at a state-determined price, if it owns at least 10% of their shares."},
+            {"title": "Law on supporting beginning investors", "description": "Those, and only those, whose savings are less than 100 gold can open a company once for free, while the rest will have to pay the full amount in order to expand their influence"},
         ]
 
-        users = []
         pt = ProductTypes
         product_types = [product_type.value for product_type in ProductTypes]
 
@@ -190,20 +174,7 @@ class Command(BaseCommand):
         for advanced_company_type in advanced_companies: # adding recipes for companies with a tier > 1
             add_advanced_company_recipes(advanced_company_type)
 
-        for index, asset in enumerate(assets, 1): # creating users and their companies
-            user = Player.objects.create_user(username=f'djangobot{index}', password=f'djangobot{index}', silver=300000)
-            users.append(user)
-            company_type = random.randint(1, 10)
-            shares_amount, preferred_shares_amount = random.randint(100, 10000), random.randint(100, 10000)
-            new_company = Company.objects.create(type_id=company_type, ticker=asset.get('ticker'), name=asset.get('name'),
-                                                 shares_amount=shares_amount,
-                                                 preferred_shares_amount=preferred_shares_amount,
-                                                 dividendes_percent=random.randint(2, 6))
-            PlayerCompanies.objects.create(player=user, company=new_company, shares_amount=shares_amount,
-                                           preferred_shares_amount=preferred_shares_amount)
-
-        #creating Stock
-        GoldSilverExchange.objects.create()
-
-        for law in laws: # creating basic laws
+        for law in laws:  # creating basic laws
             StateLaw.objects.create(title=law.get('title'), description=law.get('description'))
+
+        self.stdout.write(self.style.SUCCESS('Static data generation has been completed'))

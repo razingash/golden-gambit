@@ -261,8 +261,6 @@ class ProductsExchangeApiView(APIView):
 
 
 class SharesListApiView(APIView):
-    permission_classes = (IsAuthenticated, )
-
     def get(self, request):
         shares, has_next = get_available_shares(request.query_params, user_id=None)
         serializer = SharesExchangeListSerializer(shares, many=True)

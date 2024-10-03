@@ -232,7 +232,7 @@ class SharesExchange(models.Model):
 # Unrelated models
 class GoldSilverExchange(models.Model):
     base_price = models.PositiveSmallIntegerField(default=1000, unique=True, blank=False, null=False)
-    current_price = models.PositiveSmallIntegerField(default=1000, blank=False, null=False)
+    current_price = models.DecimalField(max_digits=10, decimal_places=2, default=1000, blank=False, null=False)
     amount = models.PositiveSmallIntegerField(default=1_000_000_000, blank=False, null=False)
     history = models.FilePathField(path=os.path.join(settings.MEDIA_ROOT, 'gold_to_silver'), match='.*\.json$',
                                    blank=False, null=False)

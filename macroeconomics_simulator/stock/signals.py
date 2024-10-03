@@ -34,5 +34,3 @@ def fill_json_template_for_gold_silver_rate(sender, instance, created, **kwargs)
 
         instance.history = json_path
         instance.save()
-
-        document_gold_silver_rate()

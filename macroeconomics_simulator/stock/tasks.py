@@ -19,7 +19,7 @@ def document_gold_silver_rate():
 
     json_data["contents"].append({
         "timestamp": int(time.time()),
-        "current price": gold_silver_stock.current_price
+        "current price": float(round(gold_silver_stock.current_price, 2))
     })
 
     with open(json_path, 'w') as file:
