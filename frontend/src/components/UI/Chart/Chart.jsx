@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import './Chart.css';
+import AdaptiveLoading from "../AdaptiveLoading";
 
 const Chart = ({ data, strokeStyle, backgroundStyle, pointerStyle, searchKey }) => {
     const canvasRef = useRef(null);
@@ -186,7 +187,7 @@ const Chart = ({ data, strokeStyle, backgroundStyle, pointerStyle, searchKey }) 
     }, [data]);
 
     if (!generalData) {
-        return (<div>Loading effect</div>)
+        return <AdaptiveLoading/>
     }
 
     return (

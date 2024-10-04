@@ -5,8 +5,10 @@ import StockServices from "../API/StockServices";
 import AdaptiveLoading from "../components/UI/AdaptiveLoading";
 import BlankResult from "../components/UI/BlankResult/BlankResult";
 import {useAuth} from "../hooks/context/useAuth";
+import {Link} from "react-router-dom";
 
 const StockShares = () => {
+    // add smart sorting - There are shares of the same company - then do it like in Steam so that when you select the quantity, the price is automatically calculated
     const {isAuth} = useAuth();
     const amount = useInput('');
     const ticker = useInput('');
@@ -21,12 +23,11 @@ const StockShares = () => {
         const loadData = async () => {
             const data = await fetchShares();
             data && setShares(data.data);
-            data && console.log(data.data)
         }
         void loadData();
     }, [isSharesLoading])
 
-    if(!shares) {
+    if(shares.length === 0) {
         return (<div className={"global__loading"}><AdaptiveLoading/></div>)
     }
 
@@ -37,7 +38,7 @@ const StockShares = () => {
                     <div className={"shares__list"}>
                         {shares.map((share, index) => (
                             <div className={"share__item"} key={index}>
-                                <div className={"share__title"}>{share.name}</div>
+                                <Link to={`/companies/${share.ticker}/`} className={"share__title"}>{share.name}</Link>
                                 <div className={"share__row"}>
                                     <div>ticker</div>
                                     <div>{share.ticker}</div>

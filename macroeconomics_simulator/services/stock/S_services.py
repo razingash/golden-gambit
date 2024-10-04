@@ -60,10 +60,10 @@ def get_available_shares(query_params, user_id=None):
         current_time = timezone.now()
         objects = get_available_shares_for_everyone(current_time)
     else:
-        if availability is None: #
+        if availability is None: # ordinary shares
             current_time = timezone.now()
             objects = get_availabale_shares_for_shareholders(current_time, user_id)
-        else: # 1
+        else: # 1 - management shares
             objects = get_available_shares_for_owners(user_id)
 
     paginator = Paginator(objects, limit)

@@ -6,7 +6,8 @@ import StockGold from "../pages/StockGold";
 import Companies from "../pages/Companies";
 import StockProducts from "../pages/StockProducts";
 import StockShares from "../pages/StockShares";
-
+import Company from "../pages/Company";
+//understand why styles are imported all at once
 
 export const publicRotes = [
     {path: "/", component: <Main/>, key: "main"},
@@ -15,7 +16,8 @@ export const publicRotes = [
     {path: "/stock/", component: <StockGold/>, key: "stock-gold"},
     {path: "/stock/products/", component: <StockProducts/>, key: "stock-products"},
     {path: "/stock/shares/", component: <StockShares/>, key: "stock-shares"},
-    {path: "/companies/", component: <Companies/>, key: "companies"}
+    {path: "/companies/", component: <Companies/>, key: "companies"},
+    {path: "/companies/:ticker/", component: <Company/>, key: "companies"}
 ]
 
 export const unprivateRotes = [
@@ -23,5 +25,5 @@ export const unprivateRotes = [
 ]
 
 export const privateRotes = [
-    //{path: "/companies/:ticker/", component: <Companies/>, key: "companies"}
+
 ]

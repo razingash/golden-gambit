@@ -37,7 +37,6 @@ export const AuthProvider = ({ children }) => {
             setIsAuth(true);
         } else {
             console.log("error during login")
-            return "bad request?"
         }
     }
 

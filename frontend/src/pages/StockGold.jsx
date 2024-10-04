@@ -22,13 +22,13 @@ const StockGold = () => {
     }, [isGoldRateHistoryLoading])
 
     if(!chartData) {
-        return <AdaptiveLoading/>
+        return (<div className={"global__loading"}><AdaptiveLoading/></div>)
     }
 
     return (
         <div className={"section__main"}>
             <div className={"area__gold_trade"}>
-                {chartData && chartData.length > 1 ? (
+                {chartData.length > 1 ? (
                     <Chart data={chartData} strokeStyle={0} backgroundStyle={0} pointerStyle={0} searchKey={'current price'}/>
                 ) : (
                     <div>Loading...</div>

@@ -2,8 +2,8 @@ import axios from "axios";
 import apiClient, {baseURL} from "../hooks/useApiInterceptor";
 
 export default class CompaniesService {
-    static async getCompaniesList() {
-        const response = await axios.get(`${baseURL}/companies/`)
+    static async getCompaniesList(page) {
+        const response = await axios.get(`${baseURL}/companies/`, {params: {page: page}})
         return response.data
     }
     static async getCompany(ticker) {

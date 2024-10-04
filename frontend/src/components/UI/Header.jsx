@@ -4,11 +4,15 @@ import {Link} from "react-router-dom";
 const Header = () => {
     const { isAuth, logout } = useAuth();
      //because of SPA need to use js to collapse the dropdown
+    const closeMenu = () => { // and even trick with label doesn't work
+        const checkbox = document.getElementById("menu__toggle");
+        checkbox.checked = false;
+    };
 
     return (
         <div className={"section__header"}>
             <div className={"header__field"}>
-                <input id="menu__toggle" type="checkbox"/>
+                <input id="menu__toggle" onChange={(e) => (document.body.style.overflow = e.target.checked ? 'hidden' : 'auto')} type="checkbox"/>
                 <label htmlFor="menu__toggle" className={"menu__button"}>
                     <span className={"toggle__bar"}></span>
                     <span className={"toggle__bar"}></span>
@@ -20,39 +24,43 @@ const Header = () => {
                         <label htmlFor="menu__toggle" className="dropdown__closing">
                             <div className={"cross"}></div>
                         </label>
-                        <Link to={"/stock"} className="header__dropdown__item">
-                            <svg className="svg__menu_icon">
-                                <use xlinkHref="#icon_stock"></use>
-                            </svg>
-                            <div>Stock</div>
-                        </Link>
-                        <a href="#" className="header__dropdown__item">
+                        <div className={"header__dropdown__mini"}>
+                            <Link to={"/stock"} className="header__dropdown__item" onClick={closeMenu}>
+                                <svg className="svg__menu_icon">
+                                    <use xlinkHref="#icon_stock"></use>
+                                </svg>
+                                <div>Stock</div>
+                            </Link>
+                            <Link to={"/stock/shares"} className={"header__dropdown__item_mini"} onClick={closeMenu}>Shares</Link>
+                            <Link to={"/stock/products"} className={"header__dropdown__item_mini"} onClick={closeMenu}>Products</Link>
+                        </div>
+                        <Link to={"/companies"} className="header__dropdown__item" onClick={closeMenu}>
                             <svg className="svg__menu_icon">
                                 <use xlinkHref="#icon_town-council"></use>
                             </svg>
                             <div>Companies</div>
-                        </a>
-                        <Link to={"/news"} className="header__dropdown__item">
+                        </Link>
+                        <Link to={"/news"} className="header__dropdown__item" onClick={closeMenu}>
                             <svg className="svg__menu_icon">
                                 <use xlinkHref="#icon_newspaper"></use>
                             </svg>
                             <div>News</div>
                         </Link>
-                        <Link to={"/laws"} className="header__dropdown__item">
+                        <Link to={"/laws"} className="header__dropdown__item" onClick={closeMenu}>
                             <svg className="svg__menu_icon">
                                 <use xlinkHref="#icon_hammer"></use>
                             </svg>
                             <div>Laws</div>
                         </Link>
                         {isAuth ? (
-                            <div onClick={async () => await logout()} className="header__dropdown__item">
+                            <div onClick={async () => await logout()} className="header__dropdown__item" >
                                 <svg className="svg__menu_icon">
                                     <use xlinkHref="#icon_exit"></use>
                                 </svg>
                                 <div>log out</div>
                             </div>
                         ) : (
-                            <Link to={"/authentication"} className="header__dropdown__item">
+                            <Link to={"/authentication"} className="header__dropdown__item" onClick={closeMenu}>
                                 <svg className="svg__menu_icon">
                                     <use xlinkHref="#icon_login"></use>
                                 </svg>
@@ -68,9 +76,9 @@ const Header = () => {
                     <Link to={"/stock/shares"} className={"header__item"}>Shares</Link>
                     <Link to={"/stock/products"} className={"header__item"}>Products</Link>
                 </div>
-                <a href={"#"} className={"header__item"}>Companies</a>
+                <Link to={"/companies"} className={"header__item"}>Companies</Link>
                 <Link to={"/news"} className={"header__item"}>News</Link>
-                <Link to={"/laws"} className={"header__item"}>Laws</Link>
+                <Link to={"/laws"} className={"header__item"} >Laws</Link>
                 {isAuth ? (
                     <div onClick={async () => await logout()} className={"header__item"}>log out</div>
                 ) : (

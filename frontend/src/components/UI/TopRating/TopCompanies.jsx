@@ -2,8 +2,9 @@ import React, {useEffect, useState} from 'react';
 import "./top_rating.css"
 import {useFetching} from "../../../hooks/useFetching";
 import RatingService from "../../../API/RatingService";
+import {formatNumber} from "../../../functions/utils";
 
-const TopCompanies = ({formatNumber}) => {
+const TopCompanies = () => {
     const [topCompanies, setTopCompanies] = useState([]);
     const [fetchTopCompanies, isTopCompaniesLoading] = useFetching(async () => {
         return await RatingService.getTopCompanies();

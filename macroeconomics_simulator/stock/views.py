@@ -105,9 +105,7 @@ class CompanyListView(APIView):
         return Response({'data': serializer.data, 'has_next': has_next})
 
 
-class CompanyApiView(APIView):
-    permission_classes = (IsAuthenticated, )
-
+class CompanyApiView(APIView): # улучшить эту залупу чтобы выдавалась инфа в зависимости от того кто просит
     def get(self, request, ticker): # make a separate API with different levels of information for logged and unlogged users?
         company = get_object_or_404(Company, ticker=ticker)
 

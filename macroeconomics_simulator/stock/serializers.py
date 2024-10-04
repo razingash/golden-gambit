@@ -28,13 +28,16 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 # сделать три уровня доступа к сериализатору(разделить на три разных или найти лучший способ)
 class CompanySerializer(serializers.ModelSerializer):
-    type = serializers.CharField(source='type.type')
+    type = serializers.SerializerMethodField()
     cartoonist = serializers.IntegerField(source='type.cartoonist')
 
     class Meta:
         model = Company
         fields = ['type', 'cartoonist', 'ticker', 'name', 'shares_amount', 'preferred_shares_amount', 'share_price',
                   'silver_reserve', 'gold_reserve', 'company_price', 'dividendes_percent', 'founding_date']
+
+    def get_type(self, obj):
+        return obj.type.get_type_display()
 
 
 class CompanyUpdateSerializer(serializers.ModelSerializer):

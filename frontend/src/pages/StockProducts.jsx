@@ -33,8 +33,8 @@ const StockProducts = () => { // REDO!!!
         void loadData();
     }, [isProductsLoading])
 
-    if (!products) {
-        return <AdaptiveLoading/>
+    if (products.length === 0) {
+        return (<div className={"global__loading"}><AdaptiveLoading/></div>)
     }
 
     return (
@@ -42,7 +42,7 @@ const StockProducts = () => { // REDO!!!
             <div className={"field__products"}>
                 <div className={"products__list"}>
                     {products.length > 0 ? (products.map((product) => (
-                        <div className={"product__item"}>
+                        <div className={"product__item"} key={product.product_type_display}>
                             <div className={"product__info"}>
                                 <div className={"product__name"}>{product.product_type_display}</div>
                                 <div className={"product__row"}>

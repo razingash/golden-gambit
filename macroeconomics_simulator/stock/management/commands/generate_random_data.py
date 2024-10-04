@@ -5,9 +5,10 @@ import random
 from decimal import Decimal
 
 from django.core.management import BaseCommand
+from django.utils import timezone
 
 from macroeconomics_simulator import settings
-from stock.models import GoldSilverExchange, Player, Company, PlayerCompanies
+from stock.models import GoldSilverExchange, Player, Company, PlayerCompanies, SharesExchange
 
 
 def falsify_gols_silver_history(gold_silver, iterations):
@@ -75,7 +76,6 @@ def falsify_company_history(iteration_days, company):
         history.append([timestamp, company_price, float(round(affordable_silver, 2)), company.gold_reserve])
         company_price = float(round(affordable_silver - commitment, 2))
 
-
     for info in reversed(history):
         json_schema["contents"].append({
             "timestamp": info[0],
@@ -88,6 +88,16 @@ def falsify_company_history(iteration_days, company):
         json.dump(json_schema, json_file, indent=2)
 
     company.save(document=True)
+
+
+def sell_shares_retroactively(company, amount, price, shares_type, timezone1, timezone2):
+    if timezone1 is None and timezone2 is None:
+        timestamp = timezone.now() - datetime.timedelta(days=1)
+        SharesExchange.objects.create(company=company, amount=amount, price=price, shares_type=shares_type,
+                                      owners_right=timestamp, shareholders_right=timestamp)
+    else:
+        SharesExchange.objects.create(company=company, amount=amount, price=price, shares_type=shares_type,
+                                      owners_right=timezone1, shareholders_right=timezone2)
 
 
 def generate_companies(iteration_days):
@@ -109,7 +119,7 @@ def generate_companies(iteration_days):
     for index, asset in enumerate(assets, 1):  # creating users and their companies
         user = Player.objects.create_user(username=f'djangobot{index}', password=f'djangobot{index}', silver=300000)
         company_type = random.randint(1, 10)
-        shares_amount, preferred_shares_amount = random.randint(100, 10000), random.randint(100, 10000)
+        shares_amount, preferred_shares_amount = random.randint(100, 20000), random.randint(100, 10000)
         new_company = Company.objects.create(type_id=company_type, ticker=asset.get('ticker'), name=asset.get('name'),
                                              shares_amount=shares_amount,
                                              preferred_shares_amount=preferred_shares_amount,
@@ -118,6 +128,17 @@ def generate_companies(iteration_days):
                                        preferred_shares_amount=preferred_shares_amount)
 
         falsify_company_history(iteration_days, new_company)
+
+        company_ordinary_shares = new_company.shares_amount
+        for i in range(1, random.randint(1, 5)):  # sell ordinary shares
+            shares_price = random.randint(100, 1000)
+            shares_for_sale = random.randint(100, 1000)
+
+            if company_ordinary_shares - shares_for_sale <= 5000:
+                break
+            company_ordinary_shares -= shares_for_sale
+
+            sell_shares_retroactively(new_company, shares_for_sale, shares_price, 2, None, None)
 
 
 class Command(BaseCommand):
@@ -132,8 +153,7 @@ class Command(BaseCommand):
         gold_silver = GoldSilverExchange.objects.create()
         falsify_gols_silver_history(gold_silver, iteration_days)
 
-        #creating companies & their history
+        # creating companies & their history
         generate_companies(iteration_days)
 
         self.stdout.write(self.style.SUCCESS('Random data generation has been completed'))
-

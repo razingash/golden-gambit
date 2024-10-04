@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import {useFetching} from "../../../hooks/useFetching";
 import RatingService from "../../../API/RatingService";
+import {formatNumber} from "../../../functions/utils";
 
-const TopUsers = ({formatNumber}) => {
+const TopUsers = () => {
     const [topUsers, setTopUsers] = useState([]);
     const [fetchTopUsers, isTopUsersLoading] = useFetching(async () => {
         return await RatingService.getTopUsers();

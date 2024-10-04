@@ -59,9 +59,16 @@
     justify-content: center;
     font-family: sans-serif;
     font-weight: 600;
-    border-bottom: 2px solid var(--smth2);
+    border-bottom: 2px solid var(--highlight-element-2);
     padding-bottom: 3px;
     margin-bottom: 3px;
+}
+.share__title {
+    text-decoration: none;
+    color: #fff;
+}
+.share__title:hover {
+    color: var(--hovered-element);
 }
 .product__row, .share__row {
     display: flex;

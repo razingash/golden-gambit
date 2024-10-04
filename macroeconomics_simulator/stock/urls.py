@@ -30,4 +30,3 @@ urlpatterns = [
     path('v1/top/companies/', TopCompaniesApiView.as_view(), name='top-companies'), # get
     path('v1/top/users/', TopUsersApiView.as_view(), name='top-users') # get
 ]
-# 1 - разделить уровень инфы который возвращается в зависимости от того кто просит

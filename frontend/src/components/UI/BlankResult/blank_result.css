@@ -13,7 +13,7 @@
     justify-content: center;
     margin-bottom: 10px;
     padding-bottom: 2px;
-    border-bottom: 2px solid var(--smth2);
+    border-bottom: 2px solid var(--highlight-element-2);
 }
 
 .blank__info {
