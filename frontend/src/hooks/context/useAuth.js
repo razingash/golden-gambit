@@ -12,10 +12,10 @@ export const AuthProvider = ({ children }) => {
     const [isAuth, setIsAuth] = useState(false);
     const tokenRef = useRef({access: null});
 
-    const [fetchRegisteredUser, isRegisteredUserLoading] = useFetching(async (username, password) => {
+    const [fetchRegisteredUser, isRegisteredUserLoading, registerError] = useFetching(async (username, password) => {
         return await AuthService.register(username, password)
     })
-    const [fetchLoginUser, isUserLoading] = useFetching(async (username, password) => {
+    const [fetchLoginUser, isUserLoading, loginError] = useFetching(async (username, password) => {
         return await AuthService.login(username, password);
     })
     const [fetchLogoutUser] = useFetching(async (refreshToken) => {
@@ -30,11 +30,11 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password) => { // good
         const data = await fetchLoginUser(username, password);
-        console.log(data);
-        if (isUserLoading === false) {
+        if (isUserLoading === false && data != null) {
             localStorage.setItem('token', data.refresh);
             tokenRef.current.access = data.access;
             setIsAuth(true);
+            console.log(data)
         } else {
             console.log("error during login")
         }
@@ -42,14 +42,13 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (username, password) => {
         const data = await fetchRegisteredUser(username, password);
-        console.log(data);
-        if (isRegisteredUserLoading === false) {
+        if (isRegisteredUserLoading === false && data != null) {
             localStorage.setItem('token', data.refresh)
             tokenRef.current.access = data.access;
             setIsAuth(true);
+            console.log(data)
         } else {
             console.log("error during register")
-            return "bad request register?"
         }
     }
 
@@ -103,7 +102,11 @@ export const AuthProvider = ({ children }) => {
     }, [isAuth]);
 
     return (
-        <AuthContext.Provider value={{isAuth, tokenRef, register, login, logout, refreshAccessToken, validateRefreshToken}}>
+        <AuthContext.Provider
+            value={{
+                isAuth, tokenRef, register, login, loginError, registerError,
+                logout, refreshAccessToken, validateRefreshToken
+            }}>
             {children}
         </AuthContext.Provider>
     )

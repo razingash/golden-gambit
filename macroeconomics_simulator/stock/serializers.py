@@ -1,7 +1,9 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from stock.models import Player, Company, PlayerCompanies, StateLaw, GlobalEvent, CompanyWarehouse, GoldSilverExchange, \
     ProductsExchange, SharesExchange
@@ -13,7 +15,20 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ['username', 'password', 'email']
+        fields = ['username', 'password']
+
+    @staticmethod
+    def validate_password(value):
+        validate_password(value)
+        return value
+
+    @staticmethod
+    def validate_username(value):
+        if len(value) < 5:
+            raise ValidationError("Username must contain more than 4 characters")
+        if not value.isalnum():
+            raise ValidationError("Username must not contain special characters")
+        return value
 
     def create(self, validated_data):
         player = Player.objects.create_user(username=validated_data['username'], password=validated_data['password'])
