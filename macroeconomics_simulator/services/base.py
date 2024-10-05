@@ -22,8 +22,21 @@ def get_object(model: object, condition, fields=None): # the best way
         return obj
 
 
+def paginate_objects(objects, query_params):
+    page = query_params.get('page')
+    limit = query_params.get('limit')
+    limit = int(limit) if limit is not None else 10
+    page = int(page) if page is not None else 1
+    paginator = Paginator(objects, limit)
+
+    obj = paginator.get_page(page)
+    has_next = obj.has_next()
+
+    return obj, has_next
+
+
 def get_paginated_objects(model: object, query_params): # later take into account a different limit for each device
-    """possible improvement - take into account the passed condition in the filter (when there is a search by name)"""
+    """possible improvement - take into account the passed condition in the filter (when there will be a search by letters)"""
     page = query_params.get('page')
     limit = query_params.get('limit')
     # add condition if needed

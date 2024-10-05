@@ -6,7 +6,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from stock.models import Player, Company, PlayerCompanies, StateLaw, GlobalEvent, CompanyWarehouse, GoldSilverExchange, \
-    ProductsExchange, SharesExchange
+    ProductsExchange, SharesExchange, CompanyRecipe, Recipe, CompanyType
 from stock.utils import ProductTypes
 
 
@@ -38,10 +38,10 @@ class RegisterSerializer(serializers.ModelSerializer):
 class PlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ['username', 'silver', 'gold', 'last_login', 'date_joined']
+        fields = ['username', 'silver', 'gold', 'date_joined']
 
 
-# сделать три уровня доступа к сериализатору(разделить на три разных или найти лучший способ)
+
 class CompanySerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
     cartoonist = serializers.IntegerField(source='type.cartoonist')
@@ -121,24 +121,21 @@ class SharesExchangeSerializer(serializers.ModelSerializer): # used in 3 places!
         fields = ['shares_type', 'amount', 'price']
 
 
-class CompanyCreateSerializer2(serializers.ModelSerializer):
-    company_type_display = serializers.SerializerMethodField()
-    cartoonist = serializers.IntegerField(source='type.cartoonist')
-
-    class Meta:
-        model = Company
-        fields = ['company_type_display', 'cartoonist', 'ticker', 'shares_amount', 'preferred_shares_amount', 'dividendes_percent']
-
-    def get_company_type_display(self, obj):
-        return obj.type.get_type_display()
-
-
 class PlayerCompaniesSerializer(serializers.ModelSerializer):
-    company = CompanyCreateSerializer2()
+    company_type_display = serializers.SerializerMethodField()
+    cartoonist = serializers.IntegerField(source="company.type.cartoonist")
+    name = serializers.CharField(source="company.name")
+    ticker = serializers.CharField(source="company.ticker")
+    dividendes_percent = serializers.CharField(source="company.dividendes_percent")
+
 
     class Meta:
         model = PlayerCompanies
-        fields = ['company', 'shares_amount', 'preferred_shares_amount', 'isFounder', 'isHead']
+        fields = ['company_type_display', 'name', 'cartoonist', 'ticker', 'shares_amount', 'preferred_shares_amount',
+                  'dividendes_percent', 'isFounder', 'isHead']
+
+    def get_company_type_display(self, obj):
+        return obj.company.type.get_type_display()
 
 
 class WarehouseSerializer(serializers.ModelSerializer):
@@ -203,3 +200,36 @@ class TopPlayerSerializer(serializers.ModelSerializer): # could be useless later
     class Meta:
         model = Player
         fields = ['username', 'silver', 'gold', 'wealth']
+
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    type = serializers.SerializerMethodField()
+    type_display = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CompanyRecipe
+        fields = ['type', 'type_display', 'amount']
+
+    def get_type(self, obj):
+        return obj.ingredient.type
+
+    def get_type_display(self, obj):
+        return obj.ingredient.get_type_display()
+
+
+class CompanyRecipesSerializer(serializers.ModelSerializer):
+    company_type = serializers.IntegerField(source="recipe.company_type")
+    type_display = serializers.SerializerMethodField()
+    ingredients = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CompanyRecipe
+        fields = ['company_type', 'type_display', 'ingredients']
+
+    def get_type_display(self, obj):
+        return obj.recipe.get_company_type_display()
+
+    def get_ingredients(self, obj):
+        company_recipes = CompanyRecipe.objects.filter(recipe=obj.recipe)
+        return IngredientSerializer(company_recipes, many=True).data

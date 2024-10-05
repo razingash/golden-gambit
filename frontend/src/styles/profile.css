@@ -1,0 +1,111 @@
+
+.field__user_stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.field__profile__info {
+    background: var(--container-background);
+    padding: 15px;
+    border-radius: 4px;
+    border: 2px solid #000;
+    color: #fff;
+}
+
+.profile__header {
+    display: flex;
+    justify-content: space-evenly;
+    padding: 6px 0;
+    max-width: 700px;
+    width: 100%;
+    background: var(--container-background);
+    border-radius: 2px;
+    border: 2px solid;
+}
+
+.profile__header__item {
+    text-decoration: none;
+    color: #fff;
+    font-family: sans-serif;
+    font-weight: 600;
+}
+.profile__header__item:hover {
+    color: var(--hovered-element);
+}
+.profile__header__item:focus {
+    color: var(--blocked-element);
+}
+
+.user__info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.user__info__username { /* same */
+    display: flex;
+    justify-content: center;
+    font-family: sans-serif;
+    font-weight: 600;
+    border-bottom: 2px solid var(--highlight-element-2);
+    padding-bottom: 3px;
+    margin-bottom: 3px;
+}
+.user__info__row { /* same again */
+    display: flex;
+    justify-content: space-between;
+    gap: 35px;
+}
+
+.field__profile__content {
+
+}
+
+.profile__content__list {
+    display: flex;
+    flex-direction: column;
+    background: var(--container-background);
+    padding: 15px;
+    border: 2px solid #000;
+    border-radius: 4px;
+}
+
+.content__list__item {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+
+/* user companies recipies */
+.content__header { /* same again */
+    display: flex;
+    justify-content: center;
+    border-bottom: 2px solid var(--highlight-element-2);
+    padding-bottom: 3px;
+    margin-bottom: 3px;
+    color: #fff;
+}
+
+.content__ingredient__list {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+}
+.ingredient__item {
+    display: flex;
+    gap: 10px;
+    border-left: 1px solid #fff;
+    border-right: 1px solid #fff;
+    padding: 0 10px;
+}
+.ingredient__name {
+
+}
+.ingredient__amount {
+
+}
+/* user companies */
+/* user shares */
+

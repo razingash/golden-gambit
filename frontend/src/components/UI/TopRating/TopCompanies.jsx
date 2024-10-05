@@ -26,7 +26,7 @@ const TopCompanies = () => {
                     <div className={"list__column"} key={column}>
                         <div className={"measurement_date"}></div>
                         {topCompanies.length > 0 ? (topCompanies.map((company) => (
-                            <div className={"top_rating__column"} key={company}>
+                            <div className={"top_rating__column"} key={company.ticker}>
                                 <div className={"top_rating__item"} key={company[column]}>
                                     {column === "company_price" ? formatNumber(company[column]): company[column]}
                                 </div>

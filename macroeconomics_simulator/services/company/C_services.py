@@ -5,7 +5,7 @@ from django.db.models import Q
 from services.base import get_object, check_object
 from services.stock.S_services import calculate_products_price
 from stock.models import Company, CompanyWarehouse, AvailableProductsForProduction, PlayerCompanies, \
-    SharesExchange, Player
+    SharesExchange, Player, CompanyRecipe
 from django.utils import timezone
 
 from stock.utils import to_int, CustomException
@@ -166,3 +166,9 @@ def get_top_companies(amount=10):
     top = Company.objects.all().order_by('-company_price').values('ticker', 'name', 'company_price',
                                                                   'dividendes_percent', 'founding_date')[:amount]
     return top
+
+
+def get_available_recipes():
+    recipes = CompanyRecipe.objects.select_related("recipe", "ingredient").filter(recipe__isAvailable=True)
+
+    return recipes

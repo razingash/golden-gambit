@@ -83,6 +83,22 @@ def right_of_purchase_for_owners(): # shares are available only to the head of a
 def right_of_purchase_for_shareholders(): # shares are available only to the shareholders, after 6 hours to everyone
     return timezone.now() + timedelta(hours=6)
 
+def remove_company_recipes_duplicates(data):
+    seen = set()
+    unique_data = []
+
+    for entry in data:
+        entry_tuple = (
+            entry['company_type'],
+            entry['type_display'],
+            tuple((ingredient['type'], ingredient['amount']) for ingredient in entry['ingredients'])
+        )
+
+        if entry_tuple not in seen:
+            unique_data.append(entry)
+            seen.add(entry_tuple)
+
+    return unique_data
 
 class CustomException(Exception): # probably postpone all related with error class in exceptions.py
     def __init__(self, message):

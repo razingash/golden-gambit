@@ -7,7 +7,11 @@ import Companies from "../pages/Companies";
 import StockProducts from "../pages/StockProducts";
 import StockShares from "../pages/StockShares";
 import Company from "../pages/Company";
-//understand why styles are imported all at once
+import Profile from "../pages/Profile/Profile";
+import UserCompanies from "../pages/Profile/UserCompanies";
+import UserShares from "../pages/Profile/UserShares";
+import UserCompaniesRecipes from "../pages/Profile/UserCompaniesRecipes";
+//investigate why styles are imported all at once
 
 export const publicRotes = [
     {path: "/", component: <Main/>, key: "main"},
@@ -25,5 +29,10 @@ export const unprivateRotes = [
 ]
 
 export const privateRotes = [
-
+    {path: "/profile/", component: <Profile/>, key: "profile", children: [
+        {path: "/profile/companies/", component: <UserCompanies/>, key: "user-companies"},
+        {path: "/profile/recipes", component: <UserCompaniesRecipes/>, key: "user-companies-recipies"},
+        {path: "/profile/shares/", component: <UserShares/>, key: "user-shares"},
+        ]
+    },
 ]

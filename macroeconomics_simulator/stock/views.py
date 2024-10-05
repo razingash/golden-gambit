@@ -11,18 +11,19 @@ from rest_framework_simplejwt.views import TokenVerifyView
 
 from services.base import get_paginated_objects, get_object
 from services.company.C_services import create_new_company, get_company_inventory, update_produced_products_amount, \
-    make_new_shares, put_up_shares_for_sale, get_company_history, buy_products, sell_products, get_top_companies
+    make_new_shares, put_up_shares_for_sale, get_company_history, buy_products, sell_products, get_top_companies, \
+    get_available_recipes
 from services.stock.S_services import purchase_gold, sell_gold, get_gold_history, get_available_shares, buy_shares, \
     buy_management_shares
-from services.user.U_services import get_player, get_user_companies, get_top_users
+from services.user.U_services import get_player, get_user_companies, get_top_users, get_user_shares
 from stock.models import Company, StateLaw, GlobalEvent, GoldSilverExchange, ProductsExchange
-from stock.permissions import IsAuthor, IsHeadOfCompany
+from stock.permissions import IsHeadOfCompany
 from stock.serializers import RegisterSerializer, CompanyCreateSerializer, CompanySerializer, PlayerSerializer, \
     PlayerCompaniesSerializer, CompanyUpdateSerializer, EventsSerializer, LawsSerializer, WarehouseSerializer, \
     GoldSilverRateSerializer, GoldAmountSerializer, ProductsSerializer, ProductsTradingSerializer, \
     SharesExchangeSerializer, SharesExchangeListSerializer, CompanyPrintNewSharesSerializer, SellSharesSerializer, \
-    TopPlayerSerializer
-from stock.utils import custom_exception
+    TopPlayerSerializer, CompanyRecipesSerializer
+from stock.utils import custom_exception, remove_company_recipes_duplicates
 
 
 class RegisterView(APIView):
@@ -71,30 +72,41 @@ class TokenVerifyWithBlacklistView(TokenVerifyView):
             raise InvalidToken(e.args[0])
 
 
-class UserApiView(APIView): #add some permissions
-    permission_classes = (IsAuthenticated, IsAuthor)
+class UserApiView(APIView):
+    permission_classes = (IsAuthenticated, )
 
-    def get(self, request, user_id):
-        player = get_player(user_id)
+    def get(self, request):
+        player = get_player(request.user.id)
 
         return Response(PlayerSerializer(player, many=False).data)
 
 
 class UserCompaniesView(APIView):
-    permission_classes = (IsAuthenticated, IsAuthor)
+    permission_classes = (IsAuthenticated, )
 
-    def get(self, request, user_id): # mb api for unlogged also
-        companies = get_user_companies(user_id)
+    def get(self, request):
+        companies, has_next = get_user_companies(request.user.id, request.query_params)
+        serializer = PlayerCompaniesSerializer(companies, many=True)
 
-        return Response(PlayerCompaniesSerializer(companies, many=True).data)
+        return Response({"data": serializer.data, "has_next": has_next})
 
     @custom_exception
-    def post(self, request, user_id):
+    def post(self, request):
         serializer = CompanyCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        company = create_new_company(user_id=user_id, request_data=request.data)
+        company = create_new_company(user_id=request.user.id, request_data=request.data)
 
         return Response(CompanySerializer(company, many=False).data)
+
+
+class UserSharesView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request):
+        shares, has_next = get_user_shares(request.user.id, request.query_params)
+        serializer = PlayerCompaniesSerializer(shares, many=True)
+
+        return Response({"data": serializer.data, "has_next": has_next})
 
 
 class CompanyListView(APIView):
@@ -103,6 +115,15 @@ class CompanyListView(APIView):
         serializer = CompanySerializer(companies, many=True)
 
         return Response({'data': serializer.data, 'has_next': has_next})
+
+
+class CompanyRecipes(APIView): # no need for unauthorized users
+    #permission_classes = (IsAuthenticated, )
+
+    def get(self, request):
+        recipes = get_available_recipes()
+        recipes = remove_company_recipes_duplicates(CompanyRecipesSerializer(recipes, many=True).data)
+        return Response(recipes)
 
 
 class CompanyApiView(APIView): # улучшить эту залупу чтобы выдавалась инфа в зависимости от того кто просит

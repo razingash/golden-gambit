@@ -8,14 +8,14 @@ export const useAuth = () => {
     return useContext(AuthContext);
 }
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }) => { // bug with reloading private pages
     const [isAuth, setIsAuth] = useState(false);
     const tokenRef = useRef({access: null});
 
-    const [fetchRegisteredUser, isRegisteredUserLoading, registerError] = useFetching(async (username, password) => {
+    const [fetchRegisteredUser, , registerError] = useFetching(async (username, password) => {
         return await AuthService.register(username, password)
     })
-    const [fetchLoginUser, isUserLoading, loginError] = useFetching(async (username, password) => {
+    const [fetchLoginUser, , loginError] = useFetching(async (username, password) => {
         return await AuthService.login(username, password);
     })
     const [fetchLogoutUser] = useFetching(async (refreshToken) => {
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password) => { // good
         const data = await fetchLoginUser(username, password);
-        if (isUserLoading === false && data != null) {
+        if (data != null) {
             localStorage.setItem('token', data.refresh);
             tokenRef.current.access = data.access;
             setIsAuth(true);
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (username, password) => {
         const data = await fetchRegisteredUser(username, password);
-        if (isRegisteredUserLoading === false && data != null) {
+        if (data != null) {
             localStorage.setItem('token', data.refresh)
             tokenRef.current.access = data.access;
             setIsAuth(true);
@@ -68,8 +68,8 @@ export const AuthProvider = ({ children }) => {
     const validateRefreshToken = async () => { // good
         const refreshToken = localStorage.getItem('token')
         if (refreshToken) {
-            await fetchVerifiedToken(refreshToken);
-            return TokenError !== true; //if false, then refresh token has expired
+            const isValid = await fetchVerifiedToken(refreshToken);
+            return isValid !== TokenError; //if false, then refresh token has expired
         } else {
             setIsAuth(false);
             await logout(); // there will be no request bcs refreshToken undefinded
@@ -80,10 +80,12 @@ export const AuthProvider = ({ children }) => {
         const isRefreshTokenValid = await validateRefreshToken();
         const refreshToken = localStorage.getItem('token');
         if (isRefreshTokenValid === true) {
-            const data = fetchRefreshedToken(refreshToken);
-            tokenRef.current.access = data.access;
-            setIsAuth(true);
-            return data.access
+            const data = await fetchRefreshedToken(refreshToken);
+            if (data) {
+                tokenRef.current.access = data.access;
+                setIsAuth(true);
+                return data.access
+            }
         } else { // refresh token has expired
             localStorage.removeItem('token')
             tokenRef.current.access = null;
@@ -92,7 +94,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     useEffect(() => {
-        const initializeAuth = async () => { // rave?
+        const initializeAuth = async () => {
             const isRefreshTokenValid = await validateRefreshToken();
             if (isRefreshTokenValid) {
                 await refreshAccessToken();

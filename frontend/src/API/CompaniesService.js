@@ -14,8 +14,8 @@ export default class CompaniesService {
         const response = await axios.get(`${baseURL}/companies/${ticker}/history/`)
         return response.data
     }
-    static async getUserCompanies(user_id) {
-        const response = await apiClient.get(`/users/${user_id}/companies/`)
+    static async getCompaniesRecipes() {
+        const response = await apiClient.get("/companies/recipes/")
         return response.data
     }
     static async getCompanyInventory(ticker) { // only for company head

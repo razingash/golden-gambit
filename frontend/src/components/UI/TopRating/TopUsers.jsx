@@ -22,12 +22,12 @@ const TopUsers = () => {
     return (
         <div className={"field__top_rating"}>
             <div className={"top_rating__list"}>
-                {columns.map((column) => (
-                    <div className={"list__column"} key={column}>
+                {columns.map((column, index) => (
+                    <div className={"list__column"} key={index}>
                         <div className={"measurement_date"}></div>
                         {topUsers.length > 0 ? (topUsers.map((company) => (
-                            <div className={"top_rating__column"} key={company}>
-                                <div className={"top_rating__item"} key={company[column]}>
+                            <div className={"top_rating__column"} key={company.ticker}>
+                                <div className={"top_rating__item"}>
                                     {formatColumns.includes(column) ? formatNumber(company[column]): company[column]}
                                 </div>
                             </div>

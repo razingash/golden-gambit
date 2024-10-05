@@ -6,6 +6,7 @@ const Header = () => {
      //because of SPA need to use js to collapse the dropdown
     const closeMenu = () => { // and even trick with label doesn't work
         const checkbox = document.getElementById("menu__toggle");
+        document.body.style.overflow = '';
         checkbox.checked = false;
     };
 
@@ -24,6 +25,14 @@ const Header = () => {
                         <label htmlFor="menu__toggle" className="dropdown__closing">
                             <div className={"cross"}></div>
                         </label>
+                        {isAuth && (
+                            <Link to={"/profile"} className="header__dropdown__item" onClick={closeMenu}>
+                                <svg className="svg__menu_icon">
+                                    <use xlinkHref="#icon_user"></use>
+                                </svg>
+                                <div>Profile</div>
+                            </Link>
+                        )}
                         <div className={"header__dropdown__mini"}>
                             <Link to={"/stock"} className="header__dropdown__item" onClick={closeMenu}>
                                 <svg className="svg__menu_icon">
@@ -72,6 +81,7 @@ const Header = () => {
             </div>
             <div className={"header__items"}>
                 <Link to={"/stock"} className={"header__item"}>Stock</Link>
+                {isAuth && <Link to={"/profile"} className={"header__item"}>Profile</Link>}
                 <div className={"header__stock_dropdown"}>
                     <Link to={"/stock/shares"} className={"header__item"}>Shares</Link>
                     <Link to={"/stock/products"} className={"header__item"}>Products</Link>

@@ -2,26 +2,8 @@ from rest_framework import permissions
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework_simplejwt.tokens import AccessToken
 
 from stock.models import PlayerCompanies, Company
-
-
-class IsAuthor(permissions.BasePermission): # use with IsAuthenticated
-    """used to check whether the user who sent the request is the author of this page"""
-
-    def has_permission(self, request, view):
-        auth_header = request.headers.get('Authorization')
-
-        if auth_header:
-            user_id = view.kwargs.get('user_id')
-            token_user_id = request.user.id
-
-            if int(user_id) != token_user_id:
-                raise PermissionDenied('Forbidden for you')
-
-            return True
-        return False
 
 
 class IsHeadOfCompany(permissions.BasePermission): # use with IsAuthenticated
