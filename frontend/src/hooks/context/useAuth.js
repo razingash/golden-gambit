@@ -68,8 +68,12 @@ export const AuthProvider = ({ children }) => { // bug with reloading private pa
     const validateRefreshToken = async () => { // good
         const refreshToken = localStorage.getItem('token')
         if (refreshToken) {
-            const isValid = await fetchVerifiedToken(refreshToken);
-            return isValid !== TokenError; //if false, then refresh token has expired
+            const result = await fetchVerifiedToken(refreshToken);
+            if (result != null) { // all good
+                return true
+            } else { // error, so exit
+                return false
+            }
         } else {
             setIsAuth(false);
             await logout(); // there will be no request bcs refreshToken undefinded
@@ -96,8 +100,10 @@ export const AuthProvider = ({ children }) => { // bug with reloading private pa
     useEffect(() => {
         const initializeAuth = async () => {
             const isRefreshTokenValid = await validateRefreshToken();
-            if (isRefreshTokenValid) {
+            if (isRefreshTokenValid) { // if true, then will be an authorization attempt
                 await refreshAccessToken();
+            } else {
+                await logout();
             }
         }
         void initializeAuth();
