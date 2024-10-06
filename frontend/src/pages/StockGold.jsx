@@ -5,24 +5,28 @@ import Chart from "../components/UI/Chart/Chart";
 import {useFetching} from "../hooks/useFetching";
 import StockServices from "../API/StockServices";
 import AdaptiveLoading from "../components/UI/AdaptiveLoading";
+import {useAuth} from "../hooks/context/useAuth";
 
 const StockGold = () => {
+    const {isAuth} = useAuth();
     const [chartData, setChartData] = useState(null);
     const [fetchGoldRateHistory, isGoldRateHistoryLoading] = useFetching(async () => {
         return await StockServices.getGoldRateHistory();
     })
 
-    useEffect(() => {
+    useEffect(() => { // unused: data.base_price, data.amount
         const loadData = async () => {
             const data = await fetchGoldRateHistory();
             data && setChartData(data.contents);
-            data && console.log(data)
         }
         void loadData();
     }, [isGoldRateHistoryLoading])
 
-    if(!chartData) {
-        return (<div className={"global__loading"}><AdaptiveLoading/></div>)
+    if(!chartData && isAuth === false) { // find better way
+        return <div className={"global__loading"}><AdaptiveLoading/></div>
+    }
+    if (!chartData && isAuth === true) {
+        return <AdaptiveLoading/>
     }
 
     return (
@@ -33,7 +37,9 @@ const StockGold = () => {
                 ) : (
                     <div>Loading...</div>
                 )}
-                <TradeGold/>
+                {isAuth && (
+                   <TradeGold/>
+                )}
             </div>
         </div>
     );

@@ -17,7 +17,7 @@ from services.stock.S_services import purchase_gold, sell_gold, get_gold_history
     buy_management_shares
 from services.user.U_services import get_player, get_user_companies, get_top_users, get_user_shares
 from stock.models import Company, StateLaw, GlobalEvent, GoldSilverExchange, ProductsExchange
-from stock.permissions import IsHeadOfCompany
+from stock.permissions import IsHeadOfCompany, IsHeadOfSelectedCompany
 from stock.serializers import RegisterSerializer, CompanyCreateSerializer, CompanySerializer, PlayerSerializer, \
     PlayerCompaniesSerializer, CompanyUpdateSerializer, EventsSerializer, LawsSerializer, WarehouseSerializer, \
     GoldSilverRateSerializer, GoldAmountSerializer, ProductsSerializer, ProductsTradingSerializer, \
@@ -258,15 +258,15 @@ class StockProductsApiView(APIView):
 
 class ProductsExchangeApiView(APIView):
     """buying or selling goods, while there is no point in buying (and isn't planned)"""
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, IsHeadOfSelectedCompany)
 
     @custom_exception
     def post(self, request, transaction_type):  # if the user doesn't have enough money a custom exception will occur
         serializer = ProductsTradingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         amount = request.data.get('amount')
-        company_ticker = request.data.get('company_ticker')
-        product_type = request.data.get('product_type')
+        company_ticker = request.data.get('ticker')
+        product_type = request.data.get('type')
 
         if transaction_type == "buy":  # purchase
             buy_products(company_ticker, product_type, amount)
@@ -292,7 +292,7 @@ class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
     permission_classes = (IsAuthenticated, )
 
     @custom_exception
-    def post(self, request, ticker): # improve with permissions
+    def post(self, request, ticker): # Тут сделать покупку по количеству
         serializer = SharesExchangeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

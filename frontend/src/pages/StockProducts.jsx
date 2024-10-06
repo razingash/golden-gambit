@@ -1,39 +1,39 @@
-import React, {useEffect, useState} from 'react';
-import useInput from "../hooks/useInput";
+import React, {useEffect, useRef, useState} from 'react';
 import {useFetching} from "../hooks/useFetching";
 import StockServices from "../API/StockServices";
 import BlankResult from "../components/UI/BlankResult/BlankResult";
 import AdaptiveLoading from "../components/UI/AdaptiveLoading";
 import {useAuth} from "../hooks/context/useAuth";
+import {useObserver} from "../hooks/useObserver";
+import TradeProducts from "../components/UI/Forms/TradeProducts";
 
-const StockProducts = () => { // REDO!!!
+const StockProducts = () => {
     const {isAuth} = useAuth();
-    const amount = useInput('');
-    const ticker = useInput('');
-    const tradeType = useInput('buy');
-    const tradingTypes = { "purchase": "buy", "sale": "sell" }
+    const [page, setPage] = useState(1);
+    const [hasNext, setNext] = useState(false);
+    const lastElement = useRef();
     const [products, setProducts] = useState([]);
     const [fetchProducts, isProductsLoading] = useFetching(async () => {
-        return await StockServices.getStockProducts();
+        const data = await StockServices.getStockProducts(page);
+        setProducts((prevProducts) => {
+            const newProducts = data.data.filter(
+                (product) => !prevProducts.some((obj) => obj.name === product.name)
+            )
+            return [...prevProducts, ...newProducts]
+        })
+        setNext(data.has_next)
     })
 
-    const tradeProducts = async (e) => { // improve
-        e.preventDefault();
-        const error = await fetchProducts();
-        if (error) { // improve
-            console.log('tradeGold error')
-        }
-    }
+    useObserver(lastElement, fetchProducts, isProductsLoading, hasNext, page, setPage);
 
-    useEffect(() => { // has_next !
+    useEffect(() => {
         const loadData = async () => {
-            const data = await fetchProducts();
-            data && setProducts(data.data);
+            await fetchProducts();
         }
         void loadData();
-    }, [isProductsLoading])
+    }, [page])
 
-    if (products.length === 0) {
+    if (isProductsLoading === true || isProductsLoading === null) {
         return (<div className={"global__loading"}><AdaptiveLoading/></div>)
     }
 
@@ -41,10 +41,10 @@ const StockProducts = () => { // REDO!!!
         <div className={"section__main"}>
             <div className={"field__products"}>
                 <div className={"products__list"}>
-                    {products.length > 0 ? (products.map((product) => (
-                        <div className={"product__item"} key={product.product_type_display}>
+                    {products.length > 0 ? (products.map((product, index) => (
+                        <div className={"product__item"} key={product.name} ref={index === products.length - 1 ? lastElement : null}>
                             <div className={"product__info"}>
-                                <div className={"product__name"}>{product.product_type_display}</div>
+                                <div className={"product__name"}>{product.name}</div>
                                 <div className={"product__row"}>
                                     <div>purchase</div>
                                     <div>{product.purchase_price}</div>
@@ -55,15 +55,7 @@ const StockProducts = () => { // REDO!!!
                                 </div>
                             </div>
                             {isAuth ? (
-                                <form onSubmit={tradeProducts} className={"form__product_trading"}>
-                                    <input className={"input__stock"} {...amount} type={"text"} placeholder={"amount"}/>
-                                    <input className={"input__stock"} {...ticker} type={"text"} placeholder={"ticker"}/>
-                                    <select {...tradingTypes}>
-                                        {Object.entries(tradingTypes).map(([trade, type]) => (
-                                            <option key={trade} value={type}>{trade}</option>
-                                        ))}
-                                    </select>
-                                </form>
+                                <TradeProducts productType={product.type}/>
                             ) : (
                                <div className={"log_in_wish"}>Sign In!</div>
                             )}

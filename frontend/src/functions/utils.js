@@ -9,3 +9,7 @@ export const formatNumber = (num) => {
     }
     return num.toString();
 }
+
+export const percentageOfNumber = (num1, num2) => {
+    return Math.round(num1 * 100 / num2)
+}

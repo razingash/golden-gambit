@@ -105,7 +105,7 @@ class SharesExchangeListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SharesExchange
-        fields = ['ticker', 'name', 'shares_type', 'amount', 'price']
+        fields = ['id', 'ticker', 'name', 'shares_type', 'amount', 'price']
 
 
 class SellSharesSerializer(serializers.ModelSerializer):
@@ -122,19 +122,20 @@ class SharesExchangeSerializer(serializers.ModelSerializer): # used in 3 places!
 
 
 class PlayerCompaniesSerializer(serializers.ModelSerializer):
-    company_type_display = serializers.SerializerMethodField()
-    cartoonist = serializers.IntegerField(source="company.type.cartoonist")
+    type = serializers.SerializerMethodField()
     name = serializers.CharField(source="company.name")
     ticker = serializers.CharField(source="company.ticker")
-    dividendes_percent = serializers.CharField(source="company.dividendes_percent")
-
+    dividendes = serializers.CharField(source="company.dividendes_percent")
+    price = serializers.DecimalField(source="company.company_price", max_digits=10, decimal_places=2)
+    co_shares = serializers.CharField(source="company.shares_amount")  # ordinary shares
+    cp_shares = serializers.CharField(source="company.preferred_shares_amount")  # preffered shares
 
     class Meta:
         model = PlayerCompanies
-        fields = ['company_type_display', 'name', 'cartoonist', 'ticker', 'shares_amount', 'preferred_shares_amount',
-                  'dividendes_percent', 'isFounder', 'isHead']
+        fields = ['type', 'name', 'price', 'ticker', 'shares_amount', 'preferred_shares_amount',
+                  'dividendes', 'co_shares', 'cp_shares', 'isFounder', 'isHead']
 
-    def get_company_type_display(self, obj):
+    def get_type(self, obj):
         return obj.company.type.get_type_display()
 
 
@@ -161,22 +162,23 @@ class GoldAmountSerializer(serializers.Serializer):
 
 
 class ProductsSerializer(serializers.ModelSerializer):
-    product_type_display = serializers.SerializerMethodField()
+    type = serializers.IntegerField(source="product.type")
+    name = serializers.SerializerMethodField()
 
     class Meta:
         model = ProductsExchange
-        fields = ['product_type_display', 'purchase_price', 'sale_price']
+        fields = ['name', 'purchase_price', 'sale_price', 'type']
 
-    def get_product_type_display(self, obj):
+    def get_name(self, obj):
         return obj.product.get_type_display()
 
 
-class ProductsTradingSerializer(serializers.Serializer):
+class ProductsTradingSerializer(serializers.Serializer): # probably redo
     amount = serializers.IntegerField()
-    company_ticker = serializers.CharField(max_length=8, min_length=4)
-    product_type = serializers.ChoiceField(choices=ProductTypes.choices)
+    ticker = serializers.CharField(max_length=8, min_length=4)
+    type = serializers.ChoiceField(choices=ProductTypes.choices) # product type
 
-    def validate_company_ticker(self, value):
+    def validate_ticker(self, value):
         if not Company.objects.filter(ticker=value).exists():
             raise serializers.ValidationError(f"Company with ticker {value} does not exist")
         return value

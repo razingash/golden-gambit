@@ -74,11 +74,12 @@ def get_available_shares(query_params, user_id=None):
 
 
 def buy_shares(user_id, ticker, amount, price): # for silver
+    """buys company shares in a certain quantity at a fixed price"""
     company = get_object(model=Company, condition=Q(ticker=ticker))
     stock_shares = get_object(model=SharesExchange, condition=Q(company=company))
-
     user = get_object(model=Player, condition=Q(id=user_id))
     company = get_object(model=Company, condition=Q(ticker=ticker))
+
     full_price = int(amount * price)
 
 
@@ -100,11 +101,12 @@ def buy_shares(user_id, ticker, amount, price): # for silver
         raise CustomException('You need more silver')
 
 def buy_management_shares(user_id, ticker, amount, price):
+    """buys company shares in a certain quantity at a fixed price"""
     company = get_object(model=Company, condition=Q(ticker=ticker))
     stock_shares = get_object(model=SharesExchange, condition=Q(company=company))
-
     user = get_object(model=Player, condition=Q(id=user_id))
     company = get_object(model=Company, condition=Q(ticker=ticker))
+
     full_price = int(amount * price)
 
     if user.gold >= full_price:
@@ -123,6 +125,24 @@ def buy_management_shares(user_id, ticker, amount, price):
             raise CustomException(f'The current number of shares on the exchange is {stock_shares.amount}, you need {amount}')
     else:
         raise CustomException('You need more gold')
+
+
+def advanced_buy_ordinary_shares(user_id, ticker, amount, offered_money):
+    """
+    buys company shares in a certain quantity within a given price.
+    offered_money is the money that the user is willing to give for a specific number of shares.
+    shares will be purchased with available (transferred) money.
+    """
+    company = get_object(model=Company, condition=Q(ticker=ticker))
+    stock_shares = get_object(model=SharesExchange, condition=Q(company=company))
+    user = get_object(model=Player, condition=Q(id=user_id))
+
+    if user.silver >= offered_money:
+        if stock_shares.amount >= amount:
+            pass
+    else:
+        raise CustomException("You don't have that much money")
+
 
 
 def purchase_gold(user_id, amount) -> None:

@@ -10,20 +10,21 @@ export default class StockServices {
         const response = await axios.get(`${baseURL}/stock/gold/history/`)
         return response.data
     }
-    static async getStockProducts() {
-        const response = await axios.get(`${baseURL}/stock/products/`)
+    static async getStockProducts(page) {
+        const response = await axios.get(`${baseURL}/stock/products/`, {params: {page: page}})
         return response.data
     }
-    static async getStockShares() { // returns data and has_next
-        const response = await axios.get(`${baseURL}/stock/shares-exchange/`)
+    static async getStockShares(page) { // returns data and has_next
+        const response = await axios.get(`${baseURL}/stock/shares-exchange/`, {params: {page: page}})
         return response.data
     }
     static async tradeGold(type, amount) { // type - buy or sell
         const response = await apiClient.post(`/stock/gold/${type}/`, {amount})
         return response.data
     }
-    static async tradeProducts(type, company_ticker, amount, product_type) {
-        const response = await apiClient.post(`/stock/products/${type}/`, {type, company_ticker, amount, product_type})
+    static async tradeProducts(transaction_type, ticker, amount, type) {
+        console.log(transaction_type, ticker, amount, type)
+        const response = await apiClient.post(`/stock/products/${transaction_type}/`, {ticker, amount, type})
         return response.data
     }
     static async tradeShares(ticker, shares_type, amount, price) {

@@ -69,12 +69,13 @@
     padding: 15px;
     border: 2px solid #000;
     border-radius: 4px;
+    gap: 14px;
 }
 
 .content__list__item {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 6px;
 }
 
 
@@ -86,6 +87,13 @@
     padding-bottom: 3px;
     margin-bottom: 3px;
     color: #fff;
+    text-decoration: none;
+}
+.content__header:hover{
+    color: var(--hovered-element);
+}
+.content__header:focus {
+    color: var(--blocked-element);
 }
 
 .content__ingredient__list {
@@ -106,6 +114,37 @@
 .ingredient__amount {
 
 }
-/* user companies */
-/* user shares */
 
+/* user companies */
+.content__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+.content__s {
+    color: var(--hovered-element);
+}
+
+/* user shares */
+.content_tug_of_war {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+    padding: 0 5px;
+    height: 1.5em;
+    width: 100%;
+}
+.tug_of_war_bar {
+    border-radius: 100px;
+    background: #346f97;
+    height: 19px;
+}
+.tug_of_war_text {
+    color: #000000;
+    text-shadow: 0 0 3px #ff0000, 0 0 5px #000; /* 00ff03 */
+    z-index: 1;
+    position: absolute;
+}

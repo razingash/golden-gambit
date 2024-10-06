@@ -32,3 +32,29 @@ class IsHeadOfCompany(permissions.BasePermission): # use with IsAuthenticated
                 return True
         return False
 
+
+class IsHeadOfSelectedCompany(permissions.BasePermission): # use with IsAuthenticated
+    """used to check whether the user is the owner of the company (but only with the data sent in the request data)"""
+
+    def has_permission(self, request, view):
+        ticker = request.data.get('ticker')
+
+        if not ticker:
+            raise AuthenticationFailed(f"Company with ticker '{ticker}' doesn't exist")
+
+        auth_header = request.headers.get('Authorization')
+
+        if auth_header:
+            try:
+                token_user_id = request.user.id
+
+                company = get_object_or_404(Company, ticker=ticker,)
+
+                if not PlayerCompanies.objects.filter(company=company, player_id=token_user_id, isHead=True).exists():
+                    raise PermissionDenied(f'You are not the head of company with ticker {ticker}')
+
+            except TokenError as e:
+                raise AuthenticationFailed(f'Token error: {str(e)}')
+            else:
+                return True
+        return False
