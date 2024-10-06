@@ -8,7 +8,8 @@ export const useAuth = () => {
     return useContext(AuthContext);
 }
 
-export const AuthProvider = ({ children }) => { // bug with reloading private pages
+export const AuthProvider = ({ children }) => {
+    const [loading, setLoading] = useState(true);
     const [isAuth, setIsAuth] = useState(false);
     const tokenRef = useRef({access: null});
 
@@ -24,7 +25,7 @@ export const AuthProvider = ({ children }) => { // bug with reloading private pa
     const [fetchVerifiedToken] = useFetching(async (token) => {
         return await AuthService.verifyToken(token);
     })
-    const [fetchRefreshedToken, , TokenError] = useFetching(async (refreshToken) => {
+    const [fetchRefreshedToken] = useFetching(async (refreshToken) => {
         return await AuthService.refreshAccessToken(refreshToken)
     })
 
@@ -98,6 +99,7 @@ export const AuthProvider = ({ children }) => { // bug with reloading private pa
     }
 
     useEffect(() => {
+        setLoading(true);
         const initializeAuth = async () => {
             const isRefreshTokenValid = await validateRefreshToken();
             if (isRefreshTokenValid) { // if true, then will be an authorization attempt
@@ -105,6 +107,7 @@ export const AuthProvider = ({ children }) => { // bug with reloading private pa
             } else {
                 await logout();
             }
+            setLoading(false);
         }
         void initializeAuth();
     }, [isAuth]);
@@ -112,7 +115,7 @@ export const AuthProvider = ({ children }) => { // bug with reloading private pa
     return (
         <AuthContext.Provider
             value={{
-                isAuth, tokenRef, register, login, loginError, registerError,
+                loading, isAuth, tokenRef, register, login, loginError, registerError,
                 logout, refreshAccessToken, validateRefreshToken
             }}>
             {children}
