@@ -1,12 +1,15 @@
 import json
+from decimal import Decimal
 
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
 
-from services.base import get_object
-from stock.models import GoldSilverExchange, SharesExchange, PlayerCompanies, Player, Company, ProductsExchange
-from stock.utils import CustomException, to_int
+from services.base import get_object, get_object_or_create
+from services.general_services import recalculation_of_the_shareholders_influence
+from stock.models import GoldSilverExchange, SharesExchange, PlayerCompanies, Player, Company, ProductsExchange, \
+    SharesWholesaleTrade
+from stock.utils import CustomException, to_int, SharesTypes
 
 
 def update_gold_price(instance: GoldSilverExchange, amount_of_gold) -> None:
@@ -127,19 +130,97 @@ def buy_management_shares(user_id, ticker, amount, price):
         raise CustomException('You need more gold')
 
 
-def advanced_buy_ordinary_shares(user_id, ticker, amount, offered_money):
+def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
     """
     buys company shares in a certain quantity within a given price.
     offered_money is the money that the user is willing to give for a specific number of shares.
     shares will be purchased with available (transferred) money.
     """
     company = get_object(model=Company, condition=Q(ticker=ticker))
-    stock_shares = get_object(model=SharesExchange, condition=Q(company=company))
     user = get_object(model=Player, condition=Q(id=user_id))
 
-    if user.silver >= offered_money:
-        if stock_shares.amount >= amount:
-            pass
+    if shares_type == 1: # ordinary
+        shares_type = SharesTypes.ORDINARY
+        user_money = user.silver
+    elif shares_type == 2: # preffered
+        shares_type = SharesTypes.PREFERRED
+        user_money = user.gold
+    else:
+        raise CustomException('Error in buy_shares_wholesale due to incorrect sharesType')
+
+    stock_shares_lots = SharesExchange.objects.filter(company=company, shares_type=shares_type).order_by('price')
+
+    if user_money >= offered_money:
+        total_purchased = 0
+        total_paid = Decimal('0.00')
+
+        remaining_money = Decimal(offered_money)
+        remaining_amount = amount
+
+        for lot in stock_shares_lots:
+            if remaining_amount <= 0 or remaining_money <= 0:
+                break
+
+            available_shares = min(remaining_amount, lot.amount)
+            total_cost_for_lot = Decimal(available_shares) * Decimal(lot.price)
+
+            if total_cost_for_lot <= remaining_money:
+                total_purchased += available_shares
+                total_paid += total_cost_for_lot
+                remaining_money -= total_cost_for_lot
+                remaining_amount -= available_shares
+
+                lot.amount -= available_shares
+                lot.save()
+
+            else:
+                max_affordable_shares = int(remaining_money // Decimal(lot.price))
+                total_purchased += max_affordable_shares
+                total_paid += Decimal(max_affordable_shares) * Decimal(lot.price)
+                remaining_money -= Decimal(max_affordable_shares) * Decimal(lot.price)
+                remaining_amount -= max_affordable_shares
+
+                lot.amount -= max_affordable_shares
+                lot.save()
+
+                break
+
+        if total_purchased == 0:
+            raise CustomException("Not enough funds to buy any shares or no shares available.")
+
+        transaction = SharesWholesaleTrade.objects.create(company=company, reserved_money=offered_money, paid=total_paid,
+                                                          desired_quantity=amount, shares_type=shares_type, buyer=user,
+                                                          purchased=total_purchased)
+
+        if shares_type == 1: # ordinary
+            obj, is_created = get_object_or_create(model=PlayerCompanies, condition=Q(player_id=user_id, company=company),
+                                                   condtion_create={'player_id': user_id, 'company': company,
+                                                                    'isFounder': False, 'shares_amount': total_purchased,
+                                                                    'isHead': False, 'preferred_shares_amount': 0})
+            if not is_created:
+                obj.shares_amount += total_purchased
+                obj.save()
+            company.shares_amount -= total_purchased
+            company.silver_reserve += total_paid
+            user.silver -= total_paid
+            company.save(document=True), user.save()
+        elif shares_type == 2: # preffered
+            obj, is_created = get_object_or_create(model=PlayerCompanies, condition=Q(player_id=user_id, company=company),
+                                                   condtion_create={'player_id': user_id, 'company': company,
+                                                                    'isFounder': False, 'isHead': False, 'shares_amount': 0,
+                                                                    'preferred_shares_amount': total_purchased})
+            if not is_created:
+                obj.preferred_shares_amount += total_purchased
+                obj.save()
+
+            recalculation_of_the_shareholders_influence(company)
+
+            company.shares_amount -= total_purchased
+            company.gold_reserve += total_paid
+            user.gold -= total_paid
+            company.save(document=True), user.save()
+
+        return transaction
     else:
         raise CustomException("You don't have that much money")
 

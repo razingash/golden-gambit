@@ -39,7 +39,7 @@ def recalculate_company_price(company_instance): # good
 
 class Player(AbstractUser):
     uuid = models.UUIDField(primary_key=False, default=uuid4, unique=True, editable=False, blank=False, null=False)
-    silver = models.DecimalField(default=0, validators=[MinValueValidator(Decimal(0))], max_digits=10, decimal_places=2,
+    silver = models.DecimalField(default=30_000, validators=[MinValueValidator(Decimal(0))], max_digits=10, decimal_places=2,
                                  blank=False, null=False)
     gold = models.PositiveBigIntegerField(default=0, blank=False, null=False)
 
@@ -130,7 +130,7 @@ class Company(models.Model):
                                          decimal_places=2, blank=False, null=False)
     gold_reserve = models.PositiveBigIntegerField(default=0, blank=False, null=False)
     company_price = models.IntegerField(blank=False, null=False)
-    dividendes_percent = models.DecimalField(max_digits=10, decimal_places=2, blank=False, null=False)
+    dividendes_percent = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('2.00'))], blank=False, null=False)
     history = models.FilePathField(path=os.path.join(settings.MEDIA_ROOT, 'companies'), match='.*\.json$',
                                    blank=False, null=False)
     founding_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
@@ -227,6 +227,20 @@ class SharesExchange(models.Model):
 
     class Meta:
         db_table = 'dt_SharesExchange'
+
+
+class SharesWholesaleTrade(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    buyer = models.ForeignKey(Player, on_delete=models.CASCADE)
+    shares_type = models.IntegerField(choices=SharesTypes.choices, blank=False, null=False)
+    desired_quantity = models.PositiveSmallIntegerField(blank=False, null=False, validators=[MinValueValidator(1)])
+    reserved_money = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))], blank=False, null=False)
+    purchased = models.PositiveSmallIntegerField(blank=False, null=False, validators=[MinValueValidator(1)]) # how many shares were purchased
+    paid = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))],
+                               blank=False, null=False) # how much was paid
+
+    class Meta:
+        db_table = 'dt_SharesWholesaleTrade'
 
 
 # Unrelated models

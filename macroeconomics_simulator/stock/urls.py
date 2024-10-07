@@ -27,6 +27,7 @@ urlpatterns = [
     path('v1/stock/products/<str:transaction_type>/', ProductsExchangeApiView.as_view(), name='products-exchange'), # post
     path('v1/stock/shares-exchange/', SharesListApiView.as_view(), name='shares-list'), # get
     path('v1/stock/shares-exchange/<str:ticker>/', SharesExchangeApiView.as_view(), name='shares-exchange'), # post
+    path('v1/stock/shares-exchange/<str:ticker>/wholesale/', SharesExchangeWholesaleApiView.as_view(), name='shares-exchange-wholesale'), # post
     path('v1/laws/', LawsApiView.as_view(), name='laws'), # get
     path('v1/events/', EventsApiView.as_view(), name='events'), # get
     path('v1/top/companies/', TopCompaniesApiView.as_view(), name='top-companies'), # get

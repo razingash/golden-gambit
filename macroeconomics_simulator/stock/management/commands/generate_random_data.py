@@ -138,7 +138,7 @@ def generate_companies(iteration_days):
                 break
             company_ordinary_shares -= shares_for_sale
 
-            sell_shares_retroactively(new_company, shares_for_sale, shares_price, 2, None, None)
+            sell_shares_retroactively(new_company, shares_for_sale, shares_price, 1, None, None)
 
 
 class Command(BaseCommand):

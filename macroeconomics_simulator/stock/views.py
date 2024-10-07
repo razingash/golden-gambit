@@ -14,7 +14,7 @@ from services.company.C_services import create_new_company, get_company_inventor
     make_new_shares, put_up_shares_for_sale, get_company_history, buy_products, sell_products, get_top_companies, \
     get_available_recipes
 from services.stock.S_services import purchase_gold, sell_gold, get_gold_history, get_available_shares, buy_shares, \
-    buy_management_shares
+    buy_management_shares, buy_shares_wholesale
 from services.user.U_services import get_player, get_user_companies, get_top_users, get_user_shares
 from stock.models import Company, StateLaw, GlobalEvent, GoldSilverExchange, ProductsExchange
 from stock.permissions import IsHeadOfCompany, IsHeadOfSelectedCompany
@@ -22,7 +22,8 @@ from stock.serializers import RegisterSerializer, CompanyCreateSerializer, Compa
     PlayerCompaniesSerializer, CompanyUpdateSerializer, EventsSerializer, LawsSerializer, WarehouseSerializer, \
     GoldSilverRateSerializer, GoldAmountSerializer, ProductsSerializer, ProductsTradingSerializer, \
     SharesExchangeSerializer, SharesExchangeListSerializer, CompanyPrintNewSharesSerializer, SellSharesSerializer, \
-    TopPlayerSerializer, CompanyRecipesSerializer
+    TopPlayerSerializer, CompanyRecipesSerializer, SharesExchangeWholesaleReceiveSerializer, \
+    SharesExchangeWholesaleSendSerializer
 from stock.utils import custom_exception, remove_company_recipes_duplicates
 
 
@@ -225,8 +226,7 @@ class GoldExchangeApiView(APIView):
         serializer.is_valid(raise_exception=True)
         amount = request.data.get('amount')
 
-        auth_header = request.headers.get('Authorization')
-        user_id = AccessToken(auth_header.split()[1])['user_id']
+        user_id = request.user.id
 
         if transaction_type == "buy": # purchase
             purchase_gold(user_id=user_id, amount=amount)
@@ -292,7 +292,7 @@ class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
     permission_classes = (IsAuthenticated, )
 
     @custom_exception
-    def post(self, request, ticker): # Тут сделать покупку по количеству
+    def post(self, request, ticker):
         serializer = SharesExchangeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -300,8 +300,7 @@ class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
         amount = request.data.get('amount')
         price = request.data.get('price')
 
-        auth_header = request.headers.get('Authorization')
-        user_id = AccessToken(auth_header.split()[1])['user_id']
+        user_id = request.user.id
 
         if shares_type == 1: # ordinary
             buy_shares(user_id, ticker, amount, price)
@@ -311,6 +310,25 @@ class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(f'error: Bad Request, {shares_type} is a non-existent shares type', status=status.HTTP_400_BAD_REQUEST)
+
+
+class SharesExchangeWholesaleApiView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    @custom_exception
+    def post(self, request, ticker): # Тут сделать покупку по количеству
+        serializer = SharesExchangeWholesaleReceiveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        amount = request.data.get('desired_quantity')
+        offered_money = request.data.get('reserved_money')
+        shares_type = request.data.get('shares_type')
+
+        user_id = request.user.id
+        purchased_shares = buy_shares_wholesale(user_id, ticker=ticker, amount=amount, offered_money=offered_money,
+                                                shares_type=shares_type)
+
+        return Response(SharesExchangeWholesaleSendSerializer(purchased_shares, many=False).data)
 
 
 class LawsApiView(APIView):

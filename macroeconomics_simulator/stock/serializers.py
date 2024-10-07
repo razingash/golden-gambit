@@ -6,7 +6,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from stock.models import Player, Company, PlayerCompanies, StateLaw, GlobalEvent, CompanyWarehouse, GoldSilverExchange, \
-    ProductsExchange, SharesExchange, CompanyRecipe, Recipe, CompanyType
+    ProductsExchange, SharesExchange, CompanyRecipe, Recipe, CompanyType, SharesWholesaleTrade
 from stock.utils import ProductTypes
 
 
@@ -92,6 +92,16 @@ class CompanyCreateSerializer(serializers.ModelSerializer):
         model = Company
         fields = ['type', 'ticker', 'name', 'shares_amount', 'preferred_shares_amount', 'dividendes_percent']
 
+    def validate_shares_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Amount must be greater than zero, clown")
+        return value
+
+    def validate_preffered_shares_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Amount must be greater than zero, clown")
+        return value
+
 
 class CompanyPrintNewSharesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -160,6 +170,11 @@ class GoldSilverRateSerializer(serializers.ModelSerializer):
 class GoldAmountSerializer(serializers.Serializer):
     amount = serializers.IntegerField()
 
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Amount must be greater than zero, clown")
+        return value
+
 
 class ProductsSerializer(serializers.ModelSerializer):
     type = serializers.IntegerField(source="product.type")
@@ -177,6 +192,11 @@ class ProductsTradingSerializer(serializers.Serializer): # probably redo
     amount = serializers.IntegerField()
     ticker = serializers.CharField(max_length=8, min_length=4)
     type = serializers.ChoiceField(choices=ProductTypes.choices) # product type
+
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Amount must be greater than zero, clown")
+        return value
 
     def validate_ticker(self, value):
         if not Company.objects.filter(ticker=value).exists():
@@ -235,3 +255,15 @@ class CompanyRecipesSerializer(serializers.ModelSerializer):
     def get_ingredients(self, obj):
         company_recipes = CompanyRecipe.objects.filter(recipe=obj.recipe)
         return IngredientSerializer(company_recipes, many=True).data
+
+
+class SharesExchangeWholesaleReceiveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SharesWholesaleTrade
+        fields = ['desired_quantity', 'shares_type', 'reserved_money']
+
+
+class SharesExchangeWholesaleSendSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SharesWholesaleTrade
+        fields = '__all__'

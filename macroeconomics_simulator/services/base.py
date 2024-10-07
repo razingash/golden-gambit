@@ -22,6 +22,16 @@ def get_object(model: object, condition, fields=None): # the best way
         return obj
 
 
+def get_object_or_create(model: object, condition, condtion_create):
+    try:
+        obj = model.objects.get(condition)
+    except model.DoesNotExist:  # ivestiga isHead case
+        obj = model.objects.create(**condtion_create)
+        is_created = True
+    else:
+        is_created = False
+    return obj, is_created
+
 def paginate_objects(objects, query_params):
     page = query_params.get('page')
     limit = query_params.get('limit')
