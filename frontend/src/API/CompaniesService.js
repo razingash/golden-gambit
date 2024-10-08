@@ -6,8 +6,9 @@ export default class CompaniesService {
         const response = await axios.get(`${baseURL}/companies/`, {params: {page: page}})
         return response.data
     }
-    static async getCompany(ticker) {
-        const response = await apiClient.get(`/companies/${ticker}/`)
+    static async getCompany(ticker, token) {
+        const response = await axios.get(`${baseURL}/companies/${ticker}/`,
+            {headers: {Authorization: token ? `Bearer ${token}` : ''}})
         return response.data
     }
     static async getCompanyHistory(ticker) {
@@ -26,9 +27,8 @@ export default class CompaniesService {
         const response = await apiClient.get(`/companies/${ticker}/warehouse/update/`)
         return response.data
     }
-    /*createNewCompany нуждается в улучшениях, его брать одним из последних*/
-    static async createNewCompany(user_id, type, ticker, name, shares_amount, preferred_shares_amount, dividendes_percent) {
-        const response = await apiClient.post(`/users/${user_id}/companies/`,
+    static async createNewCompany(type, ticker, name, shares_amount, preferred_shares_amount, dividendes_percent) {
+        const response = await apiClient.post(`/user/companies/`,
             {type, ticker, name, shares_amount, preferred_shares_amount, dividendes_percent})
         return response.data
     }

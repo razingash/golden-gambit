@@ -4,6 +4,7 @@ import {useFetching} from "../../hooks/useFetching";
 import UserService from "../../API/UserService";
 import BlankResult from "../../components/UI/BlankResult/BlankResult";
 import {Link, Outlet} from "react-router-dom";
+import NewCompanyForm from "../../components/UI/Forms/NewCompanyForm/NewCompanyForm";
 
 const Profile = () => {
     const [user, setUser] = useState(null);
@@ -22,10 +23,10 @@ const Profile = () => {
     return (
         <div className={"section__main"}>
             <div className={"field__user_stats"}>
-                <div className={"field__profile__info"}>
                 {user ? (
-                    <div className={"user__info"}>
-                        <div className={"user__info__username"}>{user.username}</div>
+                <div className={"area__row"}>
+                    <div className={"container__default"}>
+                        <div className={"container__header_1"}>{user.username}</div>
                         <div className={"user__info__row"}>
                             <div>silver</div>
                             <div>{user.silver}</div>
@@ -39,10 +40,11 @@ const Profile = () => {
                             <div>{user.date_joined.split('T')[0]}</div>
                         </div>
                     </div>
+                    <NewCompanyForm/>
+                </div>
                 ) : (
                     <BlankResult title={"Error during loading user data"} info={"Most likely the error occurs due to a bad connection"} />
                 )}
-                </div>
                 <div className={"profile__header"}>
                     <Link to={"/profile/companies/"} className={"profile__header__item"}>companies</Link>
                     <Link to={"/profile/shares/"} className={"profile__header__item"}>shares</Link>

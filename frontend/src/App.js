@@ -1,4 +1,5 @@
 import "./styles/index.css";
+import './styles/core.css'
 import AppRouter from "./components/AppRouter";
 import React from "react";
 import {BrowserRouter} from "react-router-dom";

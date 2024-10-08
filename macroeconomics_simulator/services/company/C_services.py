@@ -2,17 +2,22 @@ import json
 
 from django.db.models import Q
 
-from services.base import get_object, check_object
+from services.base import get_object
 from services.general_services import recalculation_of_the_shareholders_influence
 from services.stock.S_services import calculate_products_price
 from stock.models import Company, CompanyWarehouse, AvailableProductsForProduction, PlayerCompanies, \
-    SharesExchange, Player, CompanyRecipe
+    SharesExchange, Player, CompanyRecipe, GoldSilverExchange, ProductType
 from django.utils import timezone
 
 from stock.utils import to_int, CustomException
 
 
 def create_new_company(user_id, request_data):
+    """
+    if the user does not have established companies, then he establishes it for free, if there is a founded company,
+        if he already has a company the price will be equal to the cost of 100 gold in silver
+            if user don’t have that kind of money, then ...
+    """
     company_type = request_data.get('type')
     ticker = request_data.get('ticker')
     name = request_data.get('name')
@@ -20,7 +25,19 @@ def create_new_company(user_id, request_data):
     preferred_shares_amount = request_data.get('preferred_shares_amount')
     dividendes_percent = request_data.get('dividendes_percent')
 
-    check_object(model=Player, condition=Q(id=user_id)) # investigate...
+    user = get_object(model=Player, condition=Q(id=user_id))
+
+    if not PlayerCompanies.objects.filter(player_id=user_id, isFounder=True).exists():
+        pass
+    else: # 100 is amount of gold
+        stock_gold_price = get_object(model=GoldSilverExchange, condition=Q(base_price=1000),
+                                      fields=['current_price']).current_price
+        company_opening_price = 100 * stock_gold_price
+        if user.silver >= company_opening_price:
+            user.silver -= company_opening_price
+            user.save()
+        else:
+            raise CustomException('You need more money to open new company')
 
     new_company = Company.objects.create(type_id=company_type, ticker=ticker, name=name, shares_amount=shares_amount,
                                          preferred_shares_amount=preferred_shares_amount, dividendes_percent=dividendes_percent)
@@ -112,7 +129,8 @@ def buy_products(ticker, product_type, amount) -> None:
     try:
         warehouse = CompanyWarehouse.objects.get(company=company, product__type=product_type)
     except CompanyWarehouse.DoesNotExist: # if there is no warehouse, then create...
-        warehouse = CompanyWarehouse.objects.create(company=company, product__type=product_type)
+        product = ProductType.objects.get(type=product_type)
+        warehouse = CompanyWarehouse.objects.create(company=company, product=product)
     products_price = calculate_products_price(product_id=warehouse.product.id, products_amount=amount)
 
     if company.silver_reserve >= products_price:

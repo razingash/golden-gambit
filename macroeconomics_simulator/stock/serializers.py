@@ -6,7 +6,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from stock.models import Player, Company, PlayerCompanies, StateLaw, GlobalEvent, CompanyWarehouse, GoldSilverExchange, \
-    ProductsExchange, SharesExchange, CompanyRecipe, Recipe, CompanyType, SharesWholesaleTrade
+    ProductsExchange, SharesExchange, CompanyRecipe, SharesWholesaleTrade
 from stock.utils import ProductTypes
 
 
@@ -55,6 +55,29 @@ class CompanySerializer(serializers.ModelSerializer):
         return obj.type.get_type_display()
 
 
+class DividedCompanySerializer(serializers.ModelSerializer):
+    """separates information for ordinary users and the head of the company"""
+    type = serializers.SerializerMethodField()
+    cartoonist = serializers.IntegerField(source='type.cartoonist')
+    isHead = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Company
+        fields = ['type', 'cartoonist', 'ticker', 'name', 'shares_amount', 'preferred_shares_amount', 'share_price',
+                  'silver_reserve', 'gold_reserve', 'company_price', 'dividendes_percent', 'founding_date', 'isHead']
+
+    def get_isHead(self, obj):
+        user = self.context['user']
+        if user.is_authenticated:
+            player_company = PlayerCompanies.objects.filter(company=obj, player=user, isHead=True).first()
+            return player_company is not None
+        else:
+            return False
+
+    def get_type(self, obj):
+        return obj.type.get_type_display()
+
+
 class CompanyUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
@@ -72,19 +95,22 @@ class CompanyUpdateSerializer(serializers.ModelSerializer):
 
     def update_dividendes_percent(self, instance, dividendes_percent):
         permissible_fluctuation = Decimal(3)
-        if abs(dividendes_percent) <= permissible_fluctuation:
-            dividendes = instance.dividendes_percent + dividendes_percent
-            if dividendes_percent == 0:
-                raise serializers.ValidationError(f"Too low fluctuation - {dividendes_percent}%")
-            if dividendes >= 0:
-                if dividendes <= 50:
-                    instance.dividendes_percent += dividendes_percent
-                else:
-                    raise serializers.ValidationError("Dividend percentage cannot be greater than 50")
-            else:
-                raise serializers.ValidationError("Dividend percentage cannot be negative ")
+        current_dividendes = instance.dividendes_percent
+
+        if dividendes_percent <= 0:
+            raise serializers.ValidationError({'dividendes_percent': f"Too low fluctuation - {dividendes_percent}%"})
+
+        fluctuation = dividendes_percent - current_dividendes
+
+        if abs(fluctuation) > permissible_fluctuation:
+            raise serializers.ValidationError(
+                {'dividendes_percent': f"Too high fluctuation for dividends, maximum - {permissible_fluctuation}%"})
+
+        if dividendes_percent <= 50:
+            instance.dividendes_percent = dividendes_percent
         else:
-            raise serializers.ValidationError(f"Too high fluctuation for dividends, maximum - {permissible_fluctuation}%")
+            raise serializers.ValidationError({'dividendes_percent': "Dividend percentage cannot be greater than 50"})
+
 
 
 class CompanyCreateSerializer(serializers.ModelSerializer):
@@ -100,6 +126,11 @@ class CompanyCreateSerializer(serializers.ModelSerializer):
     def validate_preffered_shares_amount(self, value):
         if value <= 0:
             raise serializers.ValidationError("Amount must be greater than zero, clown")
+        return value
+
+    def validate_dividendes_percent(self, value):
+        if value <= 2:
+            raise serializers.ValidationError("Dividendes percent must be greater or equal 2")
         return value
 
 
@@ -150,14 +181,25 @@ class PlayerCompaniesSerializer(serializers.ModelSerializer):
 
 
 class WarehouseSerializer(serializers.ModelSerializer):
-    product_type_display = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CompanyWarehouse
+        fields = ['type', 'amount', 'max_amount']
+
+    def get_type(self, obj):
+        return obj.product.get_type_display()
+
+
+class WarehouseUpdateSerializer(serializers.ModelSerializer):
+    type = serializers.SerializerMethodField()
     ticker = serializers.CharField(source='company.ticker', read_only=True)
 
     class Meta:
         model = CompanyWarehouse
-        fields = ['ticker', 'amount', 'product_type_display']
+        fields = ['ticker', 'amount', 'type']
 
-    def get_product_type_display(self, obj):
+    def get_type(self, obj):
         return obj.product.get_type_display()
 
 

@@ -6,6 +6,17 @@
     gap: 20px;
 }
 
+.field__company_products {
+    max-width: 300px;
+    max-height: 500px;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+}
+.container__company_chart {
+    display: flex;
+}
+
 .container__company {
     padding: 15px;
     border-radius: 4px;
@@ -42,4 +53,18 @@
     display: flex;
     justify-content: space-between;
     gap: 50px;
+}
+
+.form__create_company {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.company__products_list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.company__products_item {
+
 }

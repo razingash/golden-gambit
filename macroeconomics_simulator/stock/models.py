@@ -31,7 +31,11 @@ def recalculate_company_price(company_instance): # good
     else:
         assets_price = company_silver
 
-    commitment = round(Decimal(company_instance.shares_amount * company_instance.share_price * company_instance.dividendes_percent / 100), 2)
+    shares_amount = Decimal(company_instance.shares_amount)
+    share_price = Decimal(company_instance.share_price)
+    dividendes_percent = Decimal(company_instance.dividendes_percent)
+
+    commitment = round(Decimal(shares_amount * share_price * dividendes_percent / 100), 2)
 
     company_price = (assets_price + company_income) - commitment
     return company_price
@@ -130,7 +134,7 @@ class Company(models.Model):
                                          decimal_places=2, blank=False, null=False)
     gold_reserve = models.PositiveBigIntegerField(default=0, blank=False, null=False)
     company_price = models.IntegerField(blank=False, null=False)
-    dividendes_percent = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('2.00'))], blank=False, null=False)
+    dividendes_percent = models.DecimalField(max_digits=10, decimal_places=2, blank=False, null=False)
     history = models.FilePathField(path=os.path.join(settings.MEDIA_ROOT, 'companies'), match='.*\.json$',
                                    blank=False, null=False)
     founding_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)

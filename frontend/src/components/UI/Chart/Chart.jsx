@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import './Chart.css';
 import AdaptiveLoading from "../AdaptiveLoading";
+import {formatNumber} from "../../../functions/utils";
 
 const Chart = ({ data, strokeStyle, backgroundStyle, pointerStyle, searchKey }) => {
     const canvasRef = useRef(null);
@@ -54,7 +55,7 @@ const Chart = ({ data, strokeStyle, backgroundStyle, pointerStyle, searchKey }) 
         }
     }
 
-    const normalize = (value, minY, maxY, height) => { // function for default chart
+    const normalize = (value, minY, maxY, height) => {
         return height - padding - ((value - minY) / (maxY - minY)) * (height - 2 * padding);
     };
 
@@ -93,7 +94,7 @@ const Chart = ({ data, strokeStyle, backgroundStyle, pointerStyle, searchKey }) 
 
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(i.toFixed(2), padding - 10, y);
+                ctx.fillText(formatNumber(i.toFixed(2)), padding - 10, y);
             }
         }
 

@@ -1,7 +1,7 @@
 from django.db.models import Q
 from rest_framework import status
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
@@ -23,7 +23,7 @@ from stock.serializers import RegisterSerializer, CompanyCreateSerializer, Compa
     GoldSilverRateSerializer, GoldAmountSerializer, ProductsSerializer, ProductsTradingSerializer, \
     SharesExchangeSerializer, SharesExchangeListSerializer, CompanyPrintNewSharesSerializer, SellSharesSerializer, \
     TopPlayerSerializer, CompanyRecipesSerializer, SharesExchangeWholesaleReceiveSerializer, \
-    SharesExchangeWholesaleSendSerializer
+    SharesExchangeWholesaleSendSerializer, DividedCompanySerializer, WarehouseUpdateSerializer
 from stock.utils import custom_exception, remove_company_recipes_duplicates
 
 
@@ -127,13 +127,22 @@ class CompanyRecipes(APIView): # no need for unauthorized users
         return Response(recipes)
 
 
-class CompanyApiView(APIView): # улучшить эту залупу чтобы выдавалась инфа в зависимости от того кто просит
-    def get(self, request, ticker): # make a separate API with different levels of information for logged and unlogged users?
+class CompanyApiView(APIView):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+
+        if self.request.method == 'PATCH':
+            return [IsAuthenticated(), IsHeadOfCompany()]
+
+        return super().get_permissions()
+
+    def get(self, request, ticker):
         company = get_object_or_404(Company, ticker=ticker)
 
-        return Response(CompanySerializer(company, many=False).data)
+        return Response(DividedCompanySerializer(company, context={'user': request.user}, many=False).data)
 
-    def patch(self, request, ticker): # only for company head
+    def patch(self, request, ticker):
         company = get_object_or_404(Company, ticker=ticker)
         serializer = CompanyUpdateSerializer(company, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -157,7 +166,7 @@ class CompanyWarehouseUpdateApiView(APIView):
 
     def get(self, request, ticker):
         updated_products = update_produced_products_amount(ticker)
-        return Response(WarehouseSerializer(updated_products, many=True).data)
+        return Response(WarehouseUpdateSerializer(updated_products, many=True).data)
 
 
 class CompanyIncreaseSharesApiView(APIView):
