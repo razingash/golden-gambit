@@ -2,10 +2,10 @@ import json
 from decimal import Decimal
 
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Subquery, OuterRef
 from django.utils import timezone
 
-from services.base import get_object, get_object_or_create
+from services.base import get_object, get_object_or_create, paginate_objects
 from services.general_services import recalculation_of_the_shareholders_influence
 from stock.models import GoldSilverExchange, SharesExchange, PlayerCompanies, Player, Company, ProductsExchange, \
     SharesWholesaleTrade
@@ -35,25 +35,34 @@ def calculate_products_price(product_id, products_amount: int):
     return silver
 
 
-def get_available_shares_for_everyone(current_time): # unlogged users
-    objects = SharesExchange.objects.filter(shareholders_right__lt=current_time).order_by('-id')
+def get_available_company_shares_for_everyone(ticker, current_time): # unlogged users
+    objects = SharesExchange.objects.filter(company__ticker=ticker, shareholders_right__lt=current_time).order_by('-id')
 
     return objects
 
-def get_availabale_shares_for_shareholders(current_time, user_id): # logged users | shareholders
-    user_companies = PlayerCompanies.objects.filter(player_id=user_id).values_list('company_id', flat=True)
-    objects = SharesExchange.objects.filter(company__in=user_companies, owners_right__lt=current_time).order_by('-id')
+def get_availabale_company_shares_for_shareholders(ticker, current_time, user_id): # logged users | shareholders
+    user_company = PlayerCompanies.objects.filter(company__ticker=ticker,
+                                                  player_id=user_id).values_list('company_id', flat=True)
+
+    if user_company.exists():
+        objects = SharesExchange.objects.filter(company_id=user_company.first(), owners_right__lt=current_time).order_by('-id')
+    else:
+        objects = get_available_company_shares_for_everyone(ticker, current_time)
 
     return objects
 
-def get_available_shares_for_owners(user_id): # logged users | owners
-    user_companies = PlayerCompanies.objects.filter(player_id=user_id, isHead=True).values_list('company_id', flat=True)
-    objects = SharesExchange.objects.filter(company__in=user_companies).order_by('-id')
+def get_available_company_shares_for_owners(ticker, user_id): # logged users | owners
+    user_company = PlayerCompanies.objects.filter(company__ticker=ticker,
+                                                  player_id=user_id, isHead=True).values_list('company_id', flat=True)
+
+    if user_company.exists():
+        objects = SharesExchange.objects.filter(company=user_company.first()).order_by('-id')
+    else:
+        objects = []
 
     return objects
 
-def get_available_shares(query_params, user_id=None):
-    availability = query_params.get('availability')  # availability=1
+def get_available_company_shares(query_params, ticker, user_id=None):
     page = query_params.get('page')
     limit = query_params.get('limit')
     # add condition if needed
@@ -61,18 +70,28 @@ def get_available_shares(query_params, user_id=None):
     page = int(page) if page is not None else 1
     if user_id is None:
         current_time = timezone.now()
-        objects = get_available_shares_for_everyone(current_time)
+        objects = get_available_company_shares_for_everyone(ticker, current_time)
     else:
-        if availability is None: # ordinary shares
+        if not PlayerCompanies.objects.filter(company__ticker=ticker, player_id=user_id, isHead=True).exists():
             current_time = timezone.now()
-            objects = get_availabale_shares_for_shareholders(current_time, user_id)
-        else: # 1 - management shares
-            objects = get_available_shares_for_owners(user_id)
+            objects = get_availabale_company_shares_for_shareholders(ticker, current_time, user_id)
+        else:
+            objects = get_available_company_shares_for_owners(ticker, user_id)
 
     paginator = Paginator(objects, limit)
     obj = paginator.get_page(page)
     has_next = obj.has_next()
 
+    return obj, has_next
+
+
+def get_shares_on_stock(query_params):
+    min_price_subquery = SharesExchange.objects.filter(company=OuterRef('company'),
+                                                       shares_type=OuterRef('shares_type')).order_by('price').values('price')[:1]
+
+    shares_with_min_price = SharesExchange.objects.filter(price=Subquery(min_price_subquery)).order_by('company', 'shares_type')
+
+    obj, has_next = paginate_objects(shares_with_min_price, query_params)
     return obj, has_next
 
 
@@ -83,8 +102,9 @@ def buy_shares(user_id, ticker, amount, price): # for silver
     user = get_object(model=Player, condition=Q(id=user_id))
     company = get_object(model=Company, condition=Q(ticker=ticker))
 
-    full_price = int(amount * price)
-
+    amount = to_int(amount)
+    price = to_int(price)
+    full_price = amount * price
 
     if user.silver >= full_price:
         if stock_shares.amount >= amount:
@@ -130,7 +150,7 @@ def buy_management_shares(user_id, ticker, amount, price):
         raise CustomException('You need more gold')
 
 
-def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
+def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type): # учесть пустой список
     """
     buys company shares in a certain quantity within a given price.
     offered_money is the money that the user is willing to give for a specific number of shares.
@@ -148,7 +168,15 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
     else:
         raise CustomException('Error in buy_shares_wholesale due to incorrect sharesType')
 
-    stock_shares_lots = SharesExchange.objects.filter(company=company, shares_type=shares_type).order_by('price')
+    if user_id is None:
+        current_time = timezone.now()
+        stock_shares_lots = get_available_company_shares_for_everyone(ticker, current_time)
+    else:
+        if not PlayerCompanies.objects.filter(company__ticker=ticker, player_id=user_id, isHead=True).exists():
+            current_time = timezone.now()
+            stock_shares_lots = get_availabale_company_shares_for_shareholders(ticker, current_time, user_id)
+        else:
+            stock_shares_lots = get_available_company_shares_for_owners(ticker, user_id)
 
     if user_money >= offered_money:
         total_purchased = 0

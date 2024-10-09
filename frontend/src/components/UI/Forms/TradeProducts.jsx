@@ -19,10 +19,10 @@ const TradeProducts = ( {productType} ) => {
     }
 
     return (
-        <form onSubmit={(e) => tradeProducts(e, productType)} className={"form_trading"}>
-            <input className={"input__stock"} {...amount} type={"number"} placeholder={"amount"}/>
+        <form onSubmit={(e) => tradeProducts(e, productType)} className={"form__default"}>
+            <input className={"input__default"} {...amount} type={"number"} placeholder={"amount"}/>
             {productsTradeError?.amount && <div className={"cell__error"}>{productsTradeError?.amount}</div>}
-            <input className={"input__stock"} {...ticker} type={"text"} placeholder={"ticker"}/>
+            <input className={"input__default"} {...ticker} type={"text"} placeholder={"ticker"}/>
             {productsTradeError?.ticker && <div className={"cell__error"}>{productsTradeError?.ticker}</div>}
             <select {...tradingTypes} onChange={(e) => tradeType.onChange(e)}>
                 {Object.entries(tradingTypes).map(([trade, type]) => (

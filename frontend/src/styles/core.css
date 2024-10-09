@@ -35,6 +35,17 @@
     flex-direction: column;
 }
 
+.input__default {
+
+}
+
+.cell__column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly; /* not sure */
+    gap: 6px;
+}
+
 .cell__row {
     display: flex;
     justify-content: space-between;

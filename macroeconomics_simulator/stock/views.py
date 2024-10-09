@@ -13,8 +13,9 @@ from services.base import get_paginated_objects, get_object
 from services.company.C_services import create_new_company, get_company_inventory, update_produced_products_amount, \
     make_new_shares, put_up_shares_for_sale, get_company_history, buy_products, sell_products, get_top_companies, \
     get_available_recipes
-from services.stock.S_services import purchase_gold, sell_gold, get_gold_history, get_available_shares, buy_shares, \
-    buy_management_shares, buy_shares_wholesale
+from services.stock.S_services import purchase_gold, sell_gold, get_gold_history, get_available_company_shares, \
+    buy_shares, \
+    buy_management_shares, buy_shares_wholesale, get_shares_on_stock
 from services.user.U_services import get_player, get_user_companies, get_top_users, get_user_shares
 from stock.models import Company, StateLaw, GlobalEvent, GoldSilverExchange, ProductsExchange
 from stock.permissions import IsHeadOfCompany, IsHeadOfSelectedCompany
@@ -289,16 +290,31 @@ class ProductsExchangeApiView(APIView):
 
 
 class SharesListApiView(APIView):
+    """don't show duplicates, related with wholesale"""
     def get(self, request):
-        shares, has_next = get_available_shares(request.query_params, user_id=None)
+        shares, has_next = get_shares_on_stock(query_params=request.query_params)
         serializer = SharesExchangeListSerializer(shares, many=True)
 
         return Response({'data': serializer.data, 'has_next': has_next})
 
 
 class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
-    """make webhook for getting actual amount of available shares"""
-    permission_classes = (IsAuthenticated, )
+    """make webhook for getting actual amount of available shares?"""
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+
+        if self.request.method == 'POST':
+            return [IsAuthenticated()]
+
+        return super().get_permissions()
+
+    def get(self, request, ticker): # returns shares that the company trades
+        shares, has_next = get_available_company_shares(ticker=ticker, query_params=request.query_params,
+                                                        user_id=request.user.id)
+        serializer = SharesExchangeListSerializer(shares, many=True)
+
+        return Response({'data': serializer.data, 'has_next': has_next})
 
     @custom_exception
     def post(self, request, ticker):
@@ -325,7 +341,7 @@ class SharesExchangeWholesaleApiView(APIView):
     permission_classes = (IsAuthenticated, )
 
     @custom_exception
-    def post(self, request, ticker): # Тут сделать покупку по количеству
+    def post(self, request, ticker):
         serializer = SharesExchangeWholesaleReceiveSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

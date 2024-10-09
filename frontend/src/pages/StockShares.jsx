@@ -6,15 +6,9 @@ import BlankResult from "../components/UI/BlankResult/BlankResult";
 import {useAuth} from "../hooks/context/useAuth";
 import {Link} from "react-router-dom";
 import {useObserver} from "../hooks/useObserver";
-import BuyShares from "../components/UI/Forms/SellShares";
+import BuySharesWholesale from "../components/UI/Forms/BuySharesWholesale";
 
 const StockShares = () => {
-    /* add smart sorting - There are shares of the same company - then do it like in Steam so that when
-    you select the quantity, the price is automatically calculated
-
-    Leave it for later, perhaps for something like this I need to make a new API and page, and then just add sorting
-     */
-
     const {isAuth} = useAuth();
     const [page, setPage] = useState(1);
     const [hasNext, setNext] = useState(false);
@@ -41,7 +35,7 @@ const StockShares = () => {
     }, [page])
 
     if(isSharesLoading === true || isSharesLoading === null) {
-        return (<div className={"global__loading"}><AdaptiveLoading/></div>)
+        return <div className={"global__loading"}><AdaptiveLoading/></div>
     }
 
     return (
@@ -61,11 +55,11 @@ const StockShares = () => {
                                     <div>{share.amount}</div>
                                 </div>
                                 <div className={"share__row"}>
-                                    <div>price</div>
+                                    <div>minimal price</div>
                                     <div>{share.price}</div>
                                 </div>
                             {isAuth ? (
-                                <BuyShares ticker={share.ticker} sharesType={share.shares_type}/>
+                                <BuySharesWholesale ticker={share.ticker} sharesType={share.shares_type}/>
                             ) : (
                                 <div className={"log_in_wish"}>Sign In!</div>
                             )}
@@ -75,7 +69,6 @@ const StockShares = () => {
                 ) : (
                     <BlankResult title={"server problem"} info={"Data hasn't been initialized yet"}/>
                 )}
-                <div className={"shares__item"}></div>
             </div>
         </div>
     );

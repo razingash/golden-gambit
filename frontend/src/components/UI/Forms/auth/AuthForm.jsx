@@ -71,8 +71,8 @@ const AuthForm = () => {
                 {registerError?.username && <div className={"cell__error"}>{registerError?.username}</div>}
                 <div className={"field__input"}>
                     <input className={"input__password"} {...password} type={"password"} placeholder={"password..."}/>
-                    <svg className="svg__auth-help">
-                        <use xlinkHref="#icon_user"></use>
+                    <svg className="svg__auth-help" viewBox="0 0 20 20">
+                        <path d="M10.07 0a6.1 6.1 0 0 0-6.1 6.1v2.035H2.348c-.705 0-1.276.571-1.276 1.276v9.313c0 .704.571 1.276 1.276 1.276h15.3c.704 0 1.276-.571 1.276-1.276V9.411c0-.705-.571-1.276-1.276-1.276h-1.622V6.1a6.03 6.03 0 0 0-5.96-6.1zm-.014 2.634a3.47 3.47 0 0 1 3.412 3.525v1.977H6.531V6.159c0-1.947 1.578-3.525 3.525-3.525z"/>
                     </svg>
                 </div>
                 {registerError?.password && <div className={"cell__error"}>{registerError?.password}</div>}

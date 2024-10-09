@@ -48,6 +48,12 @@
 
 .input__login, .input__password {
     width: 100%;
+    border-radius: 2px;
+    padding: 4px 0 4px 4px;
+    background: #00000045;
+    border: 1px solid #4a4a4a;
+    font-size: 18px;
+    color: #fff;
 }
 
 .svg__auth-help {

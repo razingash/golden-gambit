@@ -156,7 +156,7 @@ body {
     text-decoration: none;
 }
 .header__dropdown__item_mini:before {
-        content: '';
+    content: '';
     position: absolute;
     top: 9px;
     left: 50px;
@@ -182,7 +182,7 @@ body {
 }
 
 .section__main {
-    padding: 10px;
+    padding: 20px;
 }
 
 /*loading effect*/
@@ -263,6 +263,9 @@ body {
         padding: initial;
         margin-left: initial;
         justify-content: center;
+    }
+    .section__main {
+        padding: 20px 10px;
     }
 }
 

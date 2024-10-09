@@ -15,6 +15,9 @@
 }
 .container__company_chart {
     display: flex;
+    justify-content: center;
+    width: 100%;
+    gap: 15px;
 }
 
 .container__company {

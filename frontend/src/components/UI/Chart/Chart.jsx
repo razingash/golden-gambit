@@ -60,8 +60,9 @@ const Chart = ({ data, strokeStyle, backgroundStyle, pointerStyle, searchKey }) 
     };
 
     const drawChart = (ctx, canvas, data, isMainLine=true) => {
-        const width = canvas.clientWidth;
-        const height = canvas.clientHeight;
+        const container = canvas.parentElement;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
 
         if (isNaN(width) || isNaN(height)) {
             console.error('Invalid canvas dimensions:', width, height);
@@ -180,9 +181,18 @@ const Chart = ({ data, strokeStyle, backgroundStyle, pointerStyle, searchKey }) 
             canvas.addEventListener('mousemove', handleMouseMove);
             canvas.addEventListener('mouseleave', hideTooltip);
 
+            const container = canvas.parentElement;
+            const resizeObserver = new ResizeObserver(() => {
+                requestAnimationFrame(() => {
+                    drawChart(ctx, canvas, generalData);
+                })
+            })
+            resizeObserver.observe(container);
+
             return () => {
                 canvas.removeEventListener('mousemove', handleMouseMove);
                 canvas.removeEventListener('mouseleave', hideTooltip);
+                resizeObserver.disconnect();
             };
         }
     }, [data]);

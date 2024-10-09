@@ -1,11 +1,13 @@
 .field__chart {
     display: flex;
     justify-content: center;
+    align-items: center;
     flex-basis: 100%;
 }
 .area__chart {
     max-width: 1000px;
-    height: 500px;
+    max-height: 500px;
+    height: auto;
     aspect-ratio: 2 / 1;
 }
 .chart__canvas {

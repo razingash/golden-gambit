@@ -1,9 +1,5 @@
 
 
-.field__companies {
-    margin: 10px;
-}
-
 .companies__list {
     display: flex;
     justify-content: center;

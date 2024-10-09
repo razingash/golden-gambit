@@ -8,9 +8,10 @@ import Chart from "../components/UI/Chart/Chart";
 import BlankResult from "../components/UI/BlankResult/BlankResult";
 import UpdateCompanyForm from "../components/UI/Forms/UpdateCompanyForm";
 import {useAuth} from "../hooks/context/useAuth";
+import CompanySharesList from "../components/UI/CompanySharesList/CompanySharesList";
 
 const Company = () => {
-    const {tokenRef} = useAuth();
+    const {isAuth, tokenRef} = useAuth();
     const {ticker} = useParams();
     const [chartData, setChartData] = useState(null);
     const [companyData, setCompanyData] = useState(null);
@@ -24,7 +25,7 @@ const Company = () => {
     const [fetchInventory, isInventoryLoading] = useFetching(async () => {
         return await CompaniesService.getCompanyInventory(ticker)
     })
-    const [fetchProcure, isProcureLoading] = useFetching(async () => {
+    const [fetchProcure] = useFetching(async () => {
         return await CompaniesService.getCompanyNewProducts(ticker)
     }, 60000) // once per minute
 
@@ -49,8 +50,8 @@ const Company = () => {
             const data = await fetchInventory();
             data && setInventory(data);
         }
-        void loadData();
-    }, [isInventoryLoading])
+        isAuth && void loadData();
+    }, [isInventoryLoading, isAuth])
 
     if (!companyData) {
         return <div className={"global__loading"}><AdaptiveLoading/></div>
@@ -148,6 +149,7 @@ const Company = () => {
                     <AdaptiveLoading/>
                 )}
                 </div>
+                <CompanySharesList ticker={ticker}/>
             </div>
         </div>
     );

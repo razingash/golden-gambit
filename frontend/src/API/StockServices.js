@@ -18,17 +18,26 @@ export default class StockServices {
         const response = await axios.get(`${baseURL}/stock/shares-exchange/`, {params: {page: page}})
         return response.data
     }
+    static async getCompanySharesOnSale(ticker, token) { // returns data and has_next
+        const response = await axios.get(`${baseURL}/stock/shares-exchange/${ticker}/`,
+            {headers: {Authorization: token ? `Bearer ${token}` : ''}})
+        return response.data
+    }
     static async tradeGold(type, amount) { // type - buy or sell
         const response = await apiClient.post(`/stock/gold/${type}/`, {amount})
         return response.data
     }
     static async tradeProducts(transaction_type, ticker, amount, type) {
-        console.log(transaction_type, ticker, amount, type)
         const response = await apiClient.post(`/stock/products/${transaction_type}/`, {ticker, amount, type})
         return response.data
     }
     static async tradeShares(ticker, shares_type, amount, price) {
-        const response = await apiClient.post(`/stock/shares-exchange/${ticker}/`)
+        const response = await apiClient.post(`/stock/shares-exchange/${ticker}/`, {shares_type, amount, price})
+        return response.data
+    }
+    static async buySharesWholesale(ticker, shares_type, desired_quantity, reserved_money) {
+        const response = await apiClient.post(`/stock/shares-exchange/${ticker}/wholesale/`,
+            {shares_type, desired_quantity, reserved_money})
         return response.data
     }
 }

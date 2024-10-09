@@ -6,7 +6,7 @@ import BlankResult from "../components/UI/BlankResult/BlankResult";
 import "../styles/companies.css"
 import {Link} from "react-router-dom";
 import {formatNumber} from "../functions/utils";
-import {useObserver} from "../hooks/useObserver"; // later pack up the classes
+import {useObserver} from "../hooks/useObserver";
 
 
 const Companies = () => {

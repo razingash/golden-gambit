@@ -7,8 +7,11 @@
 }
 
 .field__gold_trade {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
     margin: 15px;
-    max-width: 400px;
+    max-width: 1000px;
     width: 100%;
     padding: 14px;
     border-radius: 4px;
@@ -21,16 +24,12 @@
     gap: 15px;
 }
 
-.input__stock {
-
-}
-
-
 /* products & shares */
 .field__products, .field__shares {
     display: flex;
     justify-content: center;
     margin-top: 10px;
+    width: 100%;
 }
 .products__list, .shares__list {
     display: flex;
@@ -38,6 +37,7 @@
     flex-wrap: wrap;
     gap: 20px;
     color: #fff;
+    width: 100%;
 }
 .product__item, .share__item {
     position: relative;
@@ -74,10 +74,6 @@
     display: flex;
     justify-content: space-between;
 }
-.form_trading {
-    display: flex;
-    flex-direction: column;
-}
 .log_in_wish {
     position: absolute;
     font-size: 35px;
@@ -90,7 +86,3 @@
     left: 50px;
     user-select: none;
 }
-
-/* shares */
-
-
