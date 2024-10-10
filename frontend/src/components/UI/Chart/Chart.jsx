@@ -184,6 +184,8 @@ const Chart = ({ data, strokeStyle, backgroundStyle, pointerStyle, searchKey }) 
             const container = canvas.parentElement;
             const resizeObserver = new ResizeObserver(() => {
                 requestAnimationFrame(() => {
+                    canvas.width = container.clientWidth;
+                    canvas.height = container.clientHeight;
                     drawChart(ctx, canvas, generalData);
                 })
             })

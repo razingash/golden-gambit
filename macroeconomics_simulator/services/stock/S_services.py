@@ -108,15 +108,16 @@ def buy_shares(user_id, ticker, amount, price): # for silver
     if user.silver >= full_price:
         if stock_shares.amount >= amount:
             head_of_company = get_object(model=PlayerCompanies, condition=Q(company_id=company.id, isHead=True))
-            get_object_or_create(PlayerCompanies, condition=Q(company_id=company.id, player_id=user_id),
-                                 condtion_create={'company_id': company.id, 'player_id': user_id,
-                                                  'shares_amount': amount, 'preferred_shares_amount': 0,
-                                                  'isFounder': False, 'isHead': False})
+
+            if stock_shares.player.id == head_of_company.player.id: # if seller is head of the company then all funds will go to the company
+                company.silver_reserve += full_price
+                company.save(document=True)
+            else: # otherwise funds will go to the seller
+                stock_shares.player.silver += full_price
+                stock_shares.player.save()
 
             user.silver -= full_price
-            company.silver_reserve += full_price
             stock_shares.amount -= amount
-
             head_of_company.shares_amount -= amount
 
             if stock_shares.amount == amount:
@@ -124,8 +125,12 @@ def buy_shares(user_id, ticker, amount, price): # for silver
             else:
                 stock_shares.save()
 
-            head_of_company.save()
-            company.save(document=True), user.save()
+            head_of_company.save(), user.save()
+
+            get_object_or_create(PlayerCompanies, condition=Q(company_id=company.id, player_id=user_id),
+                                 condtion_create={'company_id': company.id, 'player_id': user_id,
+                                                  'shares_amount': amount, 'preferred_shares_amount': 0,
+                                                  'isFounder': False, 'isHead': False})
         else:
             raise CustomException(f'The current number of shares on the exchange is {stock_shares.amount}, you need {amount}')
     else:
@@ -135,19 +140,22 @@ def buy_management_shares(user_id, ticker, amount, price):
     """buys company shares in a certain quantity at a fixed price"""
     company = get_object(model=Company, condition=Q(ticker=ticker))
     stock_shares = get_object(model=SharesExchange, condition=Q(company=company))
-    user = get_object(model=Player, condition=Q(id=user_id))
+    buyer = get_object(model=Player, condition=Q(id=user_id))
 
     full_price = int(amount * price)
 
-    if user.gold >= full_price:
+    if buyer.gold >= full_price:
         if stock_shares.amount >= amount:
             head_of_company = get_object(model=PlayerCompanies, condition=Q(company_id=company.id, isHead=True))
-            get_object_or_create(PlayerCompanies, condition=Q(company_id=company.id, player_id=user_id),
-                                 condtion_create={'company_id': company.id, 'player_id': user_id, 'shares_amount': 0,
-                                                  'preferred_shares_amount': amount, 'isFounder': False, 'isHead': False})
 
-            user.gold -= full_price
-            company.gold_reserve += full_price
+            if stock_shares.player.id == head_of_company.player.id: # if seller is head of the company then all funds will go to the company
+                company.gold_reserve += full_price
+                company.save(document=True)
+            else: # otherwise funds will go to the seller
+                stock_shares.player.gold += full_price
+                stock_shares.player.save()
+
+            buyer.gold -= full_price
             stock_shares.amount -= amount
             head_of_company.preffered_shares_amount -= amount
 
@@ -156,12 +164,31 @@ def buy_management_shares(user_id, ticker, amount, price):
             else:
                 stock_shares.save()
 
-            head_of_company.save()
-            company.save(document=True), user.save()
+            head_of_company.save(), buyer.save()
+
+            get_object_or_create(PlayerCompanies, condition=Q(company_id=company.id, player_id=user_id),
+                                 condtion_create={'company_id': company.id, 'player_id': user_id, 'shares_amount': 0,
+                                                  'preferred_shares_amount': amount, 'isFounder': False, 'isHead': False})
         else:
             raise CustomException(f'The current number of shares on the exchange is {stock_shares.amount}, you need {amount}')
     else:
         raise CustomException('You need more gold')
+
+
+def transfer_money_from_buying_shares(seller, shares_type, company, player, available_shares, total_cost_for_lot):
+    """charging money to the seller or company"""
+    seller.shares_amount -= available_shares
+    seller.save()
+
+    if seller.isHead:
+        company.silver_reserve += total_cost_for_lot if shares_type == SharesTypes.ORDINARY else company.gold_reserve
+    else:
+        if shares_type == SharesTypes.ORDINARY:
+            player.silver += total_cost_for_lot
+            player.save()
+        elif shares_type == SharesTypes.PREFERRED:
+            player.gold += total_cost_for_lot
+            player.save()
 
 
 def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
@@ -169,6 +196,8 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
     buys company shares in a certain quantity within a given price.
     offered_money is the money that the user is willing to give for a specific number of shares.
     shares will be purchased with available (transferred) money.
+    money for the purchase will go to the company if the seller is the head of the company,
+    otherwise the seller will receive the money
     """
     company = get_object(model=Company, condition=Q(ticker=ticker))
     user = get_object(model=Player, condition=Q(id=user_id))
@@ -196,7 +225,6 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
     if user_money >= offered_money:
         total_purchased = 0
         total_paid = Decimal('0.00')
-
         remaining_money = Decimal(offered_money)
         remaining_amount = Decimal(amount)
 
@@ -215,12 +243,24 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
 
                 lot.amount -= available_shares
                 lot.save()
+                player = lot.player
 
                 seller = PlayerCompanies.objects.filter(company_id=lot.company_id, player_id=lot.player.id).first()
-                if seller:
+                if seller: # charging money to the seller or company
                     seller.shares_amount -= available_shares
                     seller.save()
 
+                    if seller.isHead:
+                        company.silver_reserve += total_cost_for_lot if shares_type == SharesTypes.ORDINARY else company.gold_reserve
+                    else:
+                        if shares_type == SharesTypes.ORDINARY:
+                            player.silver += total_cost_for_lot
+                            player.save()
+                        elif shares_type == SharesTypes.PREFERRED:
+                            player.gold += total_cost_for_lot
+                            player.save()
+                else:
+                    raise CustomException('something happened wrong with seller in buy_shares_wholesale')
             else:
                 max_affordable_shares = int(remaining_money // Decimal(lot.price))
                 total_purchased += max_affordable_shares
@@ -230,12 +270,24 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
 
                 lot.amount -= max_affordable_shares
                 lot.save()
+                player = lot.player
 
                 seller = PlayerCompanies.objects.filter(company_id=lot.company_id, player_id=lot.player.id).first()
-                if seller:
-                    seller.shares_amount -= max_affordable_shares
+                if seller: # charging money to the seller or company
+                    seller.shares_amount -= available_shares
                     seller.save()
 
+                    if seller.isHead:
+                        company.silver_reserve += total_cost_for_lot if shares_type == SharesTypes.ORDINARY else company.gold_reserve
+                    else:
+                        if shares_type == SharesTypes.ORDINARY:
+                            player.silver += total_cost_for_lot
+                            player.save()
+                        elif shares_type == SharesTypes.PREFERRED:
+                            player.gold += total_cost_for_lot
+                            player.save()
+                else:
+                    raise CustomException('something happened wrong with seller in buy_shares_wholesale')
                 break
         else:
             raise CustomException("Not enough funds to buy any shares or no shares available.")
@@ -246,7 +298,7 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
         transaction = SharesWholesaleTrade.objects.create(company=company, reserved_money=offered_money, paid=total_paid,
                                                           desired_quantity=amount, shares_type=shares_type, buyer=user,
                                                           purchased=total_purchased)
-
+        # accrual of shares to users
         if shares_type == 1: # ordinary
             obj, is_created = get_object_or_create(model=PlayerCompanies, condition=Q(player_id=user_id, company=company),
                                                    condtion_create={'player_id': user_id, 'company': company,
@@ -255,7 +307,7 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
             if not is_created:
                 obj.shares_amount += total_purchased
                 obj.save()
-            company.shares_amount -= total_purchased
+
             company.silver_reserve += total_paid
             user.silver -= total_paid
             company.save(document=True), user.save()
@@ -270,11 +322,9 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
 
             recalculation_of_the_shareholders_influence(company)
 
-            company.shares_amount -= total_purchased
             company.gold_reserve += total_paid
             user.gold -= total_paid
             company.save(document=True), user.save()
-
         return transaction
     else:
         raise CustomException("You don't have that much money")
