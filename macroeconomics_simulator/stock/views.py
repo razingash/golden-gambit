@@ -328,6 +328,7 @@ class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
         user_id = request.user.id
 
         if shares_type == 1: # ordinary
+            print(user_id, ticker, amount, price)
             buy_shares(user_id, ticker, amount, price)
             return Response(status=status.HTTP_200_OK)
         elif shares_type == 2: # management

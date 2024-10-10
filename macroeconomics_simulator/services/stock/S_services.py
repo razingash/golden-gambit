@@ -98,9 +98,9 @@ def get_shares_on_stock(query_params):
 def buy_shares(user_id, ticker, amount, price): # for silver
     """buys company shares in a certain quantity at a fixed price"""
     company = get_object(model=Company, condition=Q(ticker=ticker))
-    stock_shares = get_object(model=SharesExchange, condition=Q(company=company))
+    stock_shares = get_object(model=SharesExchange, condition=Q(company_id=company.id, price=price))
     user = get_object(model=Player, condition=Q(id=user_id))
-    company = get_object(model=Company, condition=Q(ticker=ticker))
+
 
     amount = to_int(amount)
     price = to_int(price)
@@ -108,15 +108,24 @@ def buy_shares(user_id, ticker, amount, price): # for silver
 
     if user.silver >= full_price:
         if stock_shares.amount >= amount:
+            head_of_company = get_object(model=PlayerCompanies, condition=Q(company_id=company.id, isHead=True))
+            shares_buyer, is_created = get_object_or_create(PlayerCompanies,
+                                                            condition=Q(company_id=company.id, player_id=user_id),
+                                                            condtion_create=Q(company_id=company.id, player_id=user_id))
+
             user.silver -= full_price
             company.silver_reserve += full_price
             stock_shares.amount -= amount
+
+            head_of_company.shares_amount -= amount
+            shares_buyer.shares_amount += amount
 
             if stock_shares.amount == amount:
                 stock_shares.delete()
             else:
                 stock_shares.save()
 
+            head_of_company.save(), shares_buyer.save()
             company.save(document=True), user.save()
         else:
             raise CustomException(f'The current number of shares on the exchange is {stock_shares.amount}, you need {amount}')
@@ -128,21 +137,28 @@ def buy_management_shares(user_id, ticker, amount, price):
     company = get_object(model=Company, condition=Q(ticker=ticker))
     stock_shares = get_object(model=SharesExchange, condition=Q(company=company))
     user = get_object(model=Player, condition=Q(id=user_id))
-    company = get_object(model=Company, condition=Q(ticker=ticker))
 
     full_price = int(amount * price)
 
     if user.gold >= full_price:
         if stock_shares.amount >= amount:
+            head_of_company = get_object(model=PlayerCompanies, condition=Q(company_id=company.id, isHead=True))
+            shares_buyer, is_created = get_object_or_create(PlayerCompanies,
+                                                            condition=Q(company_id=company.id, player_id=user_id),
+                                                            condtion_create=Q(company_id=company.id, player_id=user_id))
+
             user.gold -= full_price
             company.gold_reserve += full_price
             stock_shares.amount -= amount
+            head_of_company.preffered_shares_amount -= amount
+            shares_buyer.preferred_shares_amount += amount
 
             if stock_shares.amount == amount:
                 stock_shares.delete()
             else:
                 stock_shares.save()
 
+            head_of_company.save(), shares_buyer.save()
             company.save(document=True), user.save()
         else:
             raise CustomException(f'The current number of shares on the exchange is {stock_shares.amount}, you need {amount}')

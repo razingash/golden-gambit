@@ -53,7 +53,7 @@ const CompanySharesList = ({ticker}) => {
                                 <div>{share.amount}</div>
                             </div>
                             <div className={"share__row"}>
-                                <div>minimal price</div>
+                                <div>price</div>
                                 <div>{share.price}</div>
                             </div>{isAuth ? (
                                 <BuyCurrentCompanyShares ticker={share.ticker} sharesType={share.shares_type} price={share.price}/>
