@@ -90,14 +90,14 @@ def falsify_company_history(iteration_days, company):
     company.save(document=True)
 
 
-def sell_shares_retroactively(company, amount, price, shares_type, timezone1, timezone2):
+def sell_shares_retroactively(user_id, company, amount, price, shares_type, timezone1, timezone2):
     if timezone1 is None and timezone2 is None:
         timestamp = timezone.now() - datetime.timedelta(days=1)
         SharesExchange.objects.create(company=company, amount=amount, price=price, shares_type=shares_type,
-                                      owners_right=timestamp, shareholders_right=timestamp)
+                                      owners_right=timestamp, shareholders_right=timestamp, player_id=user_id)
     else:
         SharesExchange.objects.create(company=company, amount=amount, price=price, shares_type=shares_type,
-                                      owners_right=timezone1, shareholders_right=timezone2)
+                                      owners_right=timezone1, shareholders_right=timezone2, player_id=user_id)
 
 
 def generate_companies(iteration_days):
@@ -138,7 +138,7 @@ def generate_companies(iteration_days):
                 break
             company_ordinary_shares -= shares_for_sale
 
-            sell_shares_retroactively(new_company, shares_for_sale, shares_price, 1, None, None)
+            sell_shares_retroactively(user.id, new_company, shares_for_sale, shares_price, 1, None, None)
 
 
 class Command(BaseCommand):

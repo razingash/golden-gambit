@@ -19,7 +19,7 @@ const BuySharesWholesale = ({ticker, sharesType}) => {
         <form onSubmit={(e) => wholesalePurchase(e)} className={"form__default"}>
             <input className={"input__default"} {...desiredAmount} type={"number"} placeholder={"amount"}/>
             {wholesalePurchaseError?.desired_quantity && <div className={"cell__error"}>{wholesalePurchaseError?.desired_quantity}</div>}
-            <input className={"input__default"} {...reservedMoney} type={"number"} placeholder={"amount"}/>
+            <input className={"input__default"} {...reservedMoney} type={"number"} placeholder={"reserved money"}/>
             {wholesalePurchaseError?.reserved_money && <div className={"cell__error"}>{wholesalePurchaseError?.reserved_money}</div>}
             <button className={"button__submit"}>buy</button>
         </form>

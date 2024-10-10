@@ -223,6 +223,7 @@ class SharesExchange(models.Model):
     """this model is needed so that the company’s shareholders and the head himself have a chance to buy back
         the shares before they are put up for trading on SharesExchange model"""
     company = models.ForeignKey(Company, on_delete=models.CASCADE) # custom scenario?
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
     shares_type = models.IntegerField(choices=SharesTypes.choices, blank=False, null=False)
     amount = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100000)], blank=False, null=False)
     price = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10000)], blank=False, null=False)

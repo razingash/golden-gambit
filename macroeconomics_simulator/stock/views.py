@@ -181,9 +181,10 @@ class CompanyIncreaseSharesApiView(APIView):
         shares_type = request.data.get('shares_type')
         amount = request.data.get('amount')
         price = request.data.get('price')
+        user_id = request.user.id
 
         if shares_type == 1 or shares_type == 2: # 1 - ordinary shares & 2 - management shares
-            obj = make_new_shares(ticker, shares_type, amount, price)
+            obj = make_new_shares(user_id, ticker, shares_type, amount, price)
             return Response(CompanyPrintNewSharesSerializer(obj, many=False).data)
         else: # error
             return Response(f'error: Bad Request, {shares_type} is a non-existent share type', status=status.HTTP_400_BAD_REQUEST)
@@ -203,10 +204,11 @@ class CompanySellShareApiView(APIView):
         shares_type = request.data.get('shares_type')
         amount = request.data.get('amount')
         price = request.data.get('price')
+        user_id = request.user.id
 
         if shares_type == 1 or shares_type == 2: # 1 - ordinary shares & 2 - management shares
             company = get_object_or_404(Company, ticker=ticker)
-            shares = put_up_shares_for_sale(company, shares_type, amount, price)
+            shares = put_up_shares_for_sale(user_id, company, shares_type, amount, price)
             return Response(SellSharesSerializer(shares, many=False).data)
         else: # error
             return Response(f'error: Bad Request, {shares_type} is a non-existent share type', status=status.HTTP_400_BAD_REQUEST)
@@ -328,7 +330,6 @@ class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
         user_id = request.user.id
 
         if shares_type == 1: # ordinary
-            print(user_id, ticker, amount, price)
             buy_shares(user_id, ticker, amount, price)
             return Response(status=status.HTTP_200_OK)
         elif shares_type == 2: # management

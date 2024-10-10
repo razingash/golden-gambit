@@ -96,11 +96,11 @@ def calculate_share_price(company_price, shares_amount):  # | after API, optimiz
     return share_price
 
 
-def make_new_shares(ticker, shares_type, amount, price): # improve? (now it works strange... or not?)
+def make_new_shares(user_id, ticker, shares_type, amount, price): # improve? (now it works strange... or not?)
     amount, price = to_int(amount), to_int(price)
     company = get_object(model=Company, condition=Q(ticker=ticker))
     company.shares_amount += amount
-    SharesExchange.objects.create(company=company, shares_type=shares_type, amount=amount, price=price)
+    SharesExchange.objects.create(company=company, shares_type=shares_type, amount=amount, price=price, player_id=user_id)
 
     if shares_type == 2: # management shares
         recalculation_of_the_shareholders_influence(company)
@@ -109,13 +109,14 @@ def make_new_shares(ticker, shares_type, amount, price): # improve? (now it work
     return company
 
 
-def put_up_shares_for_sale(company, shares_type, amount, price):
+def put_up_shares_for_sale(user_id, company, shares_type, amount, price):
     if shares_type == 1: # ordinary
         tz = timezone.now()
         shares = SharesExchange.objects.create(company=company, amount=amount, price=price, shares_type=shares_type,
-                                               owners_right=tz, shareholders_right=tz)
+                                               owners_right=tz, shareholders_right=tz, player_id=user_id)
     elif shares_type == 2: # management
-        shares = SharesExchange.objects.create(company=company, amount=amount, price=price, shares_type=shares_type)
+        shares = SharesExchange.objects.create(company=company, amount=amount, price=price, shares_type=shares_type,
+                                               player_id=user_id)
     else:
         shares = None
     return shares

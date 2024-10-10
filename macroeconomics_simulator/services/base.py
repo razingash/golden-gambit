@@ -25,7 +25,7 @@ def get_object(model: object, condition, fields=None): # the best way
 def get_object_or_create(model: object, condition, condtion_create):
     try:
         obj = model.objects.get(condition)
-    except model.DoesNotExist:  # ivestiga isHead case
+    except model.DoesNotExist:
         obj = model.objects.create(**condtion_create)
         is_created = True
     else:
