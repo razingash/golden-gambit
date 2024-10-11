@@ -11,6 +11,17 @@
     width: 100%; /* anomaly */
 }
 
+.content__header {
+    color: #fff;
+    text-decoration: none;
+}
+.content__header:hover{
+    color: var(--hovered-element);
+}
+.content__header:focus {
+    color: var(--blocked-element);
+}
+
 .area__row {
     display: flex;
     justify-content: center;

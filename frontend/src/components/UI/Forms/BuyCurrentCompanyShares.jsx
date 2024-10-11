@@ -3,12 +3,12 @@ import useInput from "../../../hooks/useInput";
 import {useFetching} from "../../../hooks/useFetching";
 import StockServices from "../../../API/StockServices";
 
-const BuyCurrentCompanyShares = ({ticker, sharesType, price} ) => {
+const BuyCurrentCompanyShares = ({ticker, pk, sharesType, price} ) => {
     const amount = useInput('');
     const tradeType = useInput('buy');
 
     const [fetchTradeShares, ,shareError] = useFetching(async () => {
-        return await StockServices.tradeShares(ticker, sharesType, amount.value, price)
+        return await StockServices.tradeShares(ticker, pk, sharesType, amount.value, price)
     })
 
     const tradeShares = async (e) => {

@@ -6,6 +6,7 @@ import BlankResult from "../../components/UI/BlankResult/BlankResult";
 import {useObserver} from "../../hooks/useObserver";
 import {formatNumber} from "../../functions/utils";
 import {Link} from "react-router-dom";
+import PrintNewSharesForm from "../../components/UI/Forms/PrintNewSharesForm";
 
 const UserCompanies = () => {
     const [page, setPage] = useState(1);
@@ -37,10 +38,10 @@ const UserCompanies = () => {
     }
 
     return (
-        <div className={"profile__content__list"}>
+        <div className={"area__row"}>
             {companies.length > 0 ? (companies.map((company, index) => (
-                <div className={"content__list__item"} key={company.ticker} ref={index === companies.length - 1 ? lastElement : null}>
-                    <Link to={`/companies/${company.ticker}`} className={"content__header"}>{company.name}</Link>
+                <div className={"container__default"} key={company.ticker} ref={index === companies.length - 1 ? lastElement : null}>
+                    <Link to={`/companies/${company.ticker}`} className={"container__header_1 content__header"}>{company.name}</Link>
                     <div className={"content__row"}>
                         {company.isFounder && <div className={"content__s"}>Founder</div>}
                         {company.isHead && <div className={"content__s"}>Owner</div>}
@@ -61,6 +62,7 @@ const UserCompanies = () => {
                         <div>preffered shares</div>
                         <div>{formatNumber(company.preferred_shares_amount)}</div>
                     </div>
+                    <PrintNewSharesForm ticker={company.ticker}/>
                 </div>
             ))) : (
                 <BlankResult title={"No companies found"} info={"Apparently you have lost all your companies or haven’t registered any..."}/>

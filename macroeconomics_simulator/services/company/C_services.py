@@ -96,20 +96,22 @@ def calculate_share_price(company_price, shares_amount):  # | after API, optimiz
     return share_price
 
 
-def make_new_shares(user_id, ticker, shares_type, amount, price): # improve? (now it works strange... or not?)
+def make_new_shares(user_id, ticker, shares_type, amount, price):
     amount, price = to_int(amount), to_int(price)
     company = get_object(model=Company, condition=Q(ticker=ticker))
     company.shares_amount += amount
-    SharesExchange.objects.create(company=company, shares_type=shares_type, amount=amount, price=price, player_id=user_id)
+
+    put_up_shares_for_sale(user_id, company=company, shares_type=shares_type, amount=amount, price=price)
+    company.save()
 
     if shares_type == 2: # management shares
         recalculation_of_the_shareholders_influence(company)
 
-    company.save()
     return company
 
 
 def put_up_shares_for_sale(user_id, company, shares_type, amount, price):
+    """depending on the group (company owner, shareholder, or ordinary player) different times will be given to buy back shares"""
     if shares_type == 1: # ordinary
         tz = timezone.now()
         shares = SharesExchange.objects.create(company=company, amount=amount, price=price, shares_type=shares_type,

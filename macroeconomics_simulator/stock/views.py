@@ -170,9 +170,12 @@ class CompanyWarehouseUpdateApiView(APIView):
         return Response(WarehouseUpdateSerializer(updated_products, many=True).data)
 
 
-class CompanyIncreaseSharesApiView(APIView):
+class CompanyPrintNewSharesApiView(APIView):
+    """
+    prints shares at the selected price and immediately puts them up for sale.
+    Yes, it’s not correct that the user himself sets the price for ordinary shares, but this was done on purpose
+    """
     permission_classes = (IsAuthenticated, IsHeadOfCompany)
-    #Perhaps the logic behind adding new shares is incorrect (considering that they immediately go on sale)
 
     def post(self, request, ticker): # issue of new shares
         serializer = SharesExchangeSerializer(data=request.data)
@@ -191,7 +194,7 @@ class CompanyIncreaseSharesApiView(APIView):
 
 
 class CompanySellShareApiView(APIView):
-    permission_classes = (IsAuthenticated, IsHeadOfCompany)
+    permission_classes = (IsAuthenticated, )
 
     def post(self, request, ticker):
         """
@@ -291,7 +294,7 @@ class ProductsExchangeApiView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class SharesWholesaleListApiView(APIView):
+class SharesWholesaleListApiView(APIView): # make webhook for getting actual amount of available shares?
     """don't show duplicates, related with wholesale"""
     def get(self, request):
         shares, has_next = get_shares_on_stock_for_wholesale(query_params=request.query_params)
@@ -301,7 +304,6 @@ class SharesWholesaleListApiView(APIView):
 
 
 class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
-    """make webhook for getting actual amount of available shares?"""
     def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]
@@ -326,14 +328,15 @@ class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
         shares_type = request.data.get('shares_type')
         amount = request.data.get('amount')
         price = request.data.get('price')
+        pk = request.data.get('id')
 
         user_id = request.user.id
 
         if shares_type == 1: # ordinary
-            buy_shares(user_id, ticker, amount, price)
+            buy_shares(user_id, ticker, amount, price, pk)
             return Response(status=status.HTTP_200_OK)
         elif shares_type == 2: # management
-            buy_management_shares(user_id, ticker, amount, price)
+            buy_management_shares(user_id, ticker, amount, price, pk)
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(f'error: Bad Request, {shares_type} is a non-existent shares type', status=status.HTTP_400_BAD_REQUEST)

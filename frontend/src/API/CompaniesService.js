@@ -32,11 +32,11 @@ export default class CompaniesService {
             {type, ticker, name, shares_amount, preferred_shares_amount, dividendes_percent})
         return response.data
     }
-    static async printNewCompanyShares(ticker, shares_type, amount, price) { // good
+    static async printNewCompanyShares(ticker, shares_type, amount, price) {
         const response = await apiClient.post(`/companies/${ticker}/exchange/`, {shares_type, amount, price})
         return response.data
     }
-    static async sellUserShares(ticker, shares_type, amount, price) { // good
+    static async sellUserShares(ticker, shares_type, amount, price) {
         const response = await apiClient.post(`/companies/${ticker}/sell-shares/`, {shares_type, amount, price})
         return response.data
     }

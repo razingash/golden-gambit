@@ -167,7 +167,7 @@ class SellSharesSerializer(serializers.ModelSerializer):
 class SharesExchangeSerializer(serializers.ModelSerializer): # used in 3 places!
     class Meta:
         model = SharesExchange
-        fields = ['shares_type', 'amount', 'price']
+        fields = ['id', 'shares_type', 'amount', 'price']
 
 
 class PlayerCompaniesSerializer(serializers.ModelSerializer):

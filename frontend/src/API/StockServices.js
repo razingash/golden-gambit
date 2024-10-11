@@ -31,8 +31,8 @@ export default class StockServices {
         const response = await apiClient.post(`/stock/products/${transaction_type}/`, {ticker, amount, type})
         return response.data
     }
-    static async tradeShares(ticker, shares_type, amount, price) {
-        const response = await apiClient.post(`/stock/shares-exchange/${ticker}/`, {shares_type, amount, price})
+    static async tradeShares(ticker, pk, shares_type, amount, price) {
+        const response = await apiClient.post(`/stock/shares-exchange/${ticker}/`, {"id": pk, shares_type, amount, price})
         return response.data
     }
     static async buySharesWholesale(ticker, shares_type, desired_quantity, reserved_money) {

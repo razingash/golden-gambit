@@ -100,10 +100,10 @@ def get_shares_on_stock_for_wholesale(query_params):
     return obj, has_next
 
 
-def buy_shares(user_id, ticker, amount, price): # for silver
+def buy_shares(user_id, ticker, amount, price, pk): # for silver
     """buys company shares in a certain quantity at a fixed price"""
     company = get_object(model=Company, condition=Q(ticker=ticker))
-    stock_shares = get_object(model=SharesExchange, condition=Q(company_id=company.id, price=price))
+    stock_shares = get_object(model=SharesExchange, condition=Q(company_id=company.id, id=pk))
     user = get_object(model=Player, condition=Q(id=user_id))
 
     amount = to_int(amount)
@@ -124,8 +124,7 @@ def buy_shares(user_id, ticker, amount, price): # for silver
             user.silver -= full_price
             stock_shares.amount -= amount
             head_of_company.shares_amount -= amount
-
-            if stock_shares.amount == amount:
+            if stock_shares.amount <= amount:
                 stock_shares.delete()
             else:
                 stock_shares.save()
@@ -137,14 +136,14 @@ def buy_shares(user_id, ticker, amount, price): # for silver
                                                   'shares_amount': amount, 'preferred_shares_amount': 0,
                                                   'isFounder': False, 'isHead': False})
         else:
-            raise CustomException(f'The current number of shares on the exchange is {stock_shares.amount}, you need {amount}')
+            raise CustomException(f'The current number of shares on the exchange is {stock_shares.amount}, you want {amount}')
     else:
         raise CustomException('You need more silver')
 
-def buy_management_shares(user_id, ticker, amount, price):
+def buy_management_shares(user_id, ticker, amount, price, pk):
     """buys company shares in a certain quantity at a fixed price"""
     company = get_object(model=Company, condition=Q(ticker=ticker))
-    stock_shares = get_object(model=SharesExchange, condition=Q(company=company))
+    stock_shares = get_object(model=SharesExchange, condition=Q(company=company, id=pk))
     buyer = get_object(model=Player, condition=Q(id=user_id))
 
     full_price = int(amount * price)
@@ -164,7 +163,7 @@ def buy_management_shares(user_id, ticker, amount, price):
             stock_shares.amount -= amount
             head_of_company.preffered_shares_amount -= amount
 
-            if stock_shares.amount == amount:
+            if stock_shares.amount <= amount:
                 stock_shares.delete()
             else:
                 stock_shares.save()

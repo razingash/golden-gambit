@@ -56,7 +56,7 @@ const CompanySharesList = ({ticker}) => {
                                 <div>price</div>
                                 <div>{share.price}</div>
                             </div>{isAuth ? (
-                                <BuyCurrentCompanyShares ticker={share.ticker} sharesType={share.shares_type} price={share.price}/>
+                                <BuyCurrentCompanyShares ticker={share.ticker} pk={share.id} sharesType={share.shares_type} price={share.price}/>
                         ) : (
                             <div className={"log_in_wish"}>Sign In!</div>
                         )}

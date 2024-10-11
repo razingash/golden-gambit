@@ -54,16 +54,6 @@
 
 }
 
-.profile__content__list {
-    display: flex;
-    flex-direction: column;
-    background: var(--container-background);
-    padding: 15px;
-    border: 2px solid #000;
-    border-radius: 4px;
-    gap: 14px;
-}
-
 .content__list__item {
     display: flex;
     flex-direction: column;
@@ -72,21 +62,6 @@
 
 
 /* user companies recipies */
-.content__header { /* same again */
-    display: flex;
-    justify-content: center;
-    border-bottom: 2px solid var(--highlight-element-2);
-    padding-bottom: 3px;
-    margin-bottom: 3px;
-    color: #fff;
-    text-decoration: none;
-}
-.content__header:hover{
-    color: var(--hovered-element);
-}
-.content__header:focus {
-    color: var(--blocked-element);
-}
 
 .content__ingredient__list {
     display: flex;
@@ -114,9 +89,13 @@
     display: flex;
     justify-content: space-between;
     gap: 20px;
+    cursor: default;
+}
+.content__row:hover{
+    color: var(--hovered-element);
 }
 .content__s {
-    color: var(--hovered-element);
+    color: var(--lines);
 }
 
 /* user shares */

@@ -23,10 +23,10 @@ const UserCompaniesRecipes = () => {
     }
     //unused - recipe.company_type
     return (
-        <div className={"profile__content__list"}>
+        <div className={"area__row"}>
             {recipes.length > 0 ? (recipes.map((recipe, index) => (
-                <div className={"content__list__item"} key={index}>
-                    <div className={"content__header"}>{recipe.type_display}</div>
+                <div className={"container__default"} key={index}>
+                    <div className={"container__header_1 content__header"}>{recipe.type_display}</div>
                     <div className={"content__ingredient__list"}>
                         {recipe.ingredients.map((ingredient) => (
                             <div className={"ingredient__item"} key={ingredient.type}>
