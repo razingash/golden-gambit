@@ -184,6 +184,7 @@ const Chart = ({ data, strokeStyle, backgroundStyle, pointerStyle, searchKey }) 
             const container = canvas.parentElement;
             const resizeObserver = new ResizeObserver(() => {
                 requestAnimationFrame(() => {
+                    //adding a canvas makes chart scale faster
                     canvas.width = container.clientWidth;
                     canvas.height = container.clientHeight;
                     drawChart(ctx, canvas, generalData);

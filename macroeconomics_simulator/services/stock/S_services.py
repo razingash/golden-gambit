@@ -2,7 +2,7 @@ import json
 from decimal import Decimal
 
 from django.core.paginator import Paginator
-from django.db.models import Q, Subquery, OuterRef
+from django.db.models import Q, Subquery, OuterRef, Sum, Min
 from django.utils import timezone
 
 from services.base import get_object, get_object_or_create, paginate_objects
@@ -85,13 +85,18 @@ def get_available_company_shares(query_params, ticker, user_id=None):
     return obj, has_next
 
 
-def get_shares_on_stock(query_params):
-    min_price_subquery = SharesExchange.objects.filter(company=OuterRef('company'),
-                                                       shares_type=OuterRef('shares_type')).order_by('price').values('price')[:1]
+def get_shares_on_stock_for_wholesale(query_params):
+    min_price_subquery = SharesExchange.objects.filter(
+        company=OuterRef('company'),
+        shares_type=OuterRef('shares_type')
+    ).order_by('price').values('price')[:1]
 
-    shares_with_min_price = SharesExchange.objects.filter(price=Subquery(min_price_subquery)).order_by('company', 'shares_type')
+    shares_with_aggregates = SharesExchange.objects.values(
+        'company__ticker', 'company__name', 'shares_type'
+    ).annotate(total_amount=Sum('amount'),
+               min_price=Min('price')).filter(min_price=Subquery(min_price_subquery)).order_by('company', 'shares_type')
 
-    obj, has_next = paginate_objects(shares_with_min_price, query_params)
+    obj, has_next = paginate_objects(shares_with_aggregates, query_params)
     return obj, has_next
 
 

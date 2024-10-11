@@ -52,7 +52,7 @@ const StockShares = () => {
                                 </div>
                                 <div className={"share__row"}>
                                     <div>amount</div>
-                                    <div>{share.amount}</div>
+                                    <div>{share.total_amount}</div>
                                 </div>
                                 <div className={"share__row"}>
                                     <div>minimal price</div>

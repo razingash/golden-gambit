@@ -14,8 +14,7 @@ from services.company.C_services import create_new_company, get_company_inventor
     make_new_shares, put_up_shares_for_sale, get_company_history, buy_products, sell_products, get_top_companies, \
     get_available_recipes
 from services.stock.S_services import purchase_gold, sell_gold, get_gold_history, get_available_company_shares, \
-    buy_shares, \
-    buy_management_shares, buy_shares_wholesale, get_shares_on_stock
+    buy_shares, buy_management_shares, buy_shares_wholesale, get_shares_on_stock_for_wholesale
 from services.user.U_services import get_player, get_user_companies, get_top_users, get_user_shares
 from stock.models import Company, StateLaw, GlobalEvent, GoldSilverExchange, ProductsExchange
 from stock.permissions import IsHeadOfCompany, IsHeadOfSelectedCompany
@@ -24,7 +23,8 @@ from stock.serializers import RegisterSerializer, CompanyCreateSerializer, Compa
     GoldSilverRateSerializer, GoldAmountSerializer, ProductsSerializer, ProductsTradingSerializer, \
     SharesExchangeSerializer, SharesExchangeListSerializer, CompanyPrintNewSharesSerializer, SellSharesSerializer, \
     TopPlayerSerializer, CompanyRecipesSerializer, SharesExchangeWholesaleReceiveSerializer, \
-    SharesExchangeWholesaleSendSerializer, DividedCompanySerializer, WarehouseUpdateSerializer
+    SharesExchangeWholesaleSendSerializer, DividedCompanySerializer, WarehouseUpdateSerializer, \
+    SharesExchangeWholesaleListSerializer
 from stock.utils import custom_exception, remove_company_recipes_duplicates
 
 
@@ -291,11 +291,11 @@ class ProductsExchangeApiView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class SharesListApiView(APIView):
+class SharesWholesaleListApiView(APIView):
     """don't show duplicates, related with wholesale"""
     def get(self, request):
-        shares, has_next = get_shares_on_stock(query_params=request.query_params)
-        serializer = SharesExchangeListSerializer(shares, many=True)
+        shares, has_next = get_shares_on_stock_for_wholesale(query_params=request.query_params)
+        serializer = SharesExchangeWholesaleListSerializer(shares, many=True)
 
         return Response({'data': serializer.data, 'has_next': has_next})
 

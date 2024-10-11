@@ -140,6 +140,14 @@ class CompanyPrintNewSharesSerializer(serializers.ModelSerializer):
         fields = ['ticker', 'shares_amount', 'preferred_shares_amount']
 
 
+class SharesExchangeWholesaleListSerializer(serializers.Serializer):
+    ticker = serializers.CharField(source='company__ticker')
+    name = serializers.CharField(source='company__name')
+    shares_type = serializers.IntegerField()
+    total_amount = serializers.IntegerField()
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, source='min_price')
+
+
 class SharesExchangeListSerializer(serializers.ModelSerializer):
     ticker = serializers.CharField(source='company.ticker')
     name = serializers.CharField(source='company.name')
