@@ -43,16 +43,12 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 
 class CompanySerializer(serializers.ModelSerializer):
-    type = serializers.SerializerMethodField()
     cartoonist = serializers.IntegerField(source='type.cartoonist')
 
     class Meta:
         model = Company
         fields = ['type', 'cartoonist', 'ticker', 'name', 'shares_amount', 'preferred_shares_amount', 'share_price',
                   'silver_reserve', 'gold_reserve', 'company_price', 'dividendes_percent', 'founding_date']
-
-    def get_type(self, obj):
-        return obj.type.get_type_display()
 
 
 class DividedCompanySerializer(serializers.ModelSerializer):
@@ -118,6 +114,11 @@ class CompanyCreateSerializer(serializers.ModelSerializer):
         model = Company
         fields = ['type', 'ticker', 'name', 'shares_amount', 'preferred_shares_amount', 'dividendes_percent']
 
+    def validate_type(self, value):
+        if value.type in [1, 2, 3, 4, 5, 6, 7]:
+            return value
+        raise serializers.ValidationError("Registration of new companies is only available in the primary sector")
+
     def validate_shares_amount(self, value):
         if value <= 0:
             raise serializers.ValidationError("Amount must be greater than zero, clown")
@@ -129,8 +130,8 @@ class CompanyCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_dividendes_percent(self, value):
-        if value <= 2:
-            raise serializers.ValidationError("Dividendes percent must be greater or equal 2")
+        if 10 > value < 2:
+            raise serializers.ValidationError("Dividendes percent must be greater or equal 2 and less than 10")
         return value
 
 
@@ -184,8 +185,18 @@ class PlayerCompaniesSerializer(serializers.ModelSerializer):
         fields = ['type', 'name', 'price', 'ticker', 'shares_amount', 'preferred_shares_amount',
                   'dividendes', 'co_shares', 'cp_shares', 'isFounder', 'isHead']
 
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+        super(PlayerCompaniesSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
     def get_type(self, obj):
-        return obj.company.type.get_type_display()
+        return obj.company.type.type
 
 
 class WarehouseSerializer(serializers.ModelSerializer):
@@ -277,30 +288,22 @@ class TopPlayerSerializer(serializers.ModelSerializer): # could be useless later
 
 class IngredientSerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
-    type_display = serializers.SerializerMethodField()
 
     class Meta:
         model = CompanyRecipe
-        fields = ['type', 'type_display', 'amount']
+        fields = ['type', 'amount']
 
     def get_type(self, obj):
         return obj.ingredient.type
 
-    def get_type_display(self, obj):
-        return obj.ingredient.get_type_display()
-
 
 class CompanyRecipesSerializer(serializers.ModelSerializer):
     company_type = serializers.IntegerField(source="recipe.company_type")
-    type_display = serializers.SerializerMethodField()
     ingredients = serializers.SerializerMethodField()
 
     class Meta:
         model = CompanyRecipe
-        fields = ['company_type', 'type_display', 'ingredients']
-
-    def get_type_display(self, obj):
-        return obj.recipe.get_company_type_display()
+        fields = ['company_type', 'ingredients']
 
     def get_ingredients(self, obj):
         company_recipes = CompanyRecipe.objects.filter(recipe=obj.recipe)

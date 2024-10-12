@@ -168,8 +168,35 @@ def sell_products(ticker, product_type, amount) -> None:
         raise CustomException('Company need more products')
 
 
-def merge_companies(user_id, recipe):
+def use_company_recipe(user_id, recipe, companies):
+    """checking the possibility of creating a company and its creation"""
     pass
+
+def create_company(user_id):
+    data = {
+        "company_type": 1,
+        "ticker": 1,
+        "name": 1,
+        "shares_amount": 1,
+        "preferred_shares_amount": 1,
+        "dividendes_percent": 1,
+    }
+    create_new_company(user_id, data)
+
+def distribution_of_company_shares():
+    pass
+
+def merge_companies(user_id, request_data):
+    type_id = request_data.get('type')
+    companies = request_data.get('companies')
+    recipe_id = request_data.get('recipe_id')
+    name = request_data.get('name')
+    ticker = request_data.get('ticker')
+    shares_amount = request_data.get('shares_amount') # probably default value
+    preffered_shares_amount = request_data.get('preffered_shares_amount') # probably default value
+    dividendes_percent = request_data.get('dividendes_percent')
+
+    use_company_recipe(user_id, recipe_id, companies)
 
 
 def get_company_history(ticker):

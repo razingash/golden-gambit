@@ -65,11 +65,13 @@
 
 .content__ingredient__list {
     display: flex;
+    flex-direction: column;
     gap: 20px;
     justify-content: space-between;
 }
 .ingredient__item {
     display: flex;
+    flex-direction: column;
     gap: 10px;
     background: var(--background);
     padding: 4px 8px;
@@ -77,10 +79,7 @@
     border: 1px solid #355059;
     color: #fff;
 }
-.ingredient__name {
-
-}
-.ingredient__amount {
+.ingredient__info {
 
 }
 

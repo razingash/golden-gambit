@@ -5,7 +5,7 @@ import AdaptiveLoading from "../components/UI/AdaptiveLoading";
 import BlankResult from "../components/UI/BlankResult/BlankResult";
 import "../styles/companies.css"
 import {Link} from "react-router-dom";
-import {formatNumber} from "../functions/utils";
+import {decodeCompanyType, formatNumber} from "../functions/utils";
 import {useObserver} from "../hooks/useObserver";
 
 
@@ -47,7 +47,7 @@ const Companies = () => {
                         <Link to={`/companies/${company.ticker}`} className={"company__name_s"}>{company.name}</Link>
                         <div className={"company__info_s"}>
                             <div className={"company__row_s"}>
-                                <div>{company.type}</div>
+                                <div>{decodeCompanyType(company.type)}</div>
                                 <div>{company.ticker}</div>
                             </div>
                             <div className={"company__row_s"}>

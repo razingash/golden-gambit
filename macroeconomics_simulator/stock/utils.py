@@ -90,7 +90,6 @@ def remove_company_recipes_duplicates(data):
     for entry in data:
         entry_tuple = (
             entry['company_type'],
-            entry['type_display'],
             tuple((ingredient['type'], ingredient['amount']) for ingredient in entry['ingredients'])
         )
 

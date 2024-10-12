@@ -36,6 +36,7 @@
     padding: 15px;
     border-radius: 4px;
     width: fit-content;
+    height: fit-content; /* controversial */
     background: var(--container-background);
     border: 2px solid #000;
     color: #fff;

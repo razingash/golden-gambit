@@ -4,7 +4,7 @@ import UserService from "../../API/UserService";
 import AdaptiveLoading from "../../components/UI/AdaptiveLoading";
 import BlankResult from "../../components/UI/BlankResult/BlankResult";
 import {useObserver} from "../../hooks/useObserver";
-import {formatNumber, percentageOfNumber} from "../../functions/utils";
+import {decodeCompanyType, formatNumber, percentageOfNumber} from "../../functions/utils";
 import {Link} from "react-router-dom";
 import SellSharesForm from "../../components/UI/Forms/SellSharesForm";
 
@@ -49,7 +49,7 @@ const UserShares = () => {
                         {company.isHead && <div className={"content__s"}>Owner</div>}
                     </div>
                     <div className={"content__row"}>
-                        <div>{company.type}</div>
+                        <div>{decodeCompanyType(company.type)}</div>
                         <div>{company.ticker}</div>
                     </div>
                     <div className={"content__row"}>

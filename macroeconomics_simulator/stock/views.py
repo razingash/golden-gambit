@@ -88,7 +88,12 @@ class UserCompaniesView(APIView):
 
     def get(self, request):
         companies, has_next = get_user_companies(request.user.id, request.query_params)
-        serializer = PlayerCompaniesSerializer(companies, many=True)
+
+        fields = request.query_params.get('fields')
+        if fields:
+            fields = fields.split(',')
+
+        serializer = PlayerCompaniesSerializer(companies, many=True, fields=fields)
 
         return Response({"data": serializer.data, "has_next": has_next})
 
@@ -127,11 +132,14 @@ class CompanyRecipes(APIView): # no need for unauthorized users
         recipes = remove_company_recipes_duplicates(CompanyRecipesSerializer(recipes, many=True).data)
         return Response(recipes)
 
-    def post(self, request):
+    @custom_exception
+    def post(self, request): # добавить сериализатор с проверкой в стиле use_company_recipe
 
         user_id = request.user.id
 
-        new_company = merge_companies(user_id, ...)
+        new_company = merge_companies(user_id, request.data)
+
+        return Response("OK")
 
 class CompanyApiView(APIView):
     def get_permissions(self):
