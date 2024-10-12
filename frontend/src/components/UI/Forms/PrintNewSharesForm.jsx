@@ -8,10 +8,10 @@ const PrintNewSharesForm = ({ticker}) => {
     const price = useInput('');
     const sharesType = useInput(1);
 
-    const sharesTypes = {"ordinary": 1, "preffered": 1}
+    const sharesTypes = { "ordinary": 1, "preferred": 2 }
 
     const [fetchNewShares, , newSharesError] = useFetching(async () => {
-        return await CompaniesService.printNewCompanyShares(ticker, sharesType.value, amount.value, price.value)
+        return await CompaniesService.printNewCompanyShares(ticker, +sharesType.value, amount.value, price.value)
     })
 
     const printNewShares = async (e) => {

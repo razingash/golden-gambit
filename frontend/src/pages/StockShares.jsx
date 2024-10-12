@@ -7,6 +7,7 @@ import {useAuth} from "../hooks/context/useAuth";
 import {Link} from "react-router-dom";
 import {useObserver} from "../hooks/useObserver";
 import BuySharesWholesale from "../components/UI/Forms/BuySharesWholesale";
+import {decodeSharesType} from "../functions/utils";
 
 const StockShares = () => {
     const {isAuth} = useAuth();
@@ -57,6 +58,10 @@ const StockShares = () => {
                                 <div className={"share__row"}>
                                     <div>minimal price</div>
                                     <div>{share.price}</div>
+                                </div>
+                                <div className={"share__row"}>
+                                    <div>type</div>
+                                    <div>{decodeSharesType(share.shares_type)}</div>
                                 </div>
                             {isAuth ? (
                                 <BuySharesWholesale ticker={share.ticker} sharesType={share.shares_type}/>

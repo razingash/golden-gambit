@@ -39,7 +39,9 @@ const UserShares = () => {
 
     return (
         <div className={"area__row"}>
-            {shares.length > 0 ? (shares.map((company, index) => (
+            {isUserSharesLoading === true || isUserSharesLoading === null ? (
+                <AdaptiveLoading />
+            ) : shares.length > 0 ? (shares.map((company, index) => (
                 <div className={"container__default"} key={company.ticker} ref={index === company.length - 1 ? lastElement : null}>
                     <Link to={`/companies/${company.ticker}`} className={"container__header_1 content__header"}>{company.name}</Link>
                     <div className={"content__row"}>
@@ -59,7 +61,7 @@ const UserShares = () => {
                         <div>{formatNumber(company.co_shares)}</div>
                     </div>
                     <div className={"content__row"}>
-                        <div>company preffered shares</div>
+                        <div>company preferred shares</div>
                         <div>{formatNumber(company.cp_shares)}</div>
                     </div>
                     <div className={"content__row"}>
@@ -67,7 +69,7 @@ const UserShares = () => {
                         <div>{formatNumber(company.shares_amount)}</div>
                     </div>
                     <div className={"content__row"}>
-                        <div>preffered shares</div>
+                        <div>preferred shares</div>
                         <div>{formatNumber(company.preferred_shares_amount)}</div>
                     </div>
                     <div className={"content_tug_of_war"}>

@@ -8,10 +8,10 @@ const SellSharesForm = ({ticker}) => {
     const price = useInput('');
     const sharesType = useInput(1);
 
-    const sharesTypes = {"ordinary": 1, "preffered": 1}
+    const sharesTypes = {"ordinary": 1, "preferred": 1}
 
     const [fetchSellShares, ,sellSharesError] = useFetching(async () => {
-        return await CompaniesService.sellUserShares(ticker, sharesType.value, amount.value, price.value)
+        return await CompaniesService.sellUserShares(ticker, +sharesType.value, amount.value, price.value)
     })
 
     const sellShares = async (e) => {

@@ -6,6 +6,7 @@ import {useObserver} from "../../../hooks/useObserver";
 import AdaptiveLoading from "../AdaptiveLoading";
 import BlankResult from "../BlankResult/BlankResult";
 import BuyCurrentCompanyShares from "../Forms/BuyCurrentCompanyShares";
+import {decodeSharesType} from "../../../functions/utils";
 
 const CompanySharesList = ({ticker}) => {
     const {isAuth, tokenRef} = useAuth();
@@ -14,7 +15,7 @@ const CompanySharesList = ({ticker}) => {
     const lastElement = useRef();
     const [shares, setShares] = useState([]);
     const [fetchCompanyShares, isCompanySharesLoading] = useFetching(async () => {
-        const data = await StockServices.getCompanySharesOnSale(ticker, tokenRef?.current?.access);
+        const data = await StockServices.getCompanySharesOnSale(page, ticker, tokenRef?.current?.access);
         setShares((prevShares) => {
             const newShares = data.data.filter(
                 (share) => !prevShares.some((obj) => obj.id === share.id)
@@ -55,7 +56,12 @@ const CompanySharesList = ({ticker}) => {
                             <div className={"share__row"}>
                                 <div>price</div>
                                 <div>{share.price}</div>
-                            </div>{isAuth ? (
+                            </div>
+                            <div className={"share__row"}>
+                                <div>type</div>
+                                <div>{decodeSharesType(share.shares_type)}</div>
+                            </div>
+                            {isAuth ? (
                                 <BuyCurrentCompanyShares ticker={share.ticker} pk={share.id} sharesType={share.shares_type} price={share.price}/>
                         ) : (
                             <div className={"log_in_wish"}>Sign In!</div>

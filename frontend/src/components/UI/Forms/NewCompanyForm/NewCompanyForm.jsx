@@ -33,7 +33,7 @@ const NewCompanyForm = () => { // improve type selection and styles
                 {formError?.ticker && <div className={"cell__error"}>{formError?.ticker}</div>}
                 <input className={"input__create_company"} {...sharesAmount} type={"number"} placeholder={"shares amount"}/>
                 {formError?.shares_amount && <div className={"cell__error"}>{formError?.shares_amount}</div>}
-                <input className={"input__create_company"} {...preferredSharesAmount} type={"number"} placeholder={"preffered shares amount"}/>
+                <input className={"input__create_company"} {...preferredSharesAmount} type={"number"} placeholder={"preferred shares amount"}/>
                 {formError?.preferred_shares_amount && <div className={"cell__error"}>{formError?.preferred_shares_amount}</div>}
                 <input className={"input__create_company"} {...dividendesPercent} type={"number"} placeholder={"dividendes %"}/>
                 {formError?.dividendes_percent && <div className={"cell__error"}>{formError?.dividendes_percent}</div>}

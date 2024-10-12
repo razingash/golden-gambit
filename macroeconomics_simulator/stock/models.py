@@ -25,7 +25,7 @@ def recalculate_company_price(company_instance): # good
     company_income = warehouses['company_income'] if warehouses['company_income'] is not None else 0
 
     if company_instance.gold_reserve > 0:
-        current_price = GoldSilverExchange.objects.only('current_price').first()
+        current_price = GoldSilverExchange.objects.only('current_price').first().current_price
         gold_price = current_price * company_instance.gold_reserve
         assets_price = gold_price + company_silver
     else:
@@ -172,7 +172,7 @@ class Company(models.Model):
                 "timestamp": int(time.time()),
                 "company_price": float(company_price),
                 "silver_reserve": float(self.silver_reserve),
-                "gold_reserve": self.gold_reserve
+                "gold_reserve": float(self.gold_reserve)
             })
 
             with open(json_path, 'w') as json_file:

@@ -13,3 +13,12 @@ export const formatNumber = (num) => {
 export const percentageOfNumber = (num1, num2) => {
     return Math.round(num1 * 100 / num2)
 }
+
+export const decodeSharesType = (num) => {
+    switch (num) {
+        case 1:
+            return 'ordinary'
+        case 2:
+            return 'preferred'
+    }
+}

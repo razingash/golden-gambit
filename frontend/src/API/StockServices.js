@@ -18,9 +18,9 @@ export default class StockServices {
         const response = await axios.get(`${baseURL}/stock/shares-exchange/`, {params: {page: page}})
         return response.data
     }
-    static async getCompanySharesOnSale(ticker, token) { // returns data and has_next
+    static async getCompanySharesOnSale(page, ticker, token) { // returns data and has_next
         const response = await axios.get(`${baseURL}/stock/shares-exchange/${ticker}/`,
-            {headers: {Authorization: token ? `Bearer ${token}` : ''}})
+            {params: {page: page}, headers: {Authorization: token ? `Bearer ${token}` : ''}})
         return response.data
     }
     static async tradeGold(type, amount) { // type - buy or sell

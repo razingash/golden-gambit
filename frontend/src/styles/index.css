@@ -52,6 +52,7 @@ body {
     text-decoration: none;
     user-select: none;
     color: #fff;
+    cursor: pointer;
 }
 .header__item:hover {
     color: var(--clickable-element);

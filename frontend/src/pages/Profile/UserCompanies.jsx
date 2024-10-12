@@ -4,7 +4,7 @@ import UserService from "../../API/UserService";
 import AdaptiveLoading from "../../components/UI/AdaptiveLoading";
 import BlankResult from "../../components/UI/BlankResult/BlankResult";
 import {useObserver} from "../../hooks/useObserver";
-import {formatNumber} from "../../functions/utils";
+import {decodeSharesType, formatNumber} from "../../functions/utils";
 import {Link} from "react-router-dom";
 import PrintNewSharesForm from "../../components/UI/Forms/PrintNewSharesForm";
 
@@ -56,11 +56,11 @@ const UserCompanies = () => {
                     </div>
                     <div className={"content__row"}>
                         <div>ordinary shares</div>
-                        <div>{formatNumber(company.shares_amount)}</div>
+                        <div>{formatNumber(company.co_shares)}</div>
                     </div>
                     <div className={"content__row"}>
-                        <div>preffered shares</div>
-                        <div>{formatNumber(company.preferred_shares_amount)}</div>
+                        <div>preferred shares</div>
+                        <div>{formatNumber(company.cp_shares)}</div>
                     </div>
                     <PrintNewSharesForm ticker={company.ticker}/>
                 </div>

@@ -63,32 +63,32 @@ def get_available_company_shares_for_owners(ticker, user_id): # logged users | o
     return objects
 
 def get_available_company_shares(query_params, ticker, user_id=None):
-    page = query_params.get('page')
-    limit = query_params.get('limit')
-    # add condition if needed
-    limit = int(limit) if limit is not None else 10
-    page = int(page) if page is not None else 1
     if user_id is None:
         current_time = timezone.now()
         objects = get_available_company_shares_for_everyone(ticker, current_time)
+    elif not PlayerCompanies.objects.filter(company__ticker=ticker, player_id=user_id, isHead=True).exists():
+        current_time = timezone.now()
+        objects = get_availabale_company_shares_for_shareholders(ticker, current_time, user_id)
     else:
-        if not PlayerCompanies.objects.filter(company__ticker=ticker, player_id=user_id, isHead=True).exists():
-            current_time = timezone.now()
-            objects = get_availabale_company_shares_for_shareholders(ticker, current_time, user_id)
-        else:
-            objects = get_available_company_shares_for_owners(ticker, user_id)
+        objects = get_available_company_shares_for_owners(ticker, user_id)
 
-    paginator = Paginator(objects, limit)
-    obj = paginator.get_page(page)
-    has_next = obj.has_next()
+    obj, has_next = paginate_objects(objects, query_params)
 
     return obj, has_next
 
 
 def get_shares_on_stock_for_wholesale(query_params):
+    """
+    possible drawback - it issues lots that are available to everyone, that is, even the head of the company won't be
+    able to receive shares available for purchase only to him or the owners of the shares, because implementing
+    such logic is too resource-intensive
+    """
+    current_time = timezone.now()
+
     min_price_subquery = SharesExchange.objects.filter(
         company=OuterRef('company'),
-        shares_type=OuterRef('shares_type')
+        shares_type=OuterRef('shares_type'),
+        shareholders_right__lt=current_time
     ).order_by('price').values('price')[:1]
 
     shares_with_aggregates = SharesExchange.objects.values(
@@ -122,19 +122,22 @@ def buy_shares(user_id, ticker, amount, price, pk): # for silver
                 stock_shares.player.save()
 
             user.silver -= full_price
-            stock_shares.amount -= amount
-            head_of_company.shares_amount -= amount
-            if stock_shares.amount <= amount:
+            if stock_shares.amount == amount:
                 stock_shares.delete()
             else:
+                stock_shares.amount -= amount
                 stock_shares.save()
 
-            head_of_company.save(), user.save()
+            user.save()
 
-            get_object_or_create(PlayerCompanies, condition=Q(company_id=company.id, player_id=user_id),
-                                 condtion_create={'company_id': company.id, 'player_id': user_id,
-                                                  'shares_amount': amount, 'preferred_shares_amount': 0,
-                                                  'isFounder': False, 'isHead': False})
+            player_part, is_created = get_object_or_create(PlayerCompanies, condition=Q(
+                company_id=company.id, player_id=user_id), condtion_create={
+                'company_id': company.id, 'player_id': user_id, 'shares_amount': amount, 'preferred_shares_amount': 0,
+                'isFounder': False, 'isHead': False}
+            )
+            if not is_created:
+                player_part.shares_amount += amount
+                player_part.save()
         else:
             raise CustomException(f'The current number of shares on the exchange is {stock_shares.amount}, you want {amount}')
     else:
@@ -147,6 +150,7 @@ def buy_management_shares(user_id, ticker, amount, price, pk):
     buyer = get_object(model=Player, condition=Q(id=user_id))
 
     full_price = int(amount * price)
+    amount = to_int(amount)
 
     if buyer.gold >= full_price:
         if stock_shares.amount >= amount:
@@ -160,19 +164,24 @@ def buy_management_shares(user_id, ticker, amount, price, pk):
                 stock_shares.player.save()
 
             buyer.gold -= full_price
-            stock_shares.amount -= amount
-            head_of_company.preffered_shares_amount -= amount
-
-            if stock_shares.amount <= amount:
+            if stock_shares.amount == amount:
                 stock_shares.delete()
             else:
+                stock_shares.amount -= amount
                 stock_shares.save()
 
-            head_of_company.save(), buyer.save()
+            buyer.save()
 
-            get_object_or_create(PlayerCompanies, condition=Q(company_id=company.id, player_id=user_id),
-                                 condtion_create={'company_id': company.id, 'player_id': user_id, 'shares_amount': 0,
-                                                  'preferred_shares_amount': amount, 'isFounder': False, 'isHead': False})
+            player_part, is_created = get_object_or_create(PlayerCompanies, condition=Q(
+                company_id=company.id, player_id=user_id), condtion_create={
+                'company_id': company.id, 'player_id': user_id, 'shares_amount': 0, 'preferred_shares_amount': amount,
+                'isFounder': False, 'isHead': False}
+            )
+            if not is_created:
+                player_part.preferred_shares_amount += amount
+                player_part.save()
+
+            recalculation_of_the_shareholders_influence(company)
         else:
             raise CustomException(f'The current number of shares on the exchange is {stock_shares.amount}, you need {amount}')
     else:
@@ -210,7 +219,7 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
     if shares_type == 1: # ordinary
         shares_type = SharesTypes.ORDINARY
         user_money = user.silver
-    elif shares_type == 2: # preffered
+    elif shares_type == 2: # preferred
         shares_type = SharesTypes.PREFERRED
         user_money = user.gold
     else:
@@ -314,8 +323,8 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
 
             company.silver_reserve += total_paid
             user.silver -= total_paid
-            company.save(document=True), user.save()
-        elif shares_type == 2: # preffered
+            user.save(), company.save(document=True)
+        elif shares_type == 2: # preferred
             obj, is_created = get_object_or_create(model=PlayerCompanies, condition=Q(player_id=user_id, company=company),
                                                    condtion_create={'player_id': user_id, 'company': company,
                                                                     'isFounder': False, 'isHead': False, 'shares_amount': 0,
@@ -328,7 +337,7 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
 
             company.gold_reserve += total_paid
             user.gold -= total_paid
-            company.save(document=True), user.save()
+            user.save(), company.save(document=True)
         return transaction
     else:
         raise CustomException("You don't have that much money")

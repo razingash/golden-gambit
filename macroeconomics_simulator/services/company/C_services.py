@@ -99,7 +99,10 @@ def calculate_share_price(company_price, shares_amount):  # | after API, optimiz
 def make_new_shares(user_id, ticker, shares_type, amount, price):
     amount, price = to_int(amount), to_int(price)
     company = get_object(model=Company, condition=Q(ticker=ticker))
-    company.shares_amount += amount
+    if shares_type == 1: # ordinary
+        company.shares_amount += amount
+    else:
+        company.preferred_shares_amount += amount
 
     put_up_shares_for_sale(user_id, company=company, shares_type=shares_type, amount=amount, price=price)
     company.save()
@@ -163,6 +166,10 @@ def sell_products(ticker, product_type, amount) -> None:
         company.save(document=True), warehouse.save()
     else:
         raise CustomException('Company need more products')
+
+
+def merge_companies(user_id, recipe):
+    pass
 
 
 def get_company_history(ticker):

@@ -113,6 +113,7 @@ def generate_companies(iteration_days):
         {"ticker": "TBCDG", "name": "Chaps Dry Goods"},
         {"ticker": "TBEET", "name": "Elliphany Electric Trains"},
         {"ticker": "TBFAT", "name": "Freeman Airboat Tours"},
+        {"ticker": "TBTDFU", "name": "Trench Diggers FIRST UNION"},
         {"ticker": "TBMC", "name": "Mann Co."}
     ]
 

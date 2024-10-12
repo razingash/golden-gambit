@@ -123,7 +123,7 @@ class CompanyCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Amount must be greater than zero, clown")
         return value
 
-    def validate_preffered_shares_amount(self, value):
+    def validate_preferred_shares_amount(self, value):
         if value <= 0:
             raise serializers.ValidationError("Amount must be greater than zero, clown")
         return value
@@ -177,7 +177,7 @@ class PlayerCompaniesSerializer(serializers.ModelSerializer):
     dividendes = serializers.CharField(source="company.dividendes_percent")
     price = serializers.DecimalField(source="company.company_price", max_digits=10, decimal_places=2)
     co_shares = serializers.CharField(source="company.shares_amount")  # ordinary shares
-    cp_shares = serializers.CharField(source="company.preferred_shares_amount")  # preffered shares
+    cp_shares = serializers.CharField(source="company.preferred_shares_amount")  # preferred shares
 
     class Meta:
         model = PlayerCompanies
@@ -267,7 +267,7 @@ class EventsSerializer(serializers.ModelSerializer):
 
 
 class TopPlayerSerializer(serializers.ModelSerializer): # could be useless later
-    wealth = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    wealth = serializers.DecimalField(max_digits=100, decimal_places=2, read_only=True)
 
     class Meta:
         model = Player
