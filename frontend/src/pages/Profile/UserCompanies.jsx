@@ -65,7 +65,7 @@ const UserCompanies = () => {
                     <PrintNewSharesForm ticker={company.ticker}/>
                 </div>
             ))) : (
-                <BlankResult title={"No companies found"} info={"Apparently you have lost all your companies or haven’t registered any..."}/>
+                <BlankResult title={"No tickers found"} info={"Apparently you have lost all your tickers or haven’t registered any..."}/>
             )}
         </div>
     );

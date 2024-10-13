@@ -46,7 +46,7 @@ const Profile = () => {
                     <BlankResult title={"Error during loading user data"} info={"Most likely the error occurs due to a bad connection"} />
                 )}
                 <div className={"profile__header"}>
-                    <Link to={"/profile/companies/"} className={"profile__header__item"}>companies</Link>
+                    <Link to={"/profile/tickers/"} className={"profile__header__item"}>companies</Link>
                     <Link to={"/profile/shares/"} className={"profile__header__item"}>shares</Link>
                     <Link to={"/profile/recipes/"} className={"profile__header__item"}>recipes</Link>
                 </div>

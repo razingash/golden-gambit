@@ -24,7 +24,7 @@ from stock.serializers import RegisterSerializer, CompanyCreateSerializer, Compa
     SharesExchangeSerializer, SharesExchangeListSerializer, CompanyPrintNewSharesSerializer, SellSharesSerializer, \
     TopPlayerSerializer, CompanyRecipesSerializer, SharesExchangeWholesaleReceiveSerializer, \
     SharesExchangeWholesaleSendSerializer, DividedCompanySerializer, WarehouseUpdateSerializer, \
-    SharesExchangeWholesaleListSerializer
+    SharesExchangeWholesaleListSerializer, CompanyTransmutationSerializer
 from stock.utils import custom_exception, remove_company_recipes_duplicates
 
 
@@ -133,13 +133,14 @@ class CompanyRecipes(APIView): # no need for unauthorized users
         return Response(recipes)
 
     @custom_exception
-    def post(self, request): # добавить сериализатор с проверкой в стиле use_company_recipe
+    def post(self, request):
+        serializer = CompanyTransmutationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        user_id = request.user.id
+        merge_companies(request.user.id, request.data)
 
-        new_company = merge_companies(user_id, request.data)
+        return Response(status=status.HTTP_200_OK)
 
-        return Response("OK")
 
 class CompanyApiView(APIView):
     def get_permissions(self):

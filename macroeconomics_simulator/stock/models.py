@@ -55,6 +55,9 @@ class ProductType(models.Model):
     type = models.IntegerField(choices=ProductTypes.choices, blank=False, null=False)
     base_price = models.PositiveSmallIntegerField(blank=False, null=False)
 
+    def __str__(self):
+        return ProductTypes(self.type).label
+
     class Meta:
         db_table = 'dt_ProductType'
 
@@ -63,6 +66,9 @@ class CompanyType(models.Model):
     """all changes caused by laws and events are reflected on this model, and not on the Company model"""
     type = models.IntegerField(choices=CompanyTypes.choices, blank=False, null=False)
     cartoonist = models.SmallIntegerField(blank=False, null=False)
+
+    def __str__(self):
+        return CompanyTypes(self.type).label
 
     def clean(self):
         if self._state.adding:
@@ -109,6 +115,9 @@ class Recipe(models.Model):
     company_type = models.IntegerField(choices=CompanyTypes.choices, blank=False, null=False)
     isAvailable = models.BooleanField(default=True, blank=False, null=False)
 
+    def __str__(self):
+        return CompanyTypes(self.company_type).label
+
     class Meta:
         db_table = 'dt_Recipe'
 
@@ -135,12 +144,12 @@ class Company(models.Model):
     gold_reserve = models.PositiveBigIntegerField(default=0, blank=False, null=False)
     company_price = models.IntegerField(blank=False, null=False)
     dividendes_percent = models.DecimalField(max_digits=10, decimal_places=2, blank=False, null=False)
-    history = models.FilePathField(path=os.path.join(settings.MEDIA_ROOT, 'companies'), match='.*\.json$',
+    history = models.FilePathField(path=os.path.join(settings.MEDIA_ROOT, 'tickers'), match='.*\.json$',
                                    blank=False, null=False)
     founding_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
 
     def save(self, *args, **kwargs):
-        json_path = os.path.join(settings.MEDIA_ROOT, 'companies', f"{self.ticker}.json")
+        json_path = os.path.join(settings.MEDIA_ROOT, 'tickers', f"{self.ticker}.json")
         document = kwargs.pop('document', False)
         if not self.pk:
             os.makedirs(os.path.dirname(json_path), exist_ok=True)
@@ -198,7 +207,7 @@ class CompanyWarehouse(models.Model):
 
 class PlayerCompanies(models.Model):
     player = models.ForeignKey(Player, on_delete=models.PROTECT) # user can't be deleted
-    company = models.ForeignKey(Company, on_delete=models.DO_NOTHING) # add a scenario for merging companies
+    company = models.ForeignKey(Company, on_delete=models.DO_NOTHING) # add a scenario for merging tickers
     shares_amount = models.PositiveBigIntegerField(blank=False, null=False)
     preferred_shares_amount = models.PositiveBigIntegerField(blank=False, null=False)
     isFounder = models.BooleanField(default=True, blank=False, null=False)
@@ -283,7 +292,7 @@ class StateLaw(models.Model):
 
 
 class GlobalEvent(models.Model): # mb improve this model (add fields for custom description)
-    """events are needed mainly to stabilize the market and force some players to lose their companies"""
+    """events are needed mainly to stabilize the market and force some players to lose their tickers"""
     type = models.IntegerField(choices=EventTypes.choices, blank=False, null=False)
     since = models.DateField(auto_now_add=True, blank=False, null=False)
     to = models.DateField(blank=True, null=True)

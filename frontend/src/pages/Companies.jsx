@@ -73,7 +73,7 @@ const Companies = () => {
                         </div>
                     </div>
                 )) : (
-                    <BlankResult title={"Not enough data"} info={"No companies have been registered yet"}/>
+                    <BlankResult title={"Not enough data"} info={"No tickers have been registered yet"}/>
                 )}
                 </div>
             </div>

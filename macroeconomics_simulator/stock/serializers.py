@@ -117,7 +117,7 @@ class CompanyCreateSerializer(serializers.ModelSerializer):
     def validate_type(self, value):
         if value.type in [1, 2, 3, 4, 5, 6, 7]:
             return value
-        raise serializers.ValidationError("Registration of new companies is only available in the primary sector")
+        raise serializers.ValidationError("Registration of new tickers is only available in the primary sector")
 
     def validate_shares_amount(self, value):
         if value <= 0:
@@ -308,6 +308,22 @@ class CompanyRecipesSerializer(serializers.ModelSerializer):
     def get_ingredients(self, obj):
         company_recipes = CompanyRecipe.objects.filter(recipe=obj.recipe)
         return IngredientSerializer(company_recipes, many=True).data
+
+
+class CompanyTransmutationSerializer(serializers.Serializer):
+    tickers = serializers.ListField(child=serializers.CharField(max_length=8, min_length=4), write_only=True)
+    recipe_id = serializers.IntegerField(write_only=True)
+    name = serializers.CharField(max_length=120, write_only=True)
+    dividendes_percent = serializers.DecimalField(max_digits=4, decimal_places=2, write_only=True)
+    ticker = serializers.CharField(max_length=8, min_length=4, write_only=True)
+
+    class Meta:
+        fields = ['tickers', 'ticker', 'recipe_id', 'name', 'dividendes_percent']
+
+    def validate_dividendes_percent(self, value):
+        if 10 > value < 2:
+            raise serializers.ValidationError("Dividendes percent must be greater or equal 2 and less than 10")
+        return value
 
 
 class SharesExchangeWholesaleReceiveSerializer(serializers.ModelSerializer):

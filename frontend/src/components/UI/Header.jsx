@@ -43,7 +43,7 @@ const Header = () => {
                             <Link to={"/stock/shares"} className={"header__dropdown__item_mini"} onClick={closeMenu}>Shares</Link>
                             <Link to={"/stock/products"} className={"header__dropdown__item_mini"} onClick={closeMenu}>Products</Link>
                         </div>
-                        <Link to={"/companies"} className="header__dropdown__item" onClick={closeMenu}>
+                        <Link to={"/tickers"} className="header__dropdown__item" onClick={closeMenu}>
                             <svg className="svg__menu_icon">
                                 <use xlinkHref="#icon_town-council"></use>
                             </svg>
@@ -86,7 +86,7 @@ const Header = () => {
                     <Link to={"/stock/shares"} className={"header__item"}>Shares</Link>
                     <Link to={"/stock/products"} className={"header__item"}>Products</Link>
                 </div>
-                <Link to={"/companies"} className={"header__item"}>Companies</Link>
+                <Link to={"/tickers"} className={"header__item"}>Companies</Link>
                 <Link to={"/news"} className={"header__item"}>News</Link>
                 <Link to={"/laws"} className={"header__item"} >Laws</Link>
                 {isAuth ? (

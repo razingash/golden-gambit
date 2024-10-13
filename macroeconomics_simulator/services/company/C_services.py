@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 
 from django.db.models import Q
 
@@ -6,7 +7,7 @@ from services.base import get_object
 from services.general_services import recalculation_of_the_shareholders_influence
 from services.stock.S_services import calculate_products_price
 from stock.models import Company, CompanyWarehouse, AvailableProductsForProduction, PlayerCompanies, \
-    SharesExchange, Player, CompanyRecipe, GoldSilverExchange, ProductType
+    SharesExchange, Player, CompanyRecipe, GoldSilverExchange, ProductType, Recipe
 from django.utils import timezone
 
 from stock.utils import to_int, CustomException
@@ -14,7 +15,7 @@ from stock.utils import to_int, CustomException
 
 def create_new_company(user_id, request_data):
     """
-    if the user does not have established companies, then he establishes it for free, if there is a founded company,
+    if the user does not have established tickers, then he establishes it for free, if there is a founded company,
         if he already has a company the price will be equal to the cost of 100 gold in silver
             if user don’t have that kind of money, then ...
     """
@@ -168,35 +169,99 @@ def sell_products(ticker, product_type, amount) -> None:
         raise CustomException('Company need more products')
 
 
-def use_company_recipe(user_id, recipe, companies):
-    """checking the possibility of creating a company and its creation"""
-    pass
+def validate_company_recipe(recipe_id, tickers: list):
+    """checking the possibility of transmutating a company"""
+    company_recipe = CompanyRecipe.objects.select_related('recipe', 'ingredient').filter(recipe_id=recipe_id)
+    if len(company_recipe) == 0:
+        raise CustomException('Recipe object with selected conditions does not exists')
 
-def create_company(user_id):
-    data = {
-        "company_type": 1,
-        "ticker": 1,
-        "name": 1,
-        "shares_amount": 1,
-        "preferred_shares_amount": 1,
-        "dividendes_percent": 1,
-    }
-    create_new_company(user_id, data)
+    if company_recipe[0].recipe.isAvailable: # recipe may not be available due to certain events
+        if len(tickers) == sum([obj.amount for obj in company_recipe]):
+            user_companies = []
+            for ticker in tickers:
+                company = get_object(model=Company, condition=Q(ticker=ticker))
+                user_companies.append(company)
 
-def distribution_of_company_shares():
-    pass
+            final_company_types_for_transmutation = [obj.ingredient.type for obj in company_recipe]
+
+            for company in user_companies:
+                if company.type in final_company_types_for_transmutation:
+                    final_company_types_for_transmutation.remove(company.type)
+                else:
+                    raise CustomException('Wrong type of company was transferred for transmutation using a specific recipe')
+
+            #clearing the exchange
+            SharesExchange.objects.filter(company__in=user_companies).delete()
+
+            return user_companies, company_recipe[0].recipe.company_type
+        else:
+            raise CustomException(f'The number of companies required for transmutation does not correspond to those transferred')
+    else:
+        raise CustomException(f'Recipe with id {recipe_id} not available now')
+
+
+def transmutate_company(user_id, companies, name, ticker, company_type, dividendes):
+    shares_amount = 100_000_0 # probably default value
+    preferred_shares_amount = 100_000_0 # probably default value
+
+    general_silver = Decimal(sum([company.silver for company in companies]))
+    general_gold = sum([company.gold for company in companies])
+
+    new_company = Company.objects.create(type=company_type, ticker=ticker, name=name, shares_amount=shares_amount,
+                                         silver_reserve=general_silver, gold_reserve=general_gold,
+                                         preferred_shares_amount=preferred_shares_amount, dividendes_percent=dividendes)
+
+    distribution_of_company_shares(user_id, companies, new_company, shares_amount, preferred_shares_amount)
+
+
+def distribution_of_company_shares(user_id, companies, new_company, new_shares_amount, new_preferred_shares_amount):
+    total_shares = 0
+    total_preferred_shares = 0
+    player_share_map = {}
+
+    for company in companies:
+        shareholders = PlayerCompanies.objects.filter(company_id=company.id)
+
+        total_shares += company.shares_amount
+        total_preferred_shares += company.preferred_shares_amount
+
+        for shareholder in shareholders:
+            if shareholder.player_id not in player_share_map:
+                player_share_map[shareholder.player_id] = {
+                    'shares': 0,
+                    'preferred_shares': 0,
+                }
+
+            player_share_map[shareholder.player_id]['shares'] += shareholder.shares_amount
+            player_share_map[shareholder.player_id]['preferred_shares'] += shareholder.preferred_shares_amount
+
+    new_shareholders = []
+    for player_id, share_info in player_share_map.items(): # recalculation of shareholders' shares
+        new_player_shares = (share_info['shares'] / total_shares) * new_shares_amount if total_shares > 0 else 0
+        new_player_pshares = (share_info['preferred_shares'] / total_preferred_shares) * new_preferred_shares_amount if total_preferred_shares > 0 else 0
+
+        new_shareholders.append(PlayerCompanies(
+            player_id=player_id, company=new_company, shares_amount=new_player_shares,
+            preferred_shares_amount=new_player_pshares, isFounder=False, isHead=False
+        ))
+
+    PlayerCompanies.objects.bulk_create(new_shareholders)
+    #clearing outdated shares
+    PlayerCompanies.objects.filter(company__in=companies).delete()
+
+    PlayerCompanies.objects.update_or_create(player_id=user_id, company=new_company, defaults={'isFounder': True, 'isHead': True})
+
 
 def merge_companies(user_id, request_data):
-    type_id = request_data.get('type')
-    companies = request_data.get('companies')
+    tickers = request_data.get('tickers')
     recipe_id = request_data.get('recipe_id')
     name = request_data.get('name')
     ticker = request_data.get('ticker')
-    shares_amount = request_data.get('shares_amount') # probably default value
-    preffered_shares_amount = request_data.get('preffered_shares_amount') # probably default value
     dividendes_percent = request_data.get('dividendes_percent')
 
-    use_company_recipe(user_id, recipe_id, companies)
+    user_companies, company_type = validate_company_recipe(recipe_id, tickers)
+
+    transmutate_company(user_id, user_companies, name, ticker, company_type, dividendes_percent)
 
 
 def get_company_history(ticker):

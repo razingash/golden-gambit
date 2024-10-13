@@ -63,7 +63,7 @@ def create_recipe(company_instance, *ingredients_with_amounts):
 
 
 # mb there is something wrong
-def add_advanced_company_recipes(company_type):  # adds recipes for companies whose tier is higher than the first
+def add_advanced_company_recipes(company_type):  # adds recipes for tickers whose tier is higher than the first
     """
     probably it would be better to use fixtures, but considering that the balance may change, I chose this method,
     and it looks stupid...
@@ -127,10 +127,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('generating static data...'))
         laws = [
-            {"title": "Law on Supporting Small Businesses During Gold Market Shortages", "description": "During severe market crises, when there is a shortage of gold on the exchange, developed companies in the higher economic sectors may only purchase gold through a gold auction to protect small businesses and ensure a more equitable distribution of resources."},
+            {"title": "Law on Supporting Small Businesses During Gold Market Shortages", "description": "During severe market crises, when there is a shortage of gold on the exchange, developed tickers in the higher economic sectors may only purchase gold through a gold auction to protect small businesses and ensure a more equitable distribution of resources."},
             {"title": "Law on State Monopoly over Gold Mining and Transit", "description": "The exclusive right to mine and transport gold belongs to the state."},
             {"title": "Law on Progressive Tax for Idle Gold", "description": "Gold that remains unused for an extended period is subject to mandatory purchase by the state."},
-            {"title": "Law on State Support for Shareholding Companies", "description": "The state commits to purchasing products from companies, at a state-determined price, if it owns at least 10% of their shares."},
+            {"title": "Law on State Support for Shareholding Companies", "description": "The state commits to purchasing products from tickers, at a state-determined price, if it owns at least 10% of their shares."},
             {"title": "Law on supporting beginning investors", "description": "Those, and only those, whose savings are less than 100 gold can open a company once for free, while the rest will have to pay the full amount in order to expand their influence"},
         ]
 
@@ -146,8 +146,8 @@ class Command(BaseCommand):
         products_tier_5 = [pt.SPECIAL_CLOTHING, pt.WEAPONS, pt.FUEL]
 
         company_types = [company_type.value for company_type in CompanyTypes]
-        default_companies = [CompanyTypes.FARM, CompanyTypes.FISH_FARM, CompanyTypes.MINE, CompanyTypes.FOOD_FACTORY,
-                             CompanyTypes.QUARRY, CompanyTypes.SAWMILL, CompanyTypes.PLANTATION, CompanyTypes.ORE_MINE]
+        default_companies = [CompanyTypes.FARM, CompanyTypes.FISH_FARM, CompanyTypes.MINE, CompanyTypes.QUARRY,
+                             CompanyTypes.SAWMILL, CompanyTypes.PLANTATION, CompanyTypes.ORE_MINE]
         advanced_companies = [company_type.value for company_type in CompanyTypes if company_type not in default_companies]
 
         for product_type in product_types: # adding product types
@@ -171,7 +171,7 @@ class Command(BaseCommand):
             company = CompanyType.objects.create(type=company_type)
             add_available_products_for_production(company)
 
-        for advanced_company_type in advanced_companies: # adding recipes for companies with a tier > 1
+        for advanced_company_type in advanced_companies: # adding recipes for tickers with a tier > 1
             add_advanced_company_recipes(advanced_company_type)
 
         for law in laws:  # creating basic laws

@@ -52,7 +52,7 @@ def falsify_gols_silver_history(gold_silver, iterations):
 
 
 def falsify_company_history(iteration_days, company):
-    json_path = os.path.join(settings.MEDIA_ROOT, 'companies', f"{company.ticker}.json")
+    json_path = os.path.join(settings.MEDIA_ROOT, 'tickers', f"{company.ticker}.json")
     current_time = datetime.datetime.now()
     founding_date = current_time - datetime.timedelta(days=1000)
     affordable_silver = company.silver_reserve
@@ -117,7 +117,7 @@ def generate_companies(iteration_days):
         {"ticker": "TBMC", "name": "Mann Co."}
     ]
 
-    for index, asset in enumerate(assets, 1):  # creating users and their companies
+    for index, asset in enumerate(assets, 1):  # creating users and their tickers
         user = Player.objects.create_user(username=f'djangobot{index}', password=f'djangobot{index}', silver=300000)
         company_type = random.randint(1, 10)
         shares_amount, preferred_shares_amount = random.randint(100, 20000), random.randint(100, 10000)
@@ -154,7 +154,7 @@ class Command(BaseCommand):
         gold_silver = GoldSilverExchange.objects.create()
         falsify_gols_silver_history(gold_silver, iteration_days)
 
-        # creating companies & their history
+        # creating tickers & their history
         generate_companies(iteration_days)
 
         self.stdout.write(self.style.SUCCESS('Random data generation has been completed'))

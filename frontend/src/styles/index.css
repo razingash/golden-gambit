@@ -217,6 +217,32 @@ body {
     align-items: center;
     z-index: -999 !important;
 }
+.global__container {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+}
+.form__global {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding: 15px;
+    background: #1e1e2c;
+    border: 2px solid var(--highlight-element-1);
+    border-radius: 4px;
+    box-shadow: 0 0 0 2px rgb(0 0 0), 0 2px 4px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.3), 0 0 16px rgb(0 0 0);
+}
+.area__close {
+    position: relative;
+    left: 9px;
+    bottom: 9px;
+    margin-bottom: -4px;
+    cursor: pointer;
+}
 
 
 @keyframes rotate {

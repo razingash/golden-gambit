@@ -61,7 +61,7 @@
 }
 
 
-/* user companies recipies */
+/* user tickers recipies */
 
 .content__ingredient__list {
     display: flex;
@@ -83,7 +83,7 @@
 
 }
 
-/* user companies */
+/* user tickers */
 .content__row {
     display: flex;
     justify-content: space-between;
