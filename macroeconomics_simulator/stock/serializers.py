@@ -165,7 +165,15 @@ class SellSharesSerializer(serializers.ModelSerializer):
         model = SharesExchange
         fields = ['ticker', 'shares_type', 'amount', 'price']
 
-class SharesExchangeSerializer(serializers.ModelSerializer): # used in 3 places!
+class SharesExchangeSerializer(serializers.ModelSerializer): # used in 2 places!
+    class Meta:
+        model = SharesExchange
+        fields = ['id', 'shares_type', 'amount', 'price']
+
+
+class SharesPurchaseSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=True)
+
     class Meta:
         model = SharesExchange
         fields = ['id', 'shares_type', 'amount', 'price']
@@ -200,14 +208,9 @@ class PlayerCompaniesSerializer(serializers.ModelSerializer):
 
 
 class WarehouseSerializer(serializers.ModelSerializer):
-    type = serializers.SerializerMethodField()
-
     class Meta:
         model = CompanyWarehouse
-        fields = ['type', 'amount', 'max_amount']
-
-    def get_type(self, obj):
-        return obj.product.get_type_display()
+        fields = ['product', 'amount', 'max_amount']
 
 
 class WarehouseUpdateSerializer(serializers.ModelSerializer):
@@ -239,14 +242,10 @@ class GoldAmountSerializer(serializers.Serializer):
 
 class ProductsSerializer(serializers.ModelSerializer):
     type = serializers.IntegerField(source="product.type")
-    name = serializers.SerializerMethodField()
 
     class Meta:
         model = ProductsExchange
-        fields = ['name', 'purchase_price', 'sale_price', 'type']
-
-    def get_name(self, obj):
-        return obj.product.get_type_display()
+        fields = ['purchase_price', 'sale_price', 'type']
 
 
 class ProductsTradingSerializer(serializers.Serializer): # probably redo
@@ -303,7 +302,7 @@ class CompanyRecipesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CompanyRecipe
-        fields = ['company_type', 'ingredients']
+        fields = ['recipe', 'company_type', 'ingredients']
 
     def get_ingredients(self, obj):
         company_recipes = CompanyRecipe.objects.filter(recipe=obj.recipe)

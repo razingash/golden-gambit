@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
-from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken, AccessToken
+from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from rest_framework_simplejwt.views import TokenVerifyView
 
 from services.base import get_paginated_objects, get_object
@@ -24,7 +24,7 @@ from stock.serializers import RegisterSerializer, CompanyCreateSerializer, Compa
     SharesExchangeSerializer, SharesExchangeListSerializer, CompanyPrintNewSharesSerializer, SellSharesSerializer, \
     TopPlayerSerializer, CompanyRecipesSerializer, SharesExchangeWholesaleReceiveSerializer, \
     SharesExchangeWholesaleSendSerializer, DividedCompanySerializer, WarehouseUpdateSerializer, \
-    SharesExchangeWholesaleListSerializer, CompanyTransmutationSerializer
+    SharesExchangeWholesaleListSerializer, CompanyTransmutationSerializer, SharesPurchaseSerializer
 from stock.utils import custom_exception, remove_company_recipes_duplicates
 
 
@@ -87,14 +87,13 @@ class UserCompaniesView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def get(self, request):
-        companies, has_next = get_user_companies(request.user.id, request.query_params)
-
         fields = request.query_params.get('fields')
         if fields:
             fields = fields.split(',')
 
-        serializer = PlayerCompaniesSerializer(companies, many=True, fields=fields)
+        companies, has_next = get_user_companies(request.user.id, request.query_params, fields=fields)
 
+        serializer = PlayerCompaniesSerializer(companies, many=True, fields=fields)
         return Response({"data": serializer.data, "has_next": has_next})
 
     @custom_exception
@@ -109,7 +108,7 @@ class UserCompaniesView(APIView):
 class UserSharesView(APIView):
     permission_classes = (IsAuthenticated, )
 
-    def get(self, request):
+    def get(self, request): # After completely setting up the frontend, check the required fields again
         shares, has_next = get_user_shares(request.user.id, request.query_params)
         serializer = PlayerCompaniesSerializer(shares, many=True)
 
@@ -224,8 +223,10 @@ class CompanySellShareApiView(APIView):
         user_id = request.user.id
 
         if shares_type == 1 or shares_type == 2: # 1 - ordinary shares & 2 - management shares
-            company = get_object_or_404(Company, ticker=ticker)
-            shares = put_up_shares_for_sale(user_id, company, shares_type, amount, price)
+            company = Company.objects.filter(ticker=ticker).only('id').first()
+            if company is None:
+                return Response(f'Company with ticker {ticker} does not exists')
+            shares = put_up_shares_for_sale(user_id, company.id, shares_type, amount, price)
             return Response(SellSharesSerializer(shares, many=False).data)
         else: # error
             return Response(f'error: Bad Request, {shares_type} is a non-existent share type', status=status.HTTP_400_BAD_REQUEST)
@@ -335,15 +336,14 @@ class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
         return Response({'data': serializer.data, 'has_next': has_next})
 
     @custom_exception
-    def post(self, request, ticker):
-        serializer = SharesExchangeSerializer(data=request.data)
+    def post(self, request, ticker): # only purchase
+        serializer = SharesPurchaseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         shares_type = request.data.get('shares_type')
         amount = request.data.get('amount')
         price = request.data.get('price')
         pk = request.data.get('id')
-
         user_id = request.user.id
 
         if shares_type == 1: # ordinary

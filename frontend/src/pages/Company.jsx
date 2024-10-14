@@ -9,6 +9,7 @@ import BlankResult from "../components/UI/BlankResult/BlankResult";
 import UpdateCompanyForm from "../components/UI/Forms/UpdateCompanyForm";
 import {useAuth} from "../hooks/context/useAuth";
 import CompanySharesList from "../components/UI/CompanySharesList/CompanySharesList";
+import {decodeProductType} from "../functions/utils";
 
 const Company = () => {
     const {isAuth, tokenRef} = useAuth();
@@ -122,10 +123,10 @@ const Company = () => {
                         <div className={"button__submit"} onClick={fetchProcure}>procure</div>
                         <div className={"company__products_list"}>
                         {companyInventory && (companyInventory.map((product) => (
-                            <div className={"company__products_item"} key={product.type}>
+                            <div className={"company__products_item"} key={product.product}>
                                 <div className={"cell__row"}>
                                     <div>type</div>
-                                    <div>{product.type}</div>
+                                    <div>{decodeProductType(product.product)}</div>
                                 </div>
                                 <div className={"cell__row"}>
                                     <div>amount</div>

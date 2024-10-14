@@ -5,13 +5,13 @@ import {decodeCompanyType} from "../../../functions/utils";
 import {useFetching} from "../../../hooks/useFetching";
 
 const GlobalMergeCompaniesForm = ({recipe, userCompanies, onClose}) => {
-    const [selectedCompanies, setSelectedCompanies] = useState(Array(recipe.ingredients.length).fill(''));
+    const [selectedCompanies, setSelectedCompanies] = useState([]);
     const ticker = useInput('')
     const name = useInput('')
     const dividendesPercent = useInput('')
 
     const [fetchMergedCommpany, , mergedCompanyError] = useFetching(async () => {
-        return await UserService.megreCompanies(recipe.company_type, selectedCompanies[0], ticker.value,
+        return await UserService.megreCompanies(recipe.recipe, selectedCompanies.flat(), ticker.value,
             name.value, +dividendesPercent.value);
     })
 

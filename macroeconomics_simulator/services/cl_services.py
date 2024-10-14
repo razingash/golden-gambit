@@ -47,3 +47,7 @@ def calculate_company_price(company_income, company_gold, company_silver):
     commitment = calculate_commitment()
     company_price = (assets_price + company_income) - commitment
     return company_price
+
+def calculate_share_price(company_price, shares_amount):  # | after API, optimize via clickhouse
+    share_price = company_price / shares_amount
+    return share_price

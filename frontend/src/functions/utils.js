@@ -77,3 +77,54 @@ export const decodeCompanyType = (num) => {
             return "clothing factory 2"
     }
 }
+
+export const decodeProductType = (num) => {
+    switch (num) {
+        case 1:
+            return "unprocessed food"
+        case 2:
+            return "minerals"
+        case 3:
+            return "base metals"
+        case 4:
+            return "slate"
+        case 5:
+            return "limestone"
+        case 6:
+            return "clay"
+        case 7:
+            return "wood"
+        case 8:
+            return "processed food"
+        case 9:
+            return "chemicals"
+        case 10:
+            return "processed metals"
+        case 11:
+            return "building materials"
+        case 12:
+            return "processed wood"
+        case 13:
+            return "textile"
+        case 14:
+            return "medicines"
+        case 15:
+            return "microelectronics"
+        case 16:
+            return "mechanical parts"
+        case 17:
+            return "furnitures"
+        case 18:
+            return "clothing"
+        case 19:
+            return "oil"
+        case 20:
+            return "special clothing"
+        case 21:
+            return "weapons"
+        case 22:
+            return "fuel"
+        case 23:
+            return "construction raw materials"
+    }
+}

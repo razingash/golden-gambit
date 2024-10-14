@@ -6,6 +6,7 @@ import AdaptiveLoading from "../components/UI/AdaptiveLoading";
 import {useAuth} from "../hooks/context/useAuth";
 import {useObserver} from "../hooks/useObserver";
 import TradeProducts from "../components/UI/Forms/TradeProducts";
+import {decodeProductType} from "../functions/utils";
 
 const StockProducts = () => {
     const {isAuth} = useAuth();
@@ -17,7 +18,7 @@ const StockProducts = () => {
         const data = await StockServices.getStockProducts(page);
         setProducts((prevProducts) => {
             const newProducts = data.data.filter(
-                (product) => !prevProducts.some((obj) => obj.name === product.name)
+                (product) => !prevProducts.some((obj) => obj.type === product.type)
             )
             return [...prevProducts, ...newProducts]
         })
@@ -42,9 +43,9 @@ const StockProducts = () => {
             <div className={"field__products"}>
                 <div className={"products__list"}>
                     {products.length > 0 ? (products.map((product, index) => (
-                        <div className={"product__item"} key={product.name} ref={index === products.length - 1 ? lastElement : null}>
+                        <div className={"product__item"} key={product.type} ref={index === products.length - 1 ? lastElement : null}>
                             <div className={"product__info"}>
-                                <div className={"product__name"}>{product.name}</div>
+                                <div className={"product__name"}>{decodeProductType(product.type)}</div>
                                 <div className={"product__row"}>
                                     <div>purchase</div>
                                     <div>{product.purchase_price}</div>

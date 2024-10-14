@@ -3,14 +3,14 @@ from decimal import Decimal
 
 from django.db.models import Q
 
-from services.base import get_object
+from services.base import get_object, check_object
 from services.general_services import recalculation_of_the_shareholders_influence
 from services.stock.S_services import calculate_products_price
 from stock.models import Company, CompanyWarehouse, AvailableProductsForProduction, PlayerCompanies, \
-    SharesExchange, Player, CompanyRecipe, GoldSilverExchange, ProductType, Recipe
+    SharesExchange, Player, CompanyRecipe, GoldSilverExchange, ProductType
 from django.utils import timezone
 
-from stock.utils import to_int, CustomException
+from stock.utils import CustomException
 
 
 def create_new_company(user_id, request_data):
@@ -26,7 +26,7 @@ def create_new_company(user_id, request_data):
     preferred_shares_amount = request_data.get('preferred_shares_amount')
     dividendes_percent = request_data.get('dividendes_percent')
 
-    user = get_object(model=Player, condition=Q(id=user_id))
+    user = get_object(model=Player, condition=Q(id=user_id), fields=['id', 'silver'])
 
     if not PlayerCompanies.objects.filter(player_id=user_id, isFounder=True).exists():
         pass
@@ -59,7 +59,7 @@ def update_produced_products_amount(ticker):
     production_volume = company_data.production_volume
     warehouse_capacity = company_data.warehouse_capacity
 
-    products = CompanyWarehouse.objects.filter(company=company)
+    products = CompanyWarehouse.objects.filter(company_id=company.id)
     products_for_update = AvailableProductsForProduction.objects.filter(company_type=company.type, product_type__in=products.values_list('product', flat=True))
     updated_products = []
     for product_for_update in products_for_update:
@@ -92,37 +92,58 @@ def update_produced_products_amount(ticker):
     return updated_products
 
 
-def calculate_share_price(company_price, shares_amount):  # | after API, optimize via clickhouse
-    share_price = company_price / shares_amount
-    return share_price
-
-
 def make_new_shares(user_id, ticker, shares_type, amount, price):
-    amount, price = to_int(amount), to_int(price)
-    company = get_object(model=Company, condition=Q(ticker=ticker))
+    amount, price = int(amount), int(price)
+    company = get_object(model=Company, condition=Q(ticker=ticker), fields=['id', 'shares_amount', 'preferred_shares_amount'])
     if shares_type == 1: # ordinary
         company.shares_amount += amount
     else:
         company.preferred_shares_amount += amount
 
-    put_up_shares_for_sale(user_id, company=company, shares_type=shares_type, amount=amount, price=price)
+    put_up_shares_for_sale(user_id, company_id=company.id, shares_type=shares_type, amount=amount, price=price)
     company.save()
 
     if shares_type == 2: # management shares
-        recalculation_of_the_shareholders_influence(company)
+        recalculation_of_the_shareholders_influence(company_id=company.id)
 
     return company
 
 
-def put_up_shares_for_sale(user_id, company, shares_type, amount, price):
-    """depending on the group (company owner, shareholder, or ordinary player) different times will be given to buy back shares"""
+def recalculate_shares(obj: PlayerCompanies, shares_type, shares_amount):
+    if shares_type == 1:
+        obj.shares_amount -= shares_amount
+    else: # 2
+        obj.preferred_shares_amount -= shares_amount
+
+    if obj.shares_amount == 0 and obj.preferred_shares_amount == 0 and obj.isHead is False:
+        obj.delete()
+    else:
+        obj.save()
+
+
+def put_up_shares_for_sale(user_id, company_id, shares_type, amount, price):
+    """
+    depending on the group (company owner, shareholder, or ordinary player) different times will be given to buy back shares
+    dividends will also be paid for shares that are listed on the stock exchange
+    There will be no opportunity to withdraw shares from the exchange (for now)
+    """
+    if shares_type == 1:
+        condition = Q(player_id=user_id, company_id=company_id, shares_amount__gte=amount)
+    else:
+        condition = Q(player_id=user_id, company_id=company_id, preferred_shares_amount__gte=amount)
+    obj = check_object(model=PlayerCompanies, condition=condition)
+
     if shares_type == 1: # ordinary
         tz = timezone.now()
-        shares = SharesExchange.objects.create(company=company, amount=amount, price=price, shares_type=shares_type,
+        shares = SharesExchange.objects.create(company_id=company_id, amount=amount, price=price, shares_type=shares_type,
                                                owners_right=tz, shareholders_right=tz, player_id=user_id)
+
+        recalculate_shares(obj=obj, shares_type=1, shares_amount=amount)
     elif shares_type == 2: # management
-        shares = SharesExchange.objects.create(company=company, amount=amount, price=price, shares_type=shares_type,
+        shares = SharesExchange.objects.create(company_id=company_id, amount=amount, price=price, shares_type=shares_type,
                                                player_id=user_id)
+
+        recalculate_shares(obj=obj, shares_type=2, shares_amount=amount)
     else:
         shares = None
     return shares
@@ -130,15 +151,19 @@ def put_up_shares_for_sale(user_id, company, shares_type, amount, price):
 
 
 def buy_products(ticker, product_type, amount) -> None:
-    amount = to_int(amount)
-    company = Company.objects.prefetch_related('companywarehouse_set').only('silver_reserve', 'companywarehouse__amount', 'companywarehouse__product').get(ticker=ticker)
+    amount = int(amount)
+    company = Company.objects.prefetch_related('companywarehouse_set').only('id', 'silver_reserve', 'companywarehouse__amount', 'companywarehouse__product').get(ticker=ticker)
 
     try:
-        warehouse = CompanyWarehouse.objects.get(company=company, product__type=product_type)
+        warehouse = CompanyWarehouse.objects.select_related(
+            'product').get(company_id=company.id, product__type=product_type).only('id', 'amount', 'product__id')
+
+        products_price = calculate_products_price(product_id=warehouse.product_id, products_amount=amount)
     except CompanyWarehouse.DoesNotExist: # if there is no warehouse, then create...
-        product = ProductType.objects.get(type=product_type)
-        warehouse = CompanyWarehouse.objects.create(company=company, product=product)
-    products_price = calculate_products_price(product_id=warehouse.product.id, products_amount=amount)
+        product = get_object(model=ProductType, condition=Q(type=product_type), fields=['id'])
+        warehouse = CompanyWarehouse.objects.create(company_id=company.id, product_id=product.id)
+
+        products_price = calculate_products_price(product_id=warehouse.product.id, products_amount=amount)
 
     if company.silver_reserve >= products_price:
         warehouse.amount += amount
@@ -147,19 +172,17 @@ def buy_products(ticker, product_type, amount) -> None:
         company.save(document=True), warehouse.save()
 
 def sell_products(ticker, product_type, amount) -> None:
-    amount = to_int(amount)
-    company = Company.objects.prefetch_related('companywarehouse_set').only('silver_reserve', 'companywarehouse__amount', 'companywarehouse__product').get(ticker=ticker)
-
-    if not company:
-        raise CustomException(f'Company with ticker {ticker} not found')
+    amount = int(amount)
+    company = Company.objects.prefetch_related('companywarehouse_set').only('id', 'silver_reserve', 'companywarehouse__amount', 'companywarehouse__product').get(ticker=ticker)
 
     try:
-        warehouse = CompanyWarehouse.objects.get(company=company, product__type=product_type)
+        warehouse = CompanyWarehouse.objects.select_related(
+            'product').only('id', 'amount', 'product__id').get(company_id=company.id, product__type=product_type)
     except CompanyWarehouse.DoesNotExist:
         raise CustomException(f'Warehouse with product type {product_type} not found for company with ticker {ticker}')
 
     if warehouse.amount >= amount:
-        products_price = calculate_products_price(product_id=warehouse.product.id, products_amount=amount)
+        products_price = calculate_products_price(product_id=warehouse.product_id, products_amount=amount)
 
         warehouse.amount -= amount
         company.silver_reserve += products_price
@@ -176,17 +199,21 @@ def validate_company_recipe(recipe_id, tickers: list):
         raise CustomException('Recipe object with selected conditions does not exists')
 
     if company_recipe[0].recipe.isAvailable: # recipe may not be available due to certain events
+        # print(len(tickers), sum([obj.amount for obj in company_recipe]), tickers, company_recipe)
         if len(tickers) == sum([obj.amount for obj in company_recipe]):
             user_companies = []
             for ticker in tickers:
                 company = get_object(model=Company, condition=Q(ticker=ticker))
                 user_companies.append(company)
 
-            final_company_types_for_transmutation = [obj.ingredient.type for obj in company_recipe]
+            final_company_types_for_transmutation = []
+            for obj in company_recipe:
+                for i in range(obj.amount):
+                    final_company_types_for_transmutation.append(obj.ingredient.type)
 
             for company in user_companies:
-                if company.type in final_company_types_for_transmutation:
-                    final_company_types_for_transmutation.remove(company.type)
+                if company.type_id in final_company_types_for_transmutation:
+                    final_company_types_for_transmutation.remove(company.type_id)
                 else:
                     raise CustomException('Wrong type of company was transferred for transmutation using a specific recipe')
 
@@ -201,13 +228,12 @@ def validate_company_recipe(recipe_id, tickers: list):
 
 
 def transmutate_company(user_id, companies, name, ticker, company_type, dividendes):
-    shares_amount = 100_000_0 # probably default value
-    preferred_shares_amount = 100_000_0 # probably default value
+    shares_amount, preferred_shares_amount = 100_000_0, 100_000_0 # probably default value
 
-    general_silver = Decimal(sum([company.silver for company in companies]))
-    general_gold = sum([company.gold for company in companies])
+    general_silver = Decimal(sum([company.silver_reserve for company in companies]))
+    general_gold = sum([company.gold_reserve for company in companies])
 
-    new_company = Company.objects.create(type=company_type, ticker=ticker, name=name, shares_amount=shares_amount,
+    new_company = Company.objects.create(type_id=company_type, ticker=ticker, name=name, shares_amount=shares_amount,
                                          silver_reserve=general_silver, gold_reserve=general_gold,
                                          preferred_shares_amount=preferred_shares_amount, dividendes_percent=dividendes)
 
@@ -215,12 +241,11 @@ def transmutate_company(user_id, companies, name, ticker, company_type, dividend
 
 
 def distribution_of_company_shares(user_id, companies, new_company, new_shares_amount, new_preferred_shares_amount):
-    total_shares = 0
-    total_preferred_shares = 0
+    total_shares, total_preferred_shares = 0, 0
     player_share_map = {}
 
     for company in companies:
-        shareholders = PlayerCompanies.objects.filter(company_id=company.id)
+        shareholders = PlayerCompanies.objects.filter(company_id=company.id).only('player__id', 'shares_amount', 'preferred_shares_amount')
 
         total_shares += company.shares_amount
         total_preferred_shares += company.preferred_shares_amount
@@ -246,8 +271,13 @@ def distribution_of_company_shares(user_id, companies, new_company, new_shares_a
         ))
 
     PlayerCompanies.objects.bulk_create(new_shareholders)
+
     #clearing outdated shares
     PlayerCompanies.objects.filter(company__in=companies).delete()
+    #warehouse demolition - no need for improvement for now
+    CompanyWarehouse.objects.filter(company__in=companies).delete()
+    #destruction of companies | in the future possible let them be, but silenced
+    Company.objects.filter(ticker__in=[company.ticker for company in companies]).delete()
 
     PlayerCompanies.objects.update_or_create(player_id=user_id, company=new_company, defaults={'isFounder': True, 'isHead': True})
 

@@ -20,8 +20,8 @@ export const publicRotes = [
     {path: "/stock/", component: <StockGold/>, key: "stock-gold"},
     {path: "/stock/products/", component: <StockProducts/>, key: "stock-products"},
     {path: "/stock/shares/", component: <StockShares/>, key: "stock-shares"},
-    {path: "/tickers/", component: <Companies/>, key: "companies"},
-    {path: "/tickers/:ticker/", component: <Company/>, key: "companies"}
+    {path: "/companies/", component: <Companies/>, key: "companies"},
+    {path: "/companies/:ticker/", component: <Company/>, key: "companies"}
 ]
 
 export const unprivateRotes = [

@@ -110,11 +110,3 @@ def custom_exception(func: callable):
         except CustomException as e:
             return Response({"error": f"{e}"}, status=400)
     return wrapper
-
-def to_int(value):
-    try:
-        value = int(value)
-    except (ValueError, TypeError):
-        return None
-    else:
-        return value
