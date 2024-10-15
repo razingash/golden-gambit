@@ -33,18 +33,18 @@ const GlobalMergeCompaniesForm = ({recipe, userCompanies, onClose}) => {
         }
 
         return (
-            <div className={"cell__column"}>
+            <div className={"cell__column"} key={ingredient.type + recipe.recipe}>
                 {Array.from({ length: ingredient.amount }).map((_, companyIndex) => (
-                    <select key={companyIndex} value={selectedCompanies[index]?.[companyIndex] || ''}
+                    <select className={"select__default-2"} key={companyIndex} value={selectedCompanies[index]?.[companyIndex] || ''}
                         onChange={(e) => {
                             const updatedCompanies = [...(selectedCompanies[index] || [])];
                             updatedCompanies[companyIndex] = e.target.value;
                             handleCompanySelection(index, updatedCompanies);
                         }}
                     >
-                        <option value="" disabled>Select company</option>
+                        <option className={"option__default-2"} value="" disabled>Select company</option>
                         {filteredCompanies.map((company) => (
-                            <option key={company.ticker} value={company.ticker}>{company.name} ({company.ticker})</option>
+                            <option className={"option__default-2"} key={company.ticker} value={company.ticker}>{company.name} ({company.ticker})</option>
                         ))}
                     </select>
                 ))}

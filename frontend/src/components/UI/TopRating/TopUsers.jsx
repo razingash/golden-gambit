@@ -13,8 +13,10 @@ const TopUsers = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            const data = await fetchTopUsers();
-            data && setTopUsers(data);
+            if (!isTopUsersLoading && topUsers.length === 0) {
+                const data = await fetchTopUsers();
+                data && setTopUsers(data);
+            }
         }
         void loadData();
     }, [isTopUsersLoading])

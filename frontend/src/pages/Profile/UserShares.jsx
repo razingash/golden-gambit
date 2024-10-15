@@ -42,7 +42,7 @@ const UserShares = () => {
             {isUserSharesLoading === true || isUserSharesLoading === null ? (
                 <AdaptiveLoading />
             ) : shares.length > 0 ? (shares.map((company, index) => (
-                <div className={"container__default"} key={company.ticker} ref={index === company.length - 1 ? lastElement : null}>
+                <div className={"container__default pie_chart_container"} key={company.ticker} ref={index === company.length - 1 ? lastElement : null}>
                     <Link to={`/companies/${company.ticker}`} className={"container__header_1 content__header"}>{company.name}</Link>
                     <div className={"content__row"}>
                         {company.isFounder && <div className={"content__s"}>Founder</div>}
@@ -71,14 +71,6 @@ const UserShares = () => {
                     <div className={"content__row"}>
                         <div>preferred shares</div>
                         <div>{formatNumber(company.preferred_shares_amount)}</div>
-                    </div>
-                    <div className={"content_tug_of_war"}>
-                        <div className={"tug_of_war_text"}>{percentageOfNumber(company.shares_amount, company.co_shares)}%</div>
-                        <div className={"tug_of_war_bar"} style={{ width: `${percentageOfNumber(company.shares_amount, company.co_shares)}%` }} ></div>
-                    </div>
-                    <div className={"content_tug_of_war"}>
-                        <div className={"tug_of_war_text"}>{percentageOfNumber(company.preferred_shares_amount, company.cp_shares)}%</div>
-                        <div className={"tug_of_war_bar"} style={{ width: `${percentageOfNumber(company.shares_amount, company.co_shares)}%` }} ></div>
                     </div>
                     <SellSharesForm ticker={company.ticker} pk={company.id}/>
                 </div>

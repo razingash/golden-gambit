@@ -2,12 +2,12 @@ import React from 'react';
 import {useFetching} from "../../../hooks/useFetching";
 import StockServices from "../../../API/StockServices";
 import useInput from "../../../hooks/useInput";
+import {tradingTypes} from "../../../functions/utils";
 
 const TradeProducts = ( {productType} ) => {
     const amount = useInput('');
     const ticker = useInput('');
     const tradeType = useInput('buy');
-    const tradingTypes = { "purchase": "buy", "sale": "sell" }
 
     const [fetchTradeProducts, ,productsTradeError] = useFetching(async (productType) => {
         return await StockServices.tradeProducts(tradeType.value, ticker.value, amount.value, productType)

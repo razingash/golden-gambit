@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {useFetching} from "../../hooks/useFetching";
 import CompaniesService from "../../API/CompaniesService";
 import AdaptiveLoading from "../../components/UI/AdaptiveLoading";
@@ -8,11 +8,11 @@ import UserService from "../../API/UserService";
 import GlobalMergeCompaniesForm from "../../components/UI/Forms/GlobalMergeCompaniesForm";
 
 const UserCompaniesRecipes = () => {
-    const [recipes, setRecipes] = useState();
+    const [recipes, setRecipes] = useState([]);
+    const [userCompanies, setUserCompanies] = useState([]);
     const [fetchCompaniesRecipes, isRecipesLoading] = useFetching(async () => {
         return await CompaniesService.getCompaniesRecipes();
     })
-    const [userCompanies, setUserCompanies] = useState([]);
     const [fetchUserCompanies, isUserCompaniesLoading] = useFetching(async () => {
         return await UserService.getUserCompanies(1,1000, ['type', 'name', 'ticker'])
     })
@@ -38,40 +38,49 @@ const UserCompaniesRecipes = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            const data = await fetchUserCompanies();
-            data && setUserCompanies(data.data);
+            if (!isUserCompaniesLoading && userCompanies.length === 0) {
+                const data = await fetchUserCompanies();
+                data && setUserCompanies(data.data);
+            }
         }
         void loadData();
     }, [isUserCompaniesLoading])
 
+    const hasFetchedRecipes = useRef(false);
     useEffect(() => {
-        const loadData = async () => {
-            const data = await fetchCompaniesRecipes();
-            data && setRecipes(data)
+        // с этим компонентом происходит чертовщина - запрос для рецепта дублируется и из-за этого медленно грузится
+        const loadData = async () => {// что-то не так с этим запросом - вместо двух раз 4 раза вызывается
+            console.log(1)
+            if (!isRecipesLoading && recipes.length === 0 && !hasFetchedRecipes.current) {
+                hasFetchedRecipes.current = true;
+                console.log(2)
+                const data = await fetchCompaniesRecipes();
+                data && setRecipes(data);
+            }
         }
         void loadData();
     }, [isRecipesLoading])
 
-    if (!recipes) {
+    if (recipes.length === 0 && isRecipesLoading) {
         return <AdaptiveLoading/>
     }
 
     return (
-        <div className={"area__row"}>
-            {recipes.length > 0 ? ( recipes.map((recipe, index) =>
-                <div className={"container__default"} key={index}>
-                    <div className={"container__header_1 content__header"}>{decodeCompanyType(recipe.company_type)}</div>
+        <div className={"area__column container__default"}>
+            {recipes.length > 0 ? ( recipes.map((recipe) =>
+                <div className={"container__default3"} key={recipe.recipe}>
+                    <div className={"transmutation__header content__header"}>
+                        <div className={"text__direct"}>{decodeCompanyType(recipe.company_type)}</div>
+                        {areAllIngredientsAvailable(recipe) && (
+                            <button className={"button__submit button__transmutation"} onClick={() => spawnForm(recipe)}>transmutate</button>
+                        )}
+                    </div>
                     <div className={"content__ingredient__list"}>
                         {recipe.ingredients.map((ingredient) => (
                             <div className={"ingredient__item"} key={ingredient.type}>
-                                <div className={"ingredient__info"}>
-                                    {ingredient.amount} {decodeCompanyType(ingredient.type)}
-                                </div>
+                                {ingredient.amount} {decodeCompanyType(ingredient.type)}
                             </div>
                         ))}
-                        {areAllIngredientsAvailable(recipe) && (
-                            <button className={"button__submit"} onClick={() => spawnForm(recipe)}>transmutate</button>
-                        )}
                     </div>
                 </div>
             )) : (

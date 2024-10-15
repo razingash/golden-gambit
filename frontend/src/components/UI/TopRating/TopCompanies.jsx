@@ -13,8 +13,10 @@ const TopCompanies = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            const data = await fetchTopCompanies();
-            data && setTopCompanies(data);
+            if (!isTopCompaniesLoading && topCompanies.length === 0) {
+                const data = await fetchTopCompanies();
+                data && setTopCompanies(data);
+            }
         }
         void loadData();
     }, [isTopCompaniesLoading])

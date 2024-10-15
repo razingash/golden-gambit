@@ -1,7 +1,9 @@
+from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -92,9 +94,14 @@ class CompanyUpdateSerializer(serializers.ModelSerializer):
     def update_dividendes_percent(self, instance, dividendes_percent):
         permissible_fluctuation = Decimal(3)
         current_dividendes = instance.dividendes_percent
+        last_update = instance.dividendes_change_date
+        current_time = timezone.now()
 
         if dividendes_percent <= 0:
             raise serializers.ValidationError({'dividendes_percent': f"Too low fluctuation - {dividendes_percent}%"})
+
+        if current_time - last_update < timedelta(days=1):
+            raise serializers.ValidationError({'dividendes_percent': "Dividends can only be changed once per day"})
 
         fluctuation = dividendes_percent - current_dividendes
 

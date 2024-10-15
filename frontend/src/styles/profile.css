@@ -65,22 +65,41 @@
 
 .content__ingredient__list {
     display: flex;
-    flex-direction: column;
     gap: 20px;
-    justify-content: space-between;
 }
 .ingredient__item {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: 10px;
     background: var(--background);
     padding: 4px 8px;
     border-radius: 6px;
     border: 1px solid #355059;
     color: #fff;
+    text-wrap: nowrap; /* ??? */
 }
-.ingredient__info {
 
+.text__direct {
+    text-wrap: nowrap;
+}
+.transmutation__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 20px;
+    font-family: sans-serif;
+    font-weight: 600;
+    border-bottom: 2px solid var(--highlight-element-2);
+    padding-bottom: 3px;
+    margin-bottom: 5px;
+    width: 100%;
+}
+.button__transmutation {
+    margin-top: 0;
+    max-width: 140px;
+    width: 100%;
 }
 
 /* user tickers */
@@ -95,28 +114,4 @@
 }
 .content__s {
     color: var(--lines);
-}
-
-/* user shares */
-.content_tug_of_war {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 100px;
-    padding: 0 5px;
-    height: 1.5em;
-    width: 100%;
-}
-.tug_of_war_bar {
-    border-radius: 100px;
-    background: #346f97;
-    height: 19px;
-}
-.tug_of_war_text {
-    color: #000000;
-    text-shadow: 0 0 3px #ff0000, 0 0 5px #000; /* 00ff03 */
-    z-index: 1;
-    position: absolute;
 }

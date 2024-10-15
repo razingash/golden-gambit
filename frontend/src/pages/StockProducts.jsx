@@ -58,7 +58,9 @@ const StockProducts = () => {
                             {isAuth ? (
                                 <TradeProducts productType={product.type}/>
                             ) : (
-                               <div className={"log_in_wish"}>Sign In!</div>
+                                <div className={"lon_in_wish_container"}>
+                                    <div className={"log_in_wish"}>Sign In!</div>
+                                </div>
                             )}
                         </div>
                     ))): (

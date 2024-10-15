@@ -11,8 +11,12 @@ export const formatNumber = (num) => {
 }
 
 export const percentageOfNumber = (num1, num2) => {
-    return Math.round(num1 * 100 / num2)
-}
+    return (num1 * 100 / num2).toFixed(2)
+};
+
+export const sharesTypes = { "ordinary": 1, "preferred": 2 };
+
+export const tradingTypes = { "purchase": "buy", "sale": "sell" };
 
 export const decodeSharesType = (num) => {
     switch (num) {

@@ -94,7 +94,7 @@ def get_available_company_shares(query_params, ticker, user_id=None):
     return obj, has_next
 
 
-def get_shares_on_stock_for_wholesale(query_params): # Дополнительное условие на наличие акций?
+def get_shares_on_stock_for_wholesale(query_params):
     """
     possible drawback - it issues lots that are available to everyone, that is, even the head of the company won't be
     able to receive shares available for purchase only to him or the owners of the shares, because implementing

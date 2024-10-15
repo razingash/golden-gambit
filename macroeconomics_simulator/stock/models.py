@@ -144,6 +144,7 @@ class Company(models.Model):
     gold_reserve = models.PositiveBigIntegerField(default=0, blank=False, null=False)
     company_price = models.IntegerField(blank=False, null=False)
     dividendes_percent = models.DecimalField(max_digits=10, decimal_places=2, blank=False, null=False)
+    dividendes_change_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
     history = models.FilePathField(path=os.path.join(settings.MEDIA_ROOT, 'tickers'), match='.*\.json$',
                                    blank=False, null=False)
     founding_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)

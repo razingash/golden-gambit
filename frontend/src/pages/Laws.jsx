@@ -3,6 +3,7 @@ import {useFetching} from "../hooks/useFetching";
 import LawsService from "../API/LawsService";
 import "../styles/laws_news.css"
 import BlankResult from "../components/UI/BlankResult/BlankResult";
+import AdaptiveLoading from "../components/UI/AdaptiveLoading";
 
 const Laws = () => {
     const [laws, setLaws] = useState([]);
@@ -12,11 +13,17 @@ const Laws = () => {
 
     useEffect( () => {
         const loadLaws = async () => {
-            const laws = await fetchLaws();
-            laws && setLaws(laws.data);
+            if (!isLawsLoading && laws.length === 0) {
+                const data = await fetchLaws();
+                data && setLaws(data.data);
+            }
         };
         void loadLaws();
     }, [isLawsLoading])
+
+    if (laws.length === 0 && isLawsLoading) {
+        return <div className={"global__loading"}><AdaptiveLoading/></div>
+    }
 
     return (
         <div className={"section__main"}>

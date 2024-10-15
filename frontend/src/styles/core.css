@@ -11,6 +11,17 @@
     width: 100%; /* anomaly */
 }
 
+.container__header_2 {
+    display: flex;
+    justify-content: center;
+    font-family: sans-serif;
+    font-weight: 600;
+    border-bottom: 2px solid var(--highlight-element-2);
+    padding-bottom: 3px;
+    margin-bottom: 5px;
+    width: 100%;
+}
+
 .content__header {
     color: #fff;
     text-decoration: none;
@@ -29,6 +40,21 @@
     gap: 15px;
 }
 
+.area__column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.field__default {
+    padding: 15px;
+    border-radius: 4px;
+    width: fit-content;
+    background: var(--container-background);
+    border: 2px solid #000;
+    color: #fff;
+}
+
 .container__default {
     display: flex;
     flex-direction: column;
@@ -44,6 +70,7 @@
 .form__default {
     display: flex;
     flex-direction: column;
+    gap: 5px;
 }
 
 .form__default-2 {
@@ -51,13 +78,41 @@
     flex-direction: column;
     gap: 10px;
     color: #fff;
+    min-width: 300px;
+    width: 100%;
 }
 
 .input__default {
     width: 100%;
     border-radius: 2px;
     padding: 4px 0 4px 4px;
-    background: #00000045;
+    border: 1px solid #4a4a4a;
+    background: #00000063;
+    color: #fff;
+}
+
+.select__default {
+    background: #1d1d24;
+    color: #fff;
+    border: 1px solid #4a4a4a;
+    border-radius: 2px;
+    padding: 2px 0 2px 2px;
+}
+.option__default {
+    background: #1d1d24;
+    border: 1px solid #4a4a4a;
+    color: #fff;
+}
+/*вторая форма более четко видна, но выглядит немного более резкой на обычном фоне*/
+.select__default-2 {
+    background: #12121bff;
+    border: 1px solid #4a4a4a;
+    color: #fff;
+    border-radius: 2px;
+    padding: 2px 0 2px 2px;
+}
+.option__default-2 {
+    background: #12121bff;
     border: 1px solid #4a4a4a;
     color: #fff;
 }

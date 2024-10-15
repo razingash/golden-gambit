@@ -11,6 +11,7 @@ const Header = () => {
     };
 
     return (
+        <>
         <div className={"section__header"}>
             <div className={"header__field"}>
                 <input id="menu__toggle" onChange={(e) => (document.body.style.overflow = e.target.checked ? 'hidden' : 'auto')} type="checkbox"/>
@@ -40,8 +41,18 @@ const Header = () => {
                                 </svg>
                                 <div>Stock</div>
                             </Link>
-                            <Link to={"/stock/shares"} className={"header__dropdown__item_mini"} onClick={closeMenu}>Shares</Link>
-                            <Link to={"/stock/products"} className={"header__dropdown__item_mini"} onClick={closeMenu}>Products</Link>
+                            <Link to={"/stock/shares"} className={"header__dropdown__item_mini"} onClick={closeMenu}>
+                                <svg className="svg__menu_icon">
+                                    <use xlinkHref="#icon_cheque"></use>
+                                </svg>
+                                <div>Shares</div>
+                            </Link>
+                            <Link to={"/stock/products"} className={"header__dropdown__item_mini"} onClick={closeMenu}>
+                                <svg className="svg__menu_icon">
+                                    <use xlinkHref="#icon_warehouse"></use>
+                                </svg>
+                                <div>Products</div>
+                            </Link>
                         </div>
                         <Link to={"/companies"} className="header__dropdown__item" onClick={closeMenu}>
                             <svg className="svg__menu_icon">
@@ -96,6 +107,29 @@ const Header = () => {
                 )}
             </div>
         </div>
+        <div className={"pillar__container pillar__container_left"}>
+            <svg className={"svg__pillar svg__pillar_top"}>
+                <use xlinkHref="#flexible_pillar_tip"></use>
+            </svg>
+            <svg className={"svg__pillar svg__pillar_center"}>
+                <use xlinkHref="#flexible_pillar_center"></use>
+            </svg>
+            <svg className={"svg__pillar svg__pillar_bottom"}>
+                <use xlinkHref="#flexible_pillar_tip"></use>
+            </svg>
+        </div>
+        <div className={"pillar__container pillar__container_right"}>
+            <svg className={"svg__pillar svg__pillar_top"}>
+                <use xlinkHref="#flexible_pillar_tip"></use>
+            </svg>
+            <svg className={"svg__pillar svg__pillar_center"}>
+                <use xlinkHref="#flexible_pillar_center"></use>
+            </svg>
+            <svg className={"svg__pillar svg__pillar_bottom"}>
+                <use xlinkHref="#flexible_pillar_tip"></use>
+            </svg>
+        </div>
+        </>
     );
 };
 

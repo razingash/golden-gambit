@@ -12,8 +12,10 @@ const News = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            const news = await fetchNews();
-            news && setNews(news);
+            if (!inNewsLoading && news.length === 0) {
+                const news = await fetchNews();
+                news && setNews(news);
+            }
         }
         void loadData();
     }, [inNewsLoading])

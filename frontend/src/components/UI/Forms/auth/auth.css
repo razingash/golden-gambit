@@ -2,7 +2,13 @@
 .section__authentication {
     display: flex;
     justify-content: center;
-    margin: 20px;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: 70px 20px 20px 20px;
 }
 
 .field__authentication {
@@ -94,4 +100,10 @@
 .input__login:focus-visible + .svg__auth-help,
 .input__password:focus-visible + .svg__auth-help {
     fill: #31ff48;
+}
+
+@media (max-width: 768px) {
+    .section__authentication {
+        margin: 56px 10px 20px 10px;
+    }
 }

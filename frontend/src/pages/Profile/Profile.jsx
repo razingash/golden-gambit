@@ -50,9 +50,7 @@ const Profile = () => {
                     <Link to={"/profile/shares/"} className={"profile__header__item"}>shares</Link>
                     <Link to={"/profile/recipes/"} className={"profile__header__item"}>recipes</Link>
                 </div>
-                <div className={"field__profile__content"}>
-                    <Outlet />
-                </div>
+                <Outlet />
             </div>
         </div>
     );

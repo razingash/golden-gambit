@@ -32,24 +32,30 @@ const Company = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            const data = await fetchCompany();
-            data && setCompanyData(data);
+            if (!isCompanyLoading && companyData === null){
+                const data = await fetchCompany();
+                data && setCompanyData(data);
+            }
         }
         void loadData();
     }, [isCompanyLoading])
 
     useEffect(() => {
         const loadData = async () => {
-            const data = await fetchChartData();
-            data && setChartData(data.contents);
+            if (!isChartDataLoading && chartData === null) {
+                const data = await fetchChartData();
+                data && setChartData(data.contents);
+            }
         }
         void loadData();
     }, [isChartDataLoading])
 
     useEffect(() => {
         const loadData = async () => {
-            const data = await fetchInventory();
-            data && setInventory(data);
+            if (!isInventoryLoading && companyInventory === null) {
+                const data = await fetchInventory();
+                data && setInventory(data);
+            }
         }
         isAuth && void loadData();
     }, [isInventoryLoading, isAuth])

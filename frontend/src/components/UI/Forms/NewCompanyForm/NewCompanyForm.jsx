@@ -27,7 +27,7 @@ const NewCompanyForm = () => {
         <div className={"container__default"}>
             <div className={"container__header_1"}>create new company</div>
             <form onSubmit={(e) => createNewCompany(e)} className={"form__create_company"}>
-                <select {...companyTypes} onChange={(e) => companyType.onChange(e)}>
+                <select value={companyType.value} onChange={(e) => companyType.onChange(e)}>
                     {Object.entries(companyTypes).map(([company, type]) => (
                         <option key={company} value={type}>{company}</option>
                     ))}

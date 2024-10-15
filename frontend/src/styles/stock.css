@@ -8,14 +8,17 @@
 
 .field__gold_trade {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     justify-content: space-around;
-    margin: 15px;
+    margin: 0 15px 15px 15px;
     max-width: 1000px;
     width: 100%;
     padding: 14px;
     border-radius: 4px;
     background: var(--container-background);
+}
+.trade__gold__button {
+    width: 250px;
 }
 
 .gold_trade__form {
@@ -73,15 +76,23 @@
     display: flex;
     justify-content: space-between;
 }
-.log_in_wish {
+.lon_in_wish_container {
     position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: -50px;
+}
+.log_in_wish {
     font-size: 35px;
     border: 2px solid;
     padding: 6px;
     border-radius: 9px;
     opacity: 0.15;
     rotate: -17deg;
-    bottom: 30px;
-    left: 50px;
+    -webkit-user-select: none;
     user-select: none;
 }

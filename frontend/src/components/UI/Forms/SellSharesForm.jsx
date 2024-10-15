@@ -2,13 +2,12 @@ import React from 'react';
 import useInput from "../../../hooks/useInput";
 import {useFetching} from "../../../hooks/useFetching";
 import CompaniesService from "../../../API/CompaniesService";
+import {sharesTypes} from "../../../functions/utils";
 
 const SellSharesForm = ({ticker}) => {
     const amount = useInput('');
     const price = useInput('');
     const sharesType = useInput(1);
-
-    const sharesTypes = {"ordinary": 1, "preferred": 1}
 
     const [fetchSellShares, ,sellSharesError] = useFetching(async () => {
         return await CompaniesService.sellUserShares(ticker, +sharesType.value, amount.value, price.value)
@@ -25,9 +24,9 @@ const SellSharesForm = ({ticker}) => {
             {sellSharesError?.amount && <div className={"cell__error"}>{sellSharesError?.amount}</div>}
             <input className={"input__default"} {...price} type={"price"} placeholder={"price"}/>
             {sellSharesError?.price && <div className={"cell__error"}>{sellSharesError?.price}</div>}
-            <select {...sharesTypes} onChange={(e) => sharesType.onChange(e)}>
+            <select className={"select__default"} {...sharesTypes} onChange={(e) => sharesType.onChange(e)}>
                 {Object.entries(sharesTypes).map(([shares, type]) => (
-                    <option key={shares} value={type}>{shares}</option>
+                    <option className={"option__default"} key={shares} value={type}>{shares}</option>
                 ))}
             </select>
             {sellSharesError?.detail && <div className={"cell__error"}>{sellSharesError?.detail}</div>}
