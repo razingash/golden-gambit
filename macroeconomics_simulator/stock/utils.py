@@ -98,15 +98,3 @@ def remove_company_recipes_duplicates(data):
             seen.add(entry_tuple)
 
     return unique_data
-
-class CustomException(Exception): # probably postpone all related with error class in exceptions.py
-    def __init__(self, message):
-        super().__init__(message)
-
-def custom_exception(func: callable):
-    def wrapper(request, *args, **kwargs):
-        try:
-            return func(request, *args, **kwargs)
-        except CustomException as e:
-            return Response({"error": f"{e}"}, status=400)
-    return wrapper

@@ -6,11 +6,10 @@ from django.db.models import Q
 from services.base import get_object
 from services.general_services import recalculation_of_the_shareholders_influence
 from services.stock.S_services import calculate_products_price
+from stock.exceptions import CustomException
 from stock.models import Company, CompanyWarehouse, AvailableProductsForProduction, PlayerCompanies, \
     SharesExchange, Player, CompanyRecipe, GoldSilverExchange, ProductType
 from django.utils import timezone
-
-from stock.utils import CustomException
 
 
 def create_new_company(user_id, request_data):

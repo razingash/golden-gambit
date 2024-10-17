@@ -266,6 +266,12 @@ class GoldSilverExchange(models.Model):
     history = models.FilePathField(path=os.path.join(settings.MEDIA_ROOT, 'gold_to_silver'), match='.*\.json$',
                                    blank=False, null=False)
 
+    def to_dict(self):
+        return {
+            'current_price': str(self.current_price),
+            'amount': str(self.amount)
+        }
+
     class Meta:
         db_table = 'dt_GoldSilverExchange'
 

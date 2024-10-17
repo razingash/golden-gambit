@@ -1,5 +1,6 @@
 from django.core.paginator import Paginator
-from stock.utils import CustomException
+
+from stock.exceptions import CustomException
 
 """universal functions"""
 
