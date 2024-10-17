@@ -4,7 +4,7 @@ import UserService from "../../API/UserService";
 import AdaptiveLoading from "../../components/UI/AdaptiveLoading";
 import BlankResult from "../../components/UI/BlankResult/BlankResult";
 import {useObserver} from "../../hooks/useObserver";
-import {decodeCompanyType, decodeSharesType, formatNumber} from "../../functions/utils";
+import {decodeCompanyType, formatNumber} from "../../functions/utils";
 import {Link} from "react-router-dom";
 import PrintNewSharesForm from "../../components/UI/Forms/PrintNewSharesForm";
 
@@ -62,7 +62,7 @@ const UserCompanies = () => {
                         <div>preferred shares</div>
                         <div>{formatNumber(company.cp_shares)}</div>
                     </div>
-                    <PrintNewSharesForm ticker={company.ticker}/>
+                    <PrintNewSharesForm ticker={company.ticker} setCompanies={setCompanies}/>
                 </div>
             ))) : (
                 <BlankResult title={"No tickers found"} info={"Apparently you have lost all your tickers or haven’t registered any..."}/>

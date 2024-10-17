@@ -274,6 +274,7 @@ body {
     align-items: center;
     z-index: 1;
 }
+/* global form*/
 .form__global {
     display: flex;
     flex-direction: column;
@@ -292,7 +293,48 @@ body {
     cursor: pointer;
 }
 
-
+.dynamic_update_static {
+    animation: calm 5s forwards;
+}
+.dynamic_update_increase {
+    animation: increase 5s forwards;
+}
+.dynamic_update_decrease {
+    animation: decrease 5s forwards;
+}
+@keyframes calm {
+    0% {
+        color: initial;
+    }
+    50% {
+        color: var(--lines);
+    }
+    100% {
+        color: initial;
+    }
+}
+@keyframes increase {
+    0% {
+        color: initial;
+    }
+    50% {
+        color: var(--hovered-element);
+    }
+    100% {
+        color: initial;
+    }
+}
+@keyframes decrease {
+    0% {
+        color: initial;
+    }
+    50% {
+        color: var(--highlight-element-1);
+    }
+    100% {
+        color: initial;
+    }
+}
 @keyframes rotate {
     100% {
         transform:rotate(360deg);

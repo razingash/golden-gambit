@@ -4,7 +4,7 @@ import {useFetching} from "../../../hooks/useFetching";
 import CompaniesService from "../../../API/CompaniesService";
 import {useParams} from "react-router-dom";
 
-const UpdateCompanyForm = ({baseName, baseDividendes}) => {
+const UpdateCompanyForm = ({baseName, baseDividendes, setCompanyData}) => {
     const {ticker} = useParams();
     const name = useInput(baseName);
     const dividendesPercent = useInput(baseDividendes);
@@ -29,10 +29,14 @@ const UpdateCompanyForm = ({baseName, baseDividendes}) => {
 
     const updateCompany = async (e) => {
         e.preventDefault();
-        const requestData = createRequestUpdateData();
+        const responseData = createRequestUpdateData();
 
-        if (Object.keys(requestData).length > 0) {
-            await fetchUpdateCompany(requestData);
+        if (Object.keys(responseData).length > 0) {
+            const updatedData = await fetchUpdateCompany(responseData);
+
+            if (updatedData) {
+                setCompanyData(prev => ({...prev, ...updatedData}))
+            }
         }
     }
 

@@ -14,7 +14,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ['127.0.0.1']
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000", 'http://127.0.0.1', 'http://localhost', 'http://0.0.0.0', 'https://*.ngrok.io'
+]
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1', 'http://localhost', 'http://0.0.0.0', 'https://*.ngrok.io'
+]
+
+CORS_ALLOW_ALL_ORIGINS = True # remove later, only for ngrok
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = ['*'] # configure later
+
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'django-rest', 'react', '*']
 
 AUTH_USER_MODEL = 'stock.Player'
 # Application definition
@@ -25,8 +36,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'daphne',
     'django.contrib.staticfiles',
     'stock.apps.StockConfig',
+    'channels',
     'django_celery_beat',
     'rest_framework',
     'rest_framework.authtoken',
@@ -65,6 +78,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'macroeconomics_simulator.wsgi.application'
 
+ASGI_APPLICATION = 'macroeconomics_simulator.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -143,10 +157,6 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1)
 }
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000"
-]
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

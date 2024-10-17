@@ -4,14 +4,6 @@ from stock.utils import CustomException
 """universal functions"""
 
 
-def check_object(model: object, condition):
-    obj = model.objects.filter(condition).exists()
-    if obj:
-        return obj
-    else:
-        raise CustomException(f'{model.__name__} object with selected conditions does not exists')
-
-
 def get_object(model: object, condition, fields=None): # the best way
     if fields is None:
         fields = []

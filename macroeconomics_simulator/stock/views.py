@@ -1,4 +1,7 @@
+import asyncio
+
 from django.db.models import Q
+from django.http import StreamingHttpResponse
 from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -10,6 +13,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from rest_framework_simplejwt.views import TokenVerifyView
 
 from services.base import get_paginated_objects, get_object
+from services.critical_services import get_current_gold_silver_rate
 from services.company.C_services import create_new_company, get_company_inventory, update_produced_products_amount, \
     make_new_shares, put_up_shares_for_sale, get_company_history, buy_products, sell_products, get_top_companies, \
     get_available_recipes, merge_companies
@@ -24,7 +28,8 @@ from stock.serializers import RegisterSerializer, CompanyCreateSerializer, Compa
     SharesExchangeSerializer, SharesExchangeListSerializer, CompanyPrintNewSharesSerializer, SellSharesSerializer, \
     TopPlayerSerializer, CompanyRecipesSerializer, SharesExchangeWholesaleReceiveSerializer, \
     SharesExchangeWholesaleSendSerializer, DividedCompanySerializer, WarehouseUpdateSerializer, \
-    SharesExchangeWholesaleListSerializer, CompanyTransmutationSerializer, SharesPurchaseSerializer
+    SharesExchangeWholesaleListSerializer, CompanyTransmutationSerializer, SharesPurchaseSerializer, \
+    GoldSilverRateStreamSerializer
 from stock.utils import custom_exception, remove_company_recipes_duplicates
 
 
@@ -100,7 +105,7 @@ class UserCompaniesView(APIView):
     def post(self, request):
         serializer = CompanyCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        company = create_new_company(user_id=request.user.id, request_data=request.data)
+        company = create_new_company(user_id=request.user.id, request_data=serializer.validated_data)
 
         return Response(CompanySerializer(company, many=False).data)
 
@@ -136,7 +141,7 @@ class CompanyRecipes(APIView): # no need for unauthorized users
         serializer = CompanyTransmutationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        merge_companies(request.user.id, request.data)
+        merge_companies(request.user.id, serializer.validated_data)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -186,7 +191,7 @@ class CompanyWarehouseUpdateApiView(APIView):
 class CompanyPrintNewSharesApiView(APIView):
     """
     prints shares at the selected price and immediately puts them up for sale.
-    Yes, it’s not correct that the user himself sets the price for ordinary shares, but this was done on purpose
+    Yes, it’s incorrect that the user himself sets the price for ordinary shares, but this was done on purpose
     """
     permission_classes = (IsAuthenticated, IsHeadOfCompany)
 
@@ -194,9 +199,9 @@ class CompanyPrintNewSharesApiView(APIView):
         serializer = SharesExchangeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        shares_type = request.data.get('shares_type')
-        amount = request.data.get('amount')
-        price = request.data.get('price')
+        shares_type = serializer.validated_data.get('shares_type')
+        amount = serializer.validated_data.get('amount')
+        price = serializer.validated_data.get('price')
         user_id = request.user.id
 
         if shares_type == 1 or shares_type == 2: # 1 - ordinary shares & 2 - management shares
@@ -217,9 +222,9 @@ class CompanySellShareApiView(APIView):
         serializer = SharesExchangeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        shares_type = request.data.get('shares_type')
-        amount = request.data.get('amount')
-        price = request.data.get('price')
+        shares_type = serializer.validated_data.get('shares_type')
+        amount = serializer.validated_data.get('amount')
+        price = serializer.validated_data.get('price')
         user_id = request.user.id
 
         if shares_type == 1 or shares_type == 2: # 1 - ordinary shares & 2 - management shares
@@ -241,8 +246,9 @@ class CompanyHistoryApiView(APIView):
 
 
 class StockGoldApiView(APIView):
+    """needed to set the initial price in case SSE does not work"""
     def get(self, request): # getting gold/silver rate history
-        gold_rate = get_object(model=GoldSilverExchange, condition=Q(id=1))
+        gold_rate = get_object(model=GoldSilverExchange, condition=Q(id=1), fields=['current_price', 'amount'])
 
         return Response(GoldSilverRateSerializer(gold_rate, many=False).data)
 
@@ -254,7 +260,7 @@ class GoldExchangeApiView(APIView):
     def post(self, request, transaction_type): # if the user doesn't have enough money a custom exception will occur
         serializer = GoldAmountSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        amount = request.data.get('amount')
+        amount = serializer.validated_data.get('amount')
 
         user_id = request.user.id
 
@@ -294,9 +300,9 @@ class ProductsExchangeApiView(APIView):
     def post(self, request, transaction_type):  # if the user doesn't have enough money a custom exception will occur
         serializer = ProductsTradingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        amount = request.data.get('amount')
-        company_ticker = request.data.get('ticker')
-        product_type = request.data.get('type')
+        amount = serializer.validated_data.get('amount')
+        company_ticker = serializer.validated_data.get('ticker')
+        product_type = serializer.validated_data.get('type')
 
         if transaction_type == "buy":  # purchase
             buy_products(company_ticker, product_type, amount)
@@ -340,10 +346,10 @@ class SharesExchangeApiView(APIView): # shares sale in CompanySellShareApiView
         serializer = SharesPurchaseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        shares_type = request.data.get('shares_type')
-        amount = request.data.get('amount')
-        price = request.data.get('price')
-        pk = request.data.get('id')
+        shares_type = serializer.validated_data.get('shares_type')
+        amount = serializer.validated_data.get('amount')
+        price = serializer.validated_data.get('price')
+        pk = serializer.validated_data.get('id')
         user_id = request.user.id
 
         if shares_type == 1: # ordinary
@@ -364,9 +370,9 @@ class SharesExchangeWholesaleApiView(APIView):
         serializer = SharesExchangeWholesaleReceiveSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        amount = request.data.get('desired_quantity')
-        offered_money = request.data.get('reserved_money')
-        shares_type = request.data.get('shares_type')
+        amount = serializer.validated_data.get('desired_quantity')
+        offered_money = serializer.validated_data.get('reserved_money')
+        shares_type = serializer.validated_data.get('shares_type')
 
         user_id = request.user.id
         purchased_shares = buy_shares_wholesale(user_id, ticker=ticker, amount=amount, offered_money=offered_money,
@@ -401,3 +407,18 @@ class TopUsersApiView(APIView):
         top_users = get_top_users()
 
         return Response(TopPlayerSerializer(top_users, many=True).data)
+
+
+async def actual_gold_price_sse_stream(request):
+    """Danger Zone"""
+    async def event_stream():
+        while True:
+            await asyncio.sleep(5)
+            serializer = GoldSilverRateStreamSerializer(await get_current_gold_silver_rate())
+            yield f"data: {serializer.data}\n\n"
+
+    response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+    response['Cache-Control'] = 'no-cache'
+    response['Connection'] = 'keep-alive'
+
+    return response

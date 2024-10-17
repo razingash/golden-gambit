@@ -47,7 +47,7 @@ def falsify_gols_silver_history(gold_silver, iterations):
         json.dump(json_data, file, indent=2)
 
     gold_silver.amount = affordable_gold
-    gold_silver.current_price = round(history[-1][0], 2)
+    gold_silver.current_price = round(history[0][0], 2)
     gold_silver.save()
 
 

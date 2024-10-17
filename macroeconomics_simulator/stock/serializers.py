@@ -221,21 +221,21 @@ class WarehouseSerializer(serializers.ModelSerializer):
 
 
 class WarehouseUpdateSerializer(serializers.ModelSerializer):
-    type = serializers.SerializerMethodField()
-    ticker = serializers.CharField(source='company.ticker', read_only=True)
-
     class Meta:
         model = CompanyWarehouse
-        fields = ['ticker', 'amount', 'type']
-
-    def get_type(self, obj):
-        return obj.product.get_type_display()
+        fields = ['amount', 'product'] # no need for ticker for now
 
 
 class GoldSilverRateSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoldSilverExchange
-        fields = ['base_price', 'current_price', 'amount']
+        fields = ['current_price', 'amount']
+
+
+class GoldSilverRateStreamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoldSilverExchange
+        fields = ['current_price', 'amount']
 
 
 class GoldAmountSerializer(serializers.Serializer):

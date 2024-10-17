@@ -4,7 +4,7 @@ import UserService from "../../API/UserService";
 import AdaptiveLoading from "../../components/UI/AdaptiveLoading";
 import BlankResult from "../../components/UI/BlankResult/BlankResult";
 import {useObserver} from "../../hooks/useObserver";
-import {decodeCompanyType, formatNumber, percentageOfNumber} from "../../functions/utils";
+import {decodeCompanyType, formatNumber} from "../../functions/utils";
 import {Link} from "react-router-dom";
 import SellSharesForm from "../../components/UI/Forms/SellSharesForm";
 
@@ -72,7 +72,7 @@ const UserShares = () => {
                         <div>preferred shares</div>
                         <div>{formatNumber(company.preferred_shares_amount)}</div>
                     </div>
-                    <SellSharesForm ticker={company.ticker} pk={company.id}/>
+                    <SellSharesForm ticker={company.ticker} setShares={setShares}/>
                 </div>
             ))) : (
                 <BlankResult title={"No shares found"} info={"You don't have any shares yet"}/>

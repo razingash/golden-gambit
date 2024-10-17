@@ -4,7 +4,7 @@ import {useFetching} from "../../../hooks/useFetching";
 import CompaniesService from "../../../API/CompaniesService";
 import {sharesTypes} from "../../../functions/utils";
 
-const SellSharesForm = ({ticker}) => {
+const SellSharesForm = ({ticker, setShares}) => {
     const amount = useInput('');
     const price = useInput('');
     const sharesType = useInput(1);
@@ -15,7 +15,20 @@ const SellSharesForm = ({ticker}) => {
 
     const sellShares = async (e) => {
         e.preventDefault();
-        await fetchSellShares();
+        const responseData = await fetchSellShares();
+
+        if (responseData) {
+            setShares((prevShares) => prevShares.map((share) => {
+                if (share.ticker === ticker) {
+                    if (+sharesType.value === 1) {
+                        return {...share, shares_amount: share.shares_amount - amount.value};
+                    } else {
+                        return {...share, preferred_shares_amount: share.preferred_shares_amount - amount.value};
+                    }
+                }
+                return share;
+            }));
+        }
     }
 
     return (

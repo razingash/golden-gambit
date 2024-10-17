@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  django-rest:
+    build:
+      context: ./macroeconomics_simulator
+    container_name: django-rest
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000"
+    restart: unless-stopped
+    networks:
+      - localnet
+
+  react:
+    build: ./frontend
+    container_name: react
+    ports:
+      - "3000:3000"
+    command: >
+      sh -c "npm start"
+    restart: unless-stopped
+    networks:
+      - internet
+      - localnet
+
+volumes:
+  static_volume:
+
+networks:
+  internet:
+    name: internet
+    driver: bridge
+  localnet:
+    name: localnet
+    driver: bridge

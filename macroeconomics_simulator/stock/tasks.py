@@ -10,7 +10,7 @@ from stock.models import GoldSilverExchange
 
 @shared_task # redis
 def document_gold_silver_rate():
-    gold_silver_stock = GoldSilverExchange.objects.first()
+    gold_silver_stock = GoldSilverExchange.objects.afirst()
 
     json_path = os.path.join(settings.MEDIA_ROOT, 'gold_silver_rate', f"{gold_silver_stock.id}.json")
 

@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.db.models import Q
 
-from services.base import get_object, check_object
+from services.base import get_object
 from services.general_services import recalculation_of_the_shareholders_influence
 from services.stock.S_services import calculate_products_price
 from stock.models import Company, CompanyWarehouse, AvailableProductsForProduction, PlayerCompanies, \
@@ -93,7 +93,6 @@ def update_produced_products_amount(ticker):
 
 
 def make_new_shares(user_id, ticker, shares_type, amount, price):
-    amount, price = int(amount), int(price)
     company = get_object(model=Company, condition=Q(ticker=ticker), fields=['id', 'shares_amount', 'preferred_shares_amount'])
     if shares_type == 1: # ordinary
         company.shares_amount += amount
@@ -110,6 +109,10 @@ def make_new_shares(user_id, ticker, shares_type, amount, price):
 
 
 def recalculate_shares(obj: PlayerCompanies, shares_type, shares_amount):
+    """
+    there is no need to recalculate the user's share in the company since this will be done after someone
+    buys the user's shares on the stock exchange
+    """
     if shares_type == 1:
         obj.shares_amount -= shares_amount
     else: # 2
@@ -131,7 +134,7 @@ def put_up_shares_for_sale(user_id, company_id, shares_type, amount, price):
         condition = Q(player_id=user_id, company_id=company_id, shares_amount__gte=amount)
     else:
         condition = Q(player_id=user_id, company_id=company_id, preferred_shares_amount__gte=amount)
-    obj = check_object(model=PlayerCompanies, condition=condition)
+    obj = get_object(model=PlayerCompanies, condition=condition, fields=['shares_amount', 'preferred_shares_amount', 'id', 'isHead'])
 
     if shares_type == 1: # ordinary
         tz = timezone.now()
@@ -151,7 +154,6 @@ def put_up_shares_for_sale(user_id, company_id, shares_type, amount, price):
 
 
 def buy_products(ticker, product_type, amount) -> None:
-    amount = int(amount)
     company = Company.objects.prefetch_related('companywarehouse_set').only('id', 'silver_reserve', 'companywarehouse__amount', 'companywarehouse__product').get(ticker=ticker)
 
     try:
@@ -172,7 +174,6 @@ def buy_products(ticker, product_type, amount) -> None:
         company.save(document=True), warehouse.save()
 
 def sell_products(ticker, product_type, amount) -> None:
-    amount = int(amount)
     company = Company.objects.prefetch_related('companywarehouse_set').only('id', 'silver_reserve', 'companywarehouse__amount', 'companywarehouse__product').get(ticker=ticker)
 
     try:
@@ -282,12 +283,12 @@ def distribution_of_company_shares(user_id, companies, new_company, new_shares_a
     PlayerCompanies.objects.update_or_create(player_id=user_id, company=new_company, defaults={'isFounder': True, 'isHead': True})
 
 
-def merge_companies(user_id, request_data):
-    tickers = request_data.get('tickers')
-    recipe_id = request_data.get('recipe_id')
-    name = request_data.get('name')
-    ticker = request_data.get('ticker')
-    dividendes_percent = request_data.get('dividendes_percent')
+def merge_companies(user_id, validated_data):
+    tickers = validated_data.get('tickers')
+    recipe_id = validated_data.get('recipe_id')
+    name = validated_data.get('name')
+    ticker = validated_data.get('ticker')
+    dividendes_percent = validated_data.get('dividendes_percent')
 
     user_companies, company_type = validate_company_recipe(recipe_id, tickers)
 

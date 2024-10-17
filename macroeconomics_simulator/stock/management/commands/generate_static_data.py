@@ -62,7 +62,6 @@ def create_recipe(company_instance, *ingredients_with_amounts):
         CompanyRecipe.objects.create(recipe=recipe, ingredient=ingredient, amount=amount)
 
 
-# mb there is something wrong
 def add_advanced_company_recipes(company_type):  # adds recipes for tickers whose tier is higher than the first
     """
     probably it would be better to use fixtures, but considering that the balance may change, I chose this method,
@@ -153,16 +152,16 @@ class Command(BaseCommand):
         for product_type in product_types: # adding product types
             base_price = None
             if product_type in products_tier_1:
-                base_price = 1
+                base_price = 10
             elif product_type in products_tier_2:
-                base_price = 2
+                base_price = 20
             elif product_type in products_tier_3:
-                base_price = 4
+                base_price = 40
             elif product_type in products_tier_4:
-                base_price = 6
+                base_price = 60
             elif product_type in products_tier_5:
-                base_price = 8
-            purchase_price = base_price * 100
+                base_price = 80
+            purchase_price = base_price * 10
 
             product = ProductType.objects.create(type=product_type, base_price=base_price)
             ProductsExchange.objects.create(product=product, sale_price=base_price, purchase_price=purchase_price)

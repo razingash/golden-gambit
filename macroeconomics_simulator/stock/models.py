@@ -301,4 +301,3 @@ class GlobalEvent(models.Model): # mb improve this model (add fields for custom 
 
     class Meta:
         db_table = 'dt_Events'
-

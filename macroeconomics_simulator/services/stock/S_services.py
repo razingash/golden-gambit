@@ -128,8 +128,6 @@ def buy_shares(user_id, ticker, amount, price, pk): # for silver
 
     user = get_object(model=Player, condition=Q(id=user_id), fields=['id', 'silver'])
 
-    amount = int(amount)
-    price = int(price)
     full_price = amount * price
 
     if user.silver >= full_price:
@@ -176,8 +174,7 @@ def buy_management_shares(user_id, ticker, amount, price, pk):
 
     buyer = get_object(model=Player, condition=Q(id=user_id), fields=['id', 'gold'])
 
-    full_price = int(amount * price)
-    amount = int(amount)
+    full_price = amount * price
 
     if buyer.gold >= full_price:
         if stock_shares.amount >= amount:
@@ -357,7 +354,6 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
 
 
 def purchase_gold(user_id, amount) -> None:
-    amount = int(amount)
     gold_silver_exchange = GoldSilverExchange.objects.only('current_price', 'amount').first()
 
     player = get_object(model=Player, condition=Q(id=user_id), fields=['silver', 'gold'])
@@ -375,7 +371,6 @@ def purchase_gold(user_id, amount) -> None:
         raise CustomException(f'Now you have {player.silver} silver, you need {gold_price} silver to buy {amount} gold coins')
 
 def sell_gold(user_id, amount) -> None:
-    amount = int(amount)
     gold_silver_exchange = GoldSilverExchange.objects.only('current_price', 'amount').first()
 
     player = get_object(model=Player, condition=Q(id=user_id), fields=['silver', 'gold'])

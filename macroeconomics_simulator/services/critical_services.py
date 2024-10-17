@@ -4,6 +4,10 @@ from services.base import get_object
 from services.stock.S_services import calculate_gold_price
 from stock.models import GoldSilverExchange, Company, CompanyWarehouse
 
+async def get_current_gold_silver_rate():
+    rate = await GoldSilverExchange.objects.only('current_price', 'amount').afirst()
+    return rate
+
 """
 after API, optimize via clickhouse or redis fow webhooks
 """

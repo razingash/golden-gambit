@@ -60,6 +60,17 @@ const Company = () => {
         isAuth && void loadData();
     }, [isInventoryLoading, isAuth])
 
+    const handleProcure = async () => {
+        const newProducts = await fetchProcure();
+        if (newProducts) {
+            const updatedInventory = companyInventory.map(product => {
+                const newProduct = newProducts.find(np => np.product === product.product);
+                return newProduct ? { ...product, amount: newProduct.amount } : product;
+            });
+            setInventory(updatedInventory);
+        }
+    }
+
     if (!companyData) {
         return <div className={"global__loading"}><AdaptiveLoading/></div>
     }
@@ -119,14 +130,17 @@ const Company = () => {
                     </div>
                     {companyData.isHead && (
                         <div className={"container__default"}>
-                            <UpdateCompanyForm baseName={companyData.name} baseDividendes={companyData.dividendes_percent}/>
+                            <UpdateCompanyForm baseName={companyData.name}
+                                               baseDividendes={companyData.dividendes_percent}
+                                               setCompanyData={setCompanyData}
+                            />
                         </div>
                     )}
                 </div>
                 <div className={"container__company_chart"}>
                     {companyData.isHead && (
                     <div className={"container__default field__company_products"}>
-                        <div className={"button__submit"} onClick={fetchProcure}>procure</div>
+                        <div className={"button__submit"} onClick={handleProcure}>procure</div>
                         <div className={"company__products_list"}>
                         {companyInventory && (companyInventory.map((product) => (
                             <div className={"company__products_item"} key={product.product}>

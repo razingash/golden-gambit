@@ -2,7 +2,7 @@ import axios from "axios";
 import apiClient, {baseURL} from "../hooks/useApiInterceptor";
 
 export default class StockServices {
-    static async getGoldSilverRate() { // future hook
+    static async getGoldSilverRate() {
         const response = await axios.get(`${baseURL}/stock/gold/`)
         return response.data
     }

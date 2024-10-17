@@ -4,18 +4,31 @@ import CompaniesService from "../../../API/CompaniesService";
 import useInput from "../../../hooks/useInput";
 import {sharesTypes} from "../../../functions/utils";
 
-const PrintNewSharesForm = ({ticker}) => {
+const PrintNewSharesForm = ({ticker, setCompanies}) => {
     const amount = useInput('');
     const price = useInput('');
     const sharesType = useInput(1);
 
     const [fetchNewShares, , newSharesError] = useFetching(async () => {
         return await CompaniesService.printNewCompanyShares(ticker, +sharesType.value, amount.value, price.value)
-    })
+    }, 1500)
 
     const printNewShares = async (e) => {
         e.preventDefault();
-        await fetchNewShares();
+        const responseData = await fetchNewShares();
+
+        if (responseData) {
+            setCompanies((prevCompanies) => prevCompanies.map((company) => {
+                if (company.ticker === ticker) {
+                    if (+sharesType.value === 1) {
+                        return {...company, co_shares: +company.co_shares + +amount.value};
+                    } else {
+                        return {...company, cp_shares: +company.cp_shares + +amount.value};
+                    }
+                }
+                return company;
+            }));
+        }
     }
 
     return (
