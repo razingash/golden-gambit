@@ -5,3 +5,4 @@
 /macroeconomics_simulator/stock/migrations
 !macroeconomics_simulator/stock/migrations/__init__.py
 /frontend/node_modules
+/macroeconomics_simulator/logs.log

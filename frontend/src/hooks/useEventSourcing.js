@@ -1,12 +1,12 @@
 import React, {useEffect, useRef, useState} from 'react';
 
-const UseEventSourcing = (event_url) => {
+const UseEventSourcing = (event_url, key) => {
     const [messages, setMessages] = useState([]); //Let it be for now, maybe remove it in the future
     const [value, setValue] = useState(null); // can be used to set the initial value
-    const eventSourceRef = useRef(null);
+    const eventSourceRef = useRef(null); // necessary to close the connection
 
     const subscribe = async () => {
-        if (eventSourceRef.current) return;
+        if (eventSourceRef.current || localStorage.getItem(key)) return;
 
         const eventSource = new EventSource(event_url);
         eventSourceRef.current = eventSource;
@@ -17,11 +17,14 @@ const UseEventSourcing = (event_url) => {
             message = JSON.parse(message.replace(/'/g, '"'));
             setMessages(prev => [message, ...prev])
             setValue(message);
+
+            localStorage.setItem(key, JSON.stringify(message));
         }
 
         eventSource.onerror = (error) => {
             console.error('Error SSE:', error);
             eventSource.close();
+            localStorage.removeItem(key)
         }
     }
 
@@ -29,11 +32,20 @@ const UseEventSourcing = (event_url) => {
         if (eventSourceRef.current) {
             eventSourceRef.current.close();
             eventSourceRef.current = null;
+            localStorage.removeItem(key);
         }
     }
 
     useEffect(() => {
-        void subscribe();
+        const existingConnection = localStorage.getItem(key);
+
+        if (!existingConnection) {
+            void subscribe();
+        } else {
+            const storedMessage = JSON.parse(existingConnection);
+            setMessages(prev => [storedMessage, ...prev]);
+            setValue(storedMessage);
+        }
 
         const handleUnload = () => {
             void closeConnection();
@@ -48,6 +60,22 @@ const UseEventSourcing = (event_url) => {
             window.addEventListener('unload', handleUnload);
         }
     }, [event_url])
+
+    useEffect(() => {
+        const handleStorage = (e) => { // updating data for non-primary tabs
+            if (e.key === key && e.newValue) {
+                const message = JSON.parse(e.newValue);
+                setMessages(prev => [message, ...prev])
+                setValue(message);
+            }
+        }
+
+        window.addEventListener('storage', handleStorage);
+
+        return () => {
+             window.removeEventListener('storage', handleStorage);
+        }
+    }, [key])
 
     return [messages, value, setValue];
 };

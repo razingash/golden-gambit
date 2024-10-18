@@ -19,7 +19,7 @@ const StockGold = () => {
         return await StockServices.getGoldRateHistory();
     })
     const [highlightedElement, setHighlightedElement] = useState(null);
-    const [messages, value, setInitialValue] = UseEventSourcing('http://127.0.0.1:8000/api/sse/stock/gold/')
+    const [messages, value, setInitialValue] = UseEventSourcing('http://127.0.0.1:8000/api/sse/stock/gold/', 'goldRate')
     const [prevValue, setPrevValue] = useState(null);
 
     const spawnForm = () => {
@@ -52,7 +52,6 @@ const StockGold = () => {
                 setHighlightedElement(null);
             }
             setPrevValue(value?.current_price)
-            //console.log(prevValue, value?.current_price)
         }
     }, [value])
 
