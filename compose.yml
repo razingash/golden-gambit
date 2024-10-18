@@ -18,7 +18,7 @@ services:
     ports:
       - "8000:8000"
     command: >
-      sh -c "python manage.py runserver 0.0.0.0:8000"
+      sh -c "python manage.py runserver 0.0.0.0:8000 --settings=macroeconomics_simulator.settings.dockerized"
     restart: unless-stopped
     networks:
       - localnet

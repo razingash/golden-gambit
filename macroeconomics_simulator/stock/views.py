@@ -413,11 +413,8 @@ class TopUsersApiView(APIView):
 async def actual_gold_price_sse_stream(request):
     """Danger Zone"""
     async def event_stream():
-        i = 1
         while True:
             await asyncio.sleep(5)
-            print(f'send data {i}')
-            i += 1
             serializer = GoldSilverRateStreamSerializer(await get_current_gold_silver_rate())
             yield f"data: {serializer.data}\n\n"
 
