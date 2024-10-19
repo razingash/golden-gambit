@@ -1,11 +1,13 @@
 import json
 
+from channels.layers import get_channel_layer
 from django.core.cache import cache
-from django.db.models import Q, Sum, F
+from django.db.models import Q, Sum, F, Value
 
 from services.base import get_object
 from services.stock.S_services import calculate_gold_price
-from stock.models import GoldSilverExchange, Company, CompanyWarehouse
+from stock.models import GoldSilverExchange, Company, CompanyWarehouse, Player
+
 
 async def get_current_gold_silver_rate():
     cached_rate = cache.get('gold_silver_rate')
@@ -16,6 +18,17 @@ async def get_current_gold_silver_rate():
         rate = await GoldSilverExchange.objects.only('current_price', 'amount').afirst()
         cache.set('gold_silver_rate', json.dumps(rate.to_dict()), timeout=5)
     return rate
+
+async def get_user_wealth(player_id): # once per minute or...
+    """probably make another function to get data about multiple users at once?"""
+    gold_price_obj = await GoldSilverExchange.objects.only('current_price').afirst()
+    current_gold_price = gold_price_obj.current_price if gold_price_obj else 0
+
+    user = await Player.objects.annotate(
+        converted_gold=F('gold') * Value(current_gold_price), wealth=F('silver') + F('gold') * Value(current_gold_price)
+    ).aget(id=player_id)
+
+    return user
 
 """
 after API, optimize via clickhouse or redis fow webhooks

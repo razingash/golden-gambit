@@ -15,12 +15,12 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG') == 'True'
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000", 'http://127.0.0.1', 'http://localhost', 'http://0.0.0.0', 'https://*.ngrok.io'
+    "http://localhost:3000", 'http://127.0.0.1', 'http://localhost', 'http://0.0.0.0', 'https://*.ngrok.io',
 ]
 CSRF_TRUSTED_ORIGINS = [
-    'http://127.0.0.1', 'http://localhost', 'http://0.0.0.0', 'https://*.ngrok.io'
+    'http://127.0.0.1', 'http://localhost', 'http://0.0.0.0', 'https://*.ngrok.io',
 ]
-
+CORS_ORIGIN_ALLOW_ALL = True # безумство
 CORS_ALLOW_ALL_ORIGINS = True # remove later, only for ngrok
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = ['*'] # configure later
@@ -44,18 +44,18 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt.token_blacklist',
-    'corsheaders'
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware'
 ]
 
 ROOT_URLCONF = 'macroeconomics_simulator.urls'

@@ -288,7 +288,7 @@ class TopPlayerSerializer(serializers.ModelSerializer): # could be useless later
 
     class Meta:
         model = Player
-        fields = ['username', 'silver', 'gold', 'wealth']
+        fields = ['id', 'username', 'silver', 'gold', 'wealth']
 
 
 

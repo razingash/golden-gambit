@@ -2,12 +2,15 @@ import React, {useEffect, useState} from 'react';
 import {useFetching} from "../../../hooks/useFetching";
 import RatingService from "../../../API/RatingService";
 import {formatNumber} from "../../../functions/utils";
+import useWebSocket from "../../../hooks/useWebSocket";
 
 const TopUsers = () => {
     const [topUsers, setTopUsers] = useState([]);
     const [fetchTopUsers, isTopUsersLoading] = useFetching(async () => {
         return await RatingService.getTopUsers();
     })
+    const [messages, value, setValue, connected] = useWebSocket('ws/player-wealth/');
+
     const columns = ["username", "wealth", "silver", "gold"]
     const formatColumns = ["wealth", "silver", "gold"]
 
@@ -20,6 +23,12 @@ const TopUsers = () => {
         }
         void loadData();
     }, [isTopUsersLoading])
+
+    useEffect(() => {
+        if (value) {
+            console.log(value)
+        }
+    }, [value])
 
     return (
         <div className={"field__top_rating"}>

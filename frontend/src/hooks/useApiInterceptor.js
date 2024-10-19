@@ -2,7 +2,9 @@ import axios from "axios";
 import {useEffect} from "react";
 import {useAuth} from "./context/useAuth";
 
-export const baseURL = 'http://127.0.0.1:8000/api/v1'
+//later change
+export const domenURL = 'http://127.0.0.1:8000/'
+export const baseURL = 'http://127.0.0.1:8000/api/v1' //`${window.location.origin}/api/v1`;
 
 const apiClient = axios.create ({
     baseURL: baseURL,
