@@ -1,5 +1,9 @@
 from .base import *
 
+"""
+CELERY_BROKER_URL doesn't have time to install, so you need to replace it through environment variables
+"""
+
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -9,6 +13,8 @@ CACHES = {
         }
     }
 }
+
+CELERY_BROKER_URL = "redis://redis:6379/0"
 
 CHANNEL_LAYERS = {
     'default': {
@@ -20,4 +26,3 @@ CHANNEL_LAYERS = {
         },
     },
 }
-

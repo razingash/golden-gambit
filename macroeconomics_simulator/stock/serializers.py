@@ -9,7 +9,7 @@ from rest_framework.exceptions import ValidationError
 
 from stock.models import Player, Company, PlayerCompanies, StateLaw, GlobalEvent, CompanyWarehouse, GoldSilverExchange, \
     ProductsExchange, SharesExchange, CompanyRecipe, SharesWholesaleTrade
-from stock.utils import ProductTypes
+from stock.utils.utils_models import ProductTypes
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -288,8 +288,7 @@ class TopPlayerSerializer(serializers.ModelSerializer): # could be useless later
 
     class Meta:
         model = Player
-        fields = ['id', 'username', 'silver', 'gold', 'wealth']
-
+        fields = ['username', 'silver', 'gold', 'wealth']
 
 
 class IngredientSerializer(serializers.ModelSerializer):

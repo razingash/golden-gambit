@@ -10,8 +10,8 @@ from django.db import models
 from django.db.models import Sum, F
 
 from macroeconomics_simulator import settings
-from stock.utils import ProductTypes, CompanyTypes, SharesTypes, EventTypes, right_of_purchase_for_shareholders, \
-    right_of_purchase_for_owners
+from stock.utils.utils_models import ProductTypes, CompanyTypes, SharesTypes, EventTypes,\
+    right_of_purchase_for_shareholders, right_of_purchase_for_owners
 
 
 def recalculate_company_price(company_instance): # good

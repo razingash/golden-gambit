@@ -1,6 +1,5 @@
 import json
 
-from channels.layers import get_channel_layer
 from django.core.cache import cache
 from django.db.models import Q, Sum, F, Value
 
@@ -19,14 +18,14 @@ async def get_current_gold_silver_rate():
         cache.set('gold_silver_rate', json.dumps(rate.to_dict()), timeout=5)
     return rate
 
-async def get_user_wealth(player_id): # once per minute or...
+async def get_top_users_wealth(amount=10): # once per minute or...
     """probably make another function to get data about multiple users at once?"""
     gold_price_obj = await GoldSilverExchange.objects.only('current_price').afirst()
     current_gold_price = gold_price_obj.current_price if gold_price_obj else 0
 
     user = await Player.objects.annotate(
         converted_gold=F('gold') * Value(current_gold_price), wealth=F('silver') + F('gold') * Value(current_gold_price)
-    ).aget(id=player_id)
+    ).order_by('-wealth')[:amount]
 
     return user
 

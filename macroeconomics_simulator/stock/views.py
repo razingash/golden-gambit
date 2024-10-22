@@ -20,7 +20,7 @@ from services.company.C_services import create_new_company, get_company_inventor
 from services.stock.S_services import purchase_gold, sell_gold, get_gold_history, get_available_company_shares, \
     buy_shares, buy_management_shares, buy_shares_wholesale, get_shares_on_stock_for_wholesale
 from services.user.U_services import get_player, get_user_companies, get_top_users, get_user_shares
-from stock.exceptions import custom_exception
+from stock.utils.exceptions import custom_exception
 from stock.models import Company, StateLaw, GlobalEvent, GoldSilverExchange, ProductsExchange
 from stock.permissions import IsHeadOfCompany, IsHeadOfSelectedCompany
 from stock.serializers import RegisterSerializer, CompanyCreateSerializer, CompanySerializer, PlayerSerializer, \
@@ -31,7 +31,7 @@ from stock.serializers import RegisterSerializer, CompanyCreateSerializer, Compa
     SharesExchangeWholesaleSendSerializer, DividedCompanySerializer, WarehouseUpdateSerializer, \
     SharesExchangeWholesaleListSerializer, CompanyTransmutationSerializer, SharesPurchaseSerializer, \
     GoldSilverRateStreamSerializer
-from stock.utils import remove_company_recipes_duplicates
+from stock.utils.utils_models import remove_company_recipes_duplicates
 
 
 class RegisterView(APIView):

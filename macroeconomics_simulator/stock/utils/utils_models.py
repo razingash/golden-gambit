@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 from django.db import models
-from rest_framework.response import Response
 from django.utils import timezone
 """Choices, model related functions"""
 

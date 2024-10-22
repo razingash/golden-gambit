@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {domenURL} from "./useApiInterceptor";
+import {websocketBaseURL} from "./useApiInterceptor";
 
 const UseWebSocket = (link) => {
     const [messages, setMessages] = useState([]);
@@ -8,7 +8,7 @@ const UseWebSocket = (link) => {
     const socketRef = useRef();
 
     useEffect(() => {
-        socketRef.current = new WebSocket(`${domenURL}${link}`)
+        socketRef.current = new WebSocket(`${websocketBaseURL}${link}`); // ws://localhost:8000/ws
 
         socketRef.current.onopen = () => {
             console.log('connected')
@@ -16,11 +16,10 @@ const UseWebSocket = (link) => {
             const message = {
                 event: 'connection'
             }
-            socketRef.current.send(message);
         }
 
         socketRef.current.onmessage = (event) => {
-            const message = event.data
+            const message = JSON.parse(event.data);
             console.log(message)
             setMessages(prev => [message, ...prev])
             setValue(message);

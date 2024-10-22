@@ -1,39 +1,35 @@
-from channels.generic.websocket import AsyncJsonWebsocketConsumer
-from channels.layers import get_channel_layer
+from djangochannelsrestframework.generics import GenericAsyncAPIConsumer
+from djangochannelsrestframework.mixins import ListModelMixin
+from djangochannelsrestframework.observer import model_observer
 
-from services.critical_services import get_user_wealth
+from services.critical_services import get_top_users_wealth
+from stock.models import Player
+from stock.serializers import TopPlayerSerializer
 
 
-# откалибровать capacity
-class WealthConsumer(AsyncJsonWebsocketConsumer):
+class WealthConsumer(GenericAsyncAPIConsumer, ListModelMixin):
+    queryset = get_top_users_wealth
+
+    async def receive(self, text_data=None, bytes_data=None, **kwargs):
+        print(f"Ignoring incoming message: {text_data}")
+        return
+
+    async def receive_json(self, content, **kwargs):
+        print(f"Ignoring incoming message: {content}")
+        await self.send_json({"error": "Incoming messages are not allowed."})
+
+    @model_observer(Player, serializer_class=TopPlayerSerializer)
+    async def player_activity(self, message, observer=None, **kwargs):
+        print(f"Received message from observer: {message}")
+        await self.send_json(message)
+
     async def connect(self):
-        self.player_id = self.scope['url_route']['kwargs']['player_id']
-        self.group_name = f'wealth_{self.player_id}'
+        print("WebSocket connected")
+        await self.player_activity.subscribe()
+        await super().connect()
 
-        await self.channel_layer.group_add(self.group_name, self.channel_name)
+    async def disconnect(self, code):
+        print("WebSocket disconnected")
+        await self.player_activity.unsubscribe()
+        await super().disconnect(code)
 
-        await self.accept()
-
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.group_name, self.channel_name)
-
-    async def send_wealth_update(self, event):
-        channel_layer = get_channel_layer()
-
-        user = await get_user_wealth(self.player_id)
-
-        wealth_data = {
-            'username': user.username,
-            'silver': str(user.silver),
-            'gold': user.gold,
-            'converted_gold': str(user.converted_gold),
-            'total_wealth': str(user.wealth)
-        }
-
-        await channel_layer.group_send(
-            f'wealth_{self.player_id}',
-            {
-                'type': 'send_wealth_update',
-                'wealth': wealth_data
-            }
-        )

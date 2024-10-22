@@ -6,10 +6,10 @@ from django.utils import timezone
 
 from services.base import get_object, get_object_or_create, paginate_objects
 from services.general_services import recalculation_of_the_shareholders_influence
-from stock.exceptions import CustomException
+from stock.utils.exceptions import CustomException
 from stock.models import GoldSilverExchange, SharesExchange, PlayerCompanies, Player, Company, ProductsExchange, \
     SharesWholesaleTrade
-from stock.utils import SharesTypes
+from stock.utils.utils_models import SharesTypes
 
 
 def update_gold_price(instance: GoldSilverExchange, amount_of_gold) -> None:

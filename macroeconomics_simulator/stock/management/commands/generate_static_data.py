@@ -2,7 +2,7 @@ from django.core.management import BaseCommand
 
 from stock.models import ProductType, CompanyType, AvailableProductsForProduction, CompanyRecipe, Recipe, \
     ProductsExchange, StateLaw
-from stock.utils import CompanyTypes, ProductTypes
+from stock.utils.utils_models import CompanyTypes, ProductTypes
 
 
 def add_available_products_for_production(company_instance):

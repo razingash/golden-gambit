@@ -5,6 +5,16 @@
     margin: 10px; /*probably this too*/
 }
 
+.state__default {
+    color: #fff;
+}
+.state__positive {
+    color: var(--hovered-element);
+}
+.state__negative {
+    color: var(--highlight-element-1);
+}
+
 .top_rating__list {
     display: flex;
     background: var(--container-background);
@@ -13,22 +23,69 @@
     gap: 19px;
 }
 
-.list__column {
-
+.text_mod_int {
+    display: flex;
+    justify-content: center;
+    width: 50px;
 }
 
-.measurement_date {
 
+.text_mod_username {
+    min-width: 100px;
+    width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.top_rating__column {
-
+.adaptive__field_1 {
+    display: flex;
+    justify-content: center;
+    margin: 10px;
 }
 
-.top_rating__item {
+.top_rating__list_2 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--container-background);
+    padding: 14px;
+    border-radius: 4px;
+    gap: 4px;
+}
+
+.live_mod_hover_1 {
     cursor: default;
 }
-.top_rating__item:hover {
+.live_mod_hover_1:hover {
     color: var(--hovered-element);
 }
 
+
+@media (max-width: 500px){ /* calibrate */
+    .top_rating__list_2 {
+        border-radius: initial;
+        width: 100%;
+    }
+    .adaptive__field_1 {
+        margin: 0;
+    }
+}
+@media (max-width: 400px) {
+    .mod_hide {
+        display: none;
+    }
+    .state__default {
+        color: #000;
+        background: #fff;
+        border-radius: 3px;
+    }
+    .state__positive {
+        color: initial;
+        background: var(--hovered-element);
+    }
+    .state__negative {
+        color: initial;
+        background: var(--highlight-element-1);
+    }
+}

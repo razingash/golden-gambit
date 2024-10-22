@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  redis:
+  redis: # later add RabbitMq for more serious tasks
     image: redis
-    container_name: redis # most likely WON'T BE a message broker and will remain only for caching
+    container_name: redis # most likely remain only for caching
     ports:
       - "6379:6379"
     networks:
@@ -17,6 +17,8 @@ services:
       - redis
     ports:
       - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=macroeconomics_simulator.settings.dockerized
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8000 --settings=macroeconomics_simulator.settings.dockerized"
     restart: unless-stopped
@@ -31,6 +33,32 @@ services:
     command: >
       sh -c "npm start"
     restart: unless-stopped
+    networks:
+      - localnet
+
+  celery-worker-redis:
+    build:
+      context: ./macroeconomics_simulator
+    container_name: celery-worker-redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+    depends_on:
+      - redis
+    command: >
+      sh -c "celery -A macroeconomics_simulator worker -l info"
+    networks:
+      - localnet
+
+  celery-beat:
+    build:
+      context: ./macroeconomics_simulator
+    container_name: celery_beat
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+    depends_on:
+      - redis
+    command: >
+      sh -c "celery -A macroeconomics_simulator beat -l INFO"
     networks:
       - localnet
 

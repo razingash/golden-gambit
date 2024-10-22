@@ -9,10 +9,7 @@ const TopUsers = () => {
     const [fetchTopUsers, isTopUsersLoading] = useFetching(async () => {
         return await RatingService.getTopUsers();
     })
-    const [messages, value, setValue, connected] = useWebSocket('ws/player-wealth/');
-
-    const columns = ["username", "wealth", "silver", "gold"]
-    const formatColumns = ["wealth", "silver", "gold"]
+    const [messages, value, setValue, connected] = useWebSocket('/player-wealth/');
 
     useEffect(() => {
         const loadData = async () => {
@@ -26,27 +23,39 @@ const TopUsers = () => {
 
     useEffect(() => {
         if (value) {
-            console.log(value)
+            setTopUsers((prevUsers) => {
+                return prevUsers.map(user => {
+                    if (user.username === value.username) {
+                        return {...user, silver: value.silver, gold: value.gold}
+                    }
+                    return user;
+                });
+            });
         }
-    }, [value])
-
+    }, [value]);
+    //объединить два топа чтобы сделать общее колесо загрузки?
+    //изменить хук, возможно сделать два, или отдельный компонент под каждый случай(на аутсайдычах)
     return (
-        <div className={"field__top_rating"}>
-            <div className={"top_rating__list"}>
-                {columns.map((column, index) => (
-                    <div className={"list__column"} key={index}>
-                        <div className={"measurement_date"}></div>
-                        {topUsers.length > 0 ? (topUsers.map((company) => (
-                            <div className={"top_rating__column"} key={company.ticker}>
-                                <div className={"top_rating__item"}>
-                                    {formatColumns.includes(column) ? formatNumber(company[column]): company[column]}
-                                </div>
-                            </div>
-                        ))) : (
-                            <div>Loading...</div>
-                        )}
+        <div className={"adaptive__field_1"}>
+            <div className={"top_rating__list_2"}>
+                <div className={"cell__simple"}>
+                    <div className={"text_mod_username"}>username</div>
+                    <div className={"text_mod_int"}>wealth</div>
+                    <div className={"text_mod_int mod_hide"}>silver</div>
+                    <div className={"text_mod_int mod_hide"}>gold</div>
+                    <div className={"text_mod_int"}>changes</div>
+                </div>
+                {topUsers.length > 0 ? (topUsers.map((user) => (
+                    <div className={"cell__simple"} key={user.username}>
+                        <div className={"text_mod_username live_mod_hover_1"}>{user.username}</div>
+                        <div className={"text_mod_int live_mod_hover_1"}>{formatNumber(user.wealth)}</div>
+                        <div className={"text_mod_int live_mod_hover_1 mod_hide"}>{formatNumber(user.silver)}</div>
+                        <div className={"text_mod_int live_mod_hover_1 mod_hide"}>{formatNumber(user.gold)}</div>
+                        <div className={"state__default text_mod_int"}>00.00%</div>
                     </div>
-                ))}
+                ))) : (
+                    <div>Change Me</div>
+                )}
             </div>
         </div>
     );

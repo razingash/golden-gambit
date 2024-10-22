@@ -29,7 +29,7 @@ const TopCompanies = () => {
                         <div className={"measurement_date"}></div>
                         {topCompanies.length > 0 ? (topCompanies.map((company) => (
                             <div className={"top_rating__column"} key={company.ticker}>
-                                <div className={"top_rating__item"} key={company[column]}>
+                                <div className={"live_mod_hover_1"} key={company[column]}>
                                     {column === "company_price" ? formatNumber(company[column]): company[column]}
                                 </div>
                             </div>
