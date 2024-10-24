@@ -148,6 +148,12 @@ class CompanyPrintNewSharesSerializer(serializers.ModelSerializer):
         fields = ['ticker', 'shares_amount', 'preferred_shares_amount']
 
 
+class CompanyConsumerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ['ticker', 'company_price']
+
+
 class SharesExchangeWholesaleListSerializer(serializers.Serializer):
     ticker = serializers.CharField(source='company__ticker')
     name = serializers.CharField(source='company__name')

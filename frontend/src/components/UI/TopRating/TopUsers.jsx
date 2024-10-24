@@ -1,31 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {useFetching} from "../../../hooks/useFetching";
-import StockServices from "../../../API/StockServices";
 import RatingService from "../../../API/RatingService";
 import useWebSocket from "../../../hooks/useWebSocket";
 import {calculateWealth, calculateWealthChanges, formatNumber} from "../../../functions/utils";
 
 
-const TopUsers = () => {
+const TopUsers = ({goldRate}) => {
     const [topUsers, setTopUsers] = useState({});
-    const [fetchInitialGoldRate, isInitialGoldRateLoading] = useFetching(async () => {
-        return await StockServices.getGoldSilverRate();
-    });
     const [fetchTopUsers, isTopUsersLoading] = useFetching(async () => {
         return await RatingService.getTopUsers();
     });
-    const [goldRate, setGoldRate] = useState(1000);
-    const [messages, value, setValue, prevValue, setPrevValue, connected] = useWebSocket('/player-wealth/');
-
-    useEffect(() => {
-        const loadData = async () => {
-            if (!isInitialGoldRateLoading) {
-                const data = await fetchInitialGoldRate();
-                if (data) setGoldRate(data.current_price);
-            }
-        };
-        void loadData();
-    }, [isInitialGoldRateLoading]);
+    const [, value] = useWebSocket('/top-players-wealth/');
 
     useEffect(() => {
         const loadData = async () => {

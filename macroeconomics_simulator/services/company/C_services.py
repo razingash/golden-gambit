@@ -304,8 +304,8 @@ def get_company_history(ticker):
     return history
 
 def get_top_companies(amount=10):
-    top = Company.objects.all().order_by('-company_price').values('ticker', 'name', 'company_price',
-                                                                  'dividendes_percent', 'founding_date')[:amount]
+    top = Company.objects.all().order_by('-company_price').values(
+        'ticker', 'name', 'company_price', 'daily_company_price', 'dividendes_percent', 'founding_date')[:amount]
     return top
 
 

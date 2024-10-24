@@ -30,6 +30,16 @@ app.conf.beat_schedule = {
     'document-gold-silver-rate-every-hour': {
         'task': 'stock.tasks.document_gold_silver_rate',
         'schedule': crontab(hour='1'),
-        'options': {'expires': 180}
+        'options': {'expires': 600}
     },
+    'pay-dividends-every-night': {
+        'task': 'stock.tasks.dividends_payment',
+        'schedule': crontab(hour='0', minute='0'),
+        'options': {'expires': 3600}
+    },
+    'update-daily-company-prices-every-day': {
+        'task': 'stock.tasks.update_daily_company_prices',
+        'schedule': crontab(hour='2', minute='0'),
+        'options': {'expires': 1800}
+    }
 }

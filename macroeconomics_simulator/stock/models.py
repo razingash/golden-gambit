@@ -143,6 +143,7 @@ class Company(models.Model):
                                          decimal_places=2, blank=False, null=False)
     gold_reserve = models.PositiveBigIntegerField(default=0, blank=False, null=False)
     company_price = models.IntegerField(blank=False, null=False)
+    daily_company_price = models.IntegerField(blank=False, null=False)
     dividendes_percent = models.DecimalField(max_digits=10, decimal_places=2, blank=False, null=False)
     dividendes_change_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
     history = models.FilePathField(path=os.path.join(settings.MEDIA_ROOT, 'tickers'), match='.*\.json$',
@@ -167,6 +168,7 @@ class Company(models.Model):
             self.history = json_path
 
             self.company_price = self.silver_reserve
+            self.daily_company_price = self.company_price
             self.share_price = round(Decimal(self.silver_reserve) / Decimal(self.shares_amount), 2)
 
             document = True
