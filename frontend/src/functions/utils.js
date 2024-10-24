@@ -11,8 +11,19 @@ export const formatNumber = (num) => {
 }
 
 export const percentageOfNumber = (num1, num2) => {
-    return (num1 * 100 / num2).toFixed(2)
+    return (100 - (num1 * 100 / num2).toFixed(2)).toFixed(2)
 };
+
+export const calculateWealth = (silver, gold, goldRate) => {
+    return (+silver + +gold * goldRate).toFixed(2)
+}
+
+export const calculateWealthChanges = (current, previous, goldRate) => {
+    return percentageOfNumber(
+        calculateWealth(previous.silver, previous.gold, goldRate),
+        calculateWealth(current.silver, current.gold, goldRate)
+    ) + '%';
+}
 
 export const sharesTypes = { "ordinary": 1, "preferred": 2 };
 

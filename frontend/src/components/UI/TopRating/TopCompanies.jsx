@@ -9,7 +9,6 @@ const TopCompanies = () => {
     const [fetchTopCompanies, isTopCompaniesLoading] = useFetching(async () => {
         return await RatingService.getTopCompanies();
     })
-    const columns = ["ticker", "name", "company_price", "dividendes_percent"]
 
     useEffect(() => {
         const loadData = async () => {
@@ -21,21 +20,24 @@ const TopCompanies = () => {
         void loadData();
     }, [isTopCompaniesLoading])
 
+    // тут changes это изменения за день
     return (
-        <div className={"field__top_rating"}>
-            <div className={"top_rating__list"}>
-                {columns.map((column) => (
-                    <div className={"list__column"} key={column}>
-                        <div className={"measurement_date"}></div>
-                        {topCompanies.length > 0 ? (topCompanies.map((company) => (
-                            <div className={"top_rating__column"} key={company.ticker}>
-                                <div className={"live_mod_hover_1"} key={company[column]}>
-                                    {column === "company_price" ? formatNumber(company[column]): company[column]}
-                                </div>
-                            </div>
-                        ))) : (
-                            <div>Loading...</div>
-                        )}
+        <div className={"adaptive__field_1"}>
+            <div className={"top_rating__list_2"}>
+                <div className={"cell__simple"}>
+                    <div className={"text_mod_username mod_hide"}>company</div>
+                    <div className={"text_mod_int"}>ticker</div>
+                    <div className={"text_mod_int mod_hide"}>dividendes</div>
+                    <div className={"text_mod_int "}>price</div>
+                    <div className={"text_mod_int"}>changes</div>
+                </div>
+                {topCompanies && topCompanies.map((company) => (
+                    <div className={"cell__simple"} key={company.ticker}>
+                        <div className={"text_mod_username mod_hide"}>{company.name}</div>
+                        <div className={"text_mod_int"}>{company.ticker}</div>
+                        <div className={"text_mod_int mod_hide"}>{company.dividendes_percent}%</div>
+                        <div className={"text_mod_int"}>{formatNumber(company.company_price)}</div>
+                        <div className={"text_mod_int state__default"}>0_o</div>
                     </div>
                 ))}
             </div>

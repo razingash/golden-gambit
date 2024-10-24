@@ -41,7 +41,7 @@
 .adaptive__field_1 {
     display: flex;
     justify-content: center;
-    margin: 10px;
+    margin: 20px 10px;
 }
 
 .top_rating__list_2 {
@@ -68,7 +68,7 @@
         width: 100%;
     }
     .adaptive__field_1 {
-        margin: 0;
+        margin: 20px 0;
     }
 }
 @media (max-width: 400px) {
