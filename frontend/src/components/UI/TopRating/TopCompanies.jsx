@@ -44,7 +44,7 @@ const TopCompanies = () => {
     return (
         <div className={"adaptive__field_1"}>
             <div className={"top_rating__list_2"}>
-                <div className={"cell__simple"}>
+                <div className={"cell__simple top_rating_header"}>
                     <div className={"text_mod_username mod_hide"}>company</div>
                     <div className={"text_mod_int"}>ticker</div>
                     <div className={"text_mod_int mod_hide"}>dividendes</div>

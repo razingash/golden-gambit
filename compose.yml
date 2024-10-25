@@ -30,6 +30,9 @@ services:
     container_name: react_mes
     ports:
       - "3000:3000"
+    environment: # instead of 192.168.1.25:80 write your local IPV4 address or remove environment from this container
+      - REACT_APP_BASE_URL=http://192.168.1.25:80/api/v1
+      - REACT_APP_WEBSOCKET_URL=ws://192.168.1.25:80/ws
     command: >
       sh -c "npm start"
     restart: unless-stopped
@@ -42,6 +45,7 @@ services:
     container_name: celery-worker-redis
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/1
+      - DJANGO_SETTINGS_MODULE=macroeconomics_simulator.settings.dockerized
     depends_on:
       - redis
     command: >
@@ -55,6 +59,7 @@ services:
     container_name: celery_beat
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/1
+      - DJANGO_SETTINGS_MODULE=macroeconomics_simulator.settings.dockerized
     depends_on:
       - redis
     command: >

@@ -2,9 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {websocketBaseURL} from "./useApiInterceptor";
 
 const UseWebSocket = (link) => {
-    // возможно добавить еще значение prevValue чтобы не рытся в messages, но тогда
     // лучше всего будет сделать два хука - для графиков с messages и обычный с прошлым состоянием
-    //Баг Хука: сообщения обновляются только у первого хука
     const [messages, setMessages] = useState([]);
     const [prevValue, setPrevValue] = useState(null);
     const [value, setValue] = useState(null);
@@ -17,9 +15,7 @@ const UseWebSocket = (link) => {
         socketRef.current.onopen = () => {
             console.log('connected')
             setConnected(true);
-            const message = {
-                event: 'connection'
-            }
+
         }
 
         socketRef.current.onmessage = (event) => {

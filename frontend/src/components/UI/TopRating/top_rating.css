@@ -53,6 +53,10 @@
     border-radius: 4px;
     gap: 4px;
 }
+.top_rating_header {
+    font-family: sans-serif;
+    color: #80bbff;
+}
 
 .hover_clickable_1 {
     text-decoration: none;

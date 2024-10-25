@@ -16,6 +16,9 @@ const TopUsers = ({goldRate}) => {
         setTopUsers(prevUsers =>
             prevUsers.map(user => {
                 if (user.username === username) {
+                    if (user.silver === userSilver && user.gold === userGold) {
+                        return user; // crutch for Celery
+                    }
                     let newPrice = +userSilver + userGold * goldRate
                     let oldPrice = +user.silver + user.gold * goldRate
                     const change = calculateFluctuations(newPrice, oldPrice);
@@ -45,7 +48,7 @@ const TopUsers = ({goldRate}) => {
     return (
         <div className={"adaptive__field_1"}>
             <div className={"top_rating__list_2"}>
-                <div className={"cell__simple"}>
+                <div className={"cell__simple top_rating_header"}>
                     <div className={"text_mod_username"}>username</div>
                     <div className={"text_mod_int"}>wealth</div>
                     <div className={"text_mod_int mod_hide"}>silver</div>

@@ -3,8 +3,8 @@ import {useEffect} from "react";
 import {useAuth} from "./context/useAuth";
 
 //later change
-export const websocketBaseURL = 'ws://localhost:8000/ws'
-export const baseURL = 'http://127.0.0.1:8000/api/v1' //`${window.location.origin}/api/v1`;
+export const baseURL = process.env.REACT_APP_BASE_URL || 'http://127.0.0.1:8000/api/v1';
+export const websocketBaseURL = process.env.REACT_APP_WEBSOCKET_URL || 'ws://localhost:8000/ws';
 
 const apiClient = axios.create ({
     baseURL: baseURL,

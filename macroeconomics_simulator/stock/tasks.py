@@ -1,4 +1,3 @@
-import asyncio
 import json
 import os
 import random
@@ -81,47 +80,13 @@ def rand_company_price():
     company.company_price = calculate_company_price(company)
     company.save() # no point in fixing the price
 
-
 @shared_task
 def rand_user_gold(): # test
     new_gold = random.randint(1, 11)
     player_id = random.randint(1, 11)
     player = Player.objects.get(id=player_id)
-    player.gold = new_gold
+    if player.gold == new_gold:
+        player.gold += 1
+    else:
+        player.gold = new_gold
     player.save()
-
-
-@shared_task
-def update_player_gold(player_id, new_gold):
-    player = Player.objects.get(id=player_id)
-    player.gold = new_gold
-
-    with transaction.atomic():
-        player.save()
-
-    return player
-
-
-@shared_task
-def rand_user_silver():
-    user_id = random.randint(1, 11)
-    player = Player.objects.get(id=user_id)
-    player.silver = random.randint(10000, 30000)
-    player.save()
-    return player
-
-@shared_task
-def rand_users_gold():
-    players = Player.objects.all()
-    for player in players:
-        player.gold = random.randint(1, 30)
-        player.save()
-
-@shared_task
-async def rand_users_gold_2(): # with sleeping
-    players = Player.objects.all()
-    for player in players:
-        await asyncio.sleep(2)
-        player.gold = random.randint(1, 30)
-        player.save()
-

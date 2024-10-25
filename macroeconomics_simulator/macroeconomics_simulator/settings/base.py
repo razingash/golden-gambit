@@ -16,9 +16,11 @@ DEBUG = os.getenv('DEBUG') == 'True'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000", 'http://127.0.0.1', 'http://localhost', 'http://0.0.0.0', 'https://*.ngrok.io',
+    'http://192.168.1.25'
 ]
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1', 'http://localhost', 'http://0.0.0.0', 'https://*.ngrok.io',
+    'http://192.168.1.25'
 ]
 CORS_ORIGIN_ALLOW_ALL = True # безумство
 CORS_ALLOW_ALL_ORIGINS = True # remove later, only for ngrok

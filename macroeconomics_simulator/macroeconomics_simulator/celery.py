@@ -11,21 +11,13 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    'test-change-silver-every-30-seconds': { # delete later one random user
-        'task': 'stock.tasks.check_layer', # rand_user_gold
-        'schedule': timedelta(seconds=30)
+    'test-change-company-price-every-4-second': {  # delete later
+        'task': 'stock.tasks.rand_company_price',
+        'schedule': timedelta(seconds=4),
     },
-    'test-change-gold-every-minute': {  # delete later one random user
+    'test-change-gold-every-5-second': {  # delete later
         'task': 'stock.tasks.rand_user_gold',
-        'schedule': crontab(minute='1'),
-    },
-    'test-change-gold-every-2-minutes': {  # delete later all users
-        'task': 'stock.tasks.rand_users_gold',
-        'schedule': crontab(minute='2'),
-    },
-    'test-change-gold-every-3-minutes': {  # delete later all users, but changings with sleeping
-        'task': 'stock.tasks.rand_users_gold_2',
-        'schedule': crontab(minute='3'),
+        'schedule': timedelta(seconds=5),
     },
     'document-gold-silver-rate-every-hour': {
         'task': 'stock.tasks.document_gold_silver_rate',
