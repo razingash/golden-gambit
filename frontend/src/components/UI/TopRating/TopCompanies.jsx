@@ -4,6 +4,7 @@ import {useFetching} from "../../../hooks/useFetching";
 import RatingService from "../../../API/RatingService";
 import {calculateFluctuations, formatNumber} from "../../../functions/utils";
 import useWebSocket from "../../../hooks/useWebSocket";
+import {Link} from "react-router-dom";
 
 const TopCompanies = () => {
     const [topCompanies, setTopCompanies] = useState([]);
@@ -48,21 +49,21 @@ const TopCompanies = () => {
                     <div className={"text_mod_int"}>ticker</div>
                     <div className={"text_mod_int mod_hide"}>dividendes</div>
                     <div className={"text_mod_int "}>price</div>
-                    <div className={"text_mod_int"}>changes</div>
+                    <div className={"text_mod_fluctuations"}>changes</div>
                 </div>
                 {topCompanies && topCompanies.map((company) => (
                     <div className={"cell__simple"} key={company.ticker}>
-                        <div className={"text_mod_username mod_hide"}>{company.name}</div>
-                        <div className={"text_mod_int"}>{company.ticker}</div>
-                        <div className={"text_mod_int mod_hide"}>{company.dividendes_percent}%</div>
-                        <div className={"text_mod_int"}>{formatNumber(company.company_price)}</div>
+                        <Link to={`/companies/${company.ticker}`} className={"text_mod_username mod_hide hover_clickable_1"}>{company.name}</Link>
+                        <Link to={`/companies/${company.ticker}`} className={"text_mod_int hover_clickable_1"}>{company.ticker}</Link>
+                        <div className={"text_mod_int mod_hide hover_backlight"}>{company.dividendes_percent}%</div>
+                        <div className={"text_mod_int hover_backlight"}>{formatNumber(company.company_price)}</div>
                         {company.change ? (company.change > 0 ? (
-                            <div className={"text_mod_int state__positive"}>{company.change + "%"}</div>
+                            <div className={"text_mod_fluctuations state__positive"}>{company.change + "%"}</div>
                             ) : (
-                            <div className={"text_mod_int state__negative"}>{company.change + "%"}</div>
+                            <div className={"text_mod_fluctuations state__negative"}>{company.change + "%"}</div>
                             )
                         ) : (
-                            <div className={"text_mod_int state__default"}>0.00%</div>
+                            <div className={"text_mod_fluctuations state__default"}>0.00%</div>
                         )}
                     </div>
                 ))}

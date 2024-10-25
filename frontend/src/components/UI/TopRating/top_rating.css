@@ -1,10 +1,4 @@
 
-.field__top_rating {
-    display: flex;
-    justify-content: center; /* remvoe later*/
-    margin: 10px; /*probably this too*/
-}
-
 .state__default {
     color: #fff;
 }
@@ -27,15 +21,21 @@
     display: flex;
     justify-content: center;
     width: 50px;
+    cursor: default;
 }
-
-
+.text_mod_fluctuations {
+    display: flex;
+    justify-content: flex-end;
+    width: 70px;
+    cursor: default;
+}
 .text_mod_username {
     min-width: 100px;
     width: 100px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: default;
 }
 
 .adaptive__field_1 {
@@ -54,13 +54,17 @@
     gap: 4px;
 }
 
-.live_mod_hover_1 {
-    cursor: default;
+.hover_clickable_1 {
+    text-decoration: none;
+    color: #000;
+    cursor: pointer;
 }
-.live_mod_hover_1:hover {
+.hover_backlight:hover, .hover_clickable_1:hover {
     color: var(--hovered-element);
 }
-
+.hover_clickable_1:focus {
+    color: var(--blocked-element);
+}
 
 @media (max-width: 500px){ /* calibrate */
     .top_rating__list_2 {
@@ -70,14 +74,22 @@
     .adaptive__field_1 {
         margin: 20px 0;
     }
+    .text_mod_fluctuations {
+        justify-content: center;
+        width: 90px;
+    }
 }
-@media (max-width: 400px) {
+@media (max-width: 450px) {
     .mod_hide {
         display: none;
     }
+    .text_mod_username {
+        min-width: 70px;
+        width: 70px;
+    }
     .state__default {
         color: #000;
-        background: #fff;
+        background: #f6f6f6;
         border-radius: 3px;
     }
     .state__positive {

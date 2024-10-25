@@ -42,16 +42,10 @@ const Header = () => {
                                 <div>Stock</div>
                             </Link>
                             <Link to={"/stock/shares"} className={"header__dropdown__item_mini"} onClick={closeMenu}>
-                                <svg className="svg__menu_icon">
-                                    <use xlinkHref="#icon_cheque"></use>
-                                </svg>
-                                <div>Shares</div>
+                                Shares
                             </Link>
                             <Link to={"/stock/products"} className={"header__dropdown__item_mini"} onClick={closeMenu}>
-                                <svg className="svg__menu_icon">
-                                    <use xlinkHref="#icon_warehouse"></use>
-                                </svg>
-                                <div>Products</div>
+                                Products
                             </Link>
                         </div>
                         <Link to={"/companies"} className="header__dropdown__item" onClick={closeMenu}>
@@ -91,12 +85,15 @@ const Header = () => {
                 </div>
             </div>
             <div className={"header__items"}>
-                <Link to={"/stock"} className={"header__item"}>Stock</Link>
-                {isAuth && <Link to={"/profile"} className={"header__item"}>Profile</Link>}
-                <div className={"header__stock_dropdown"}>
-                    <Link to={"/stock/shares"} className={"header__item"}>Shares</Link>
-                    <Link to={"/stock/products"} className={"header__item"}>Products</Link>
+                <div className={"header__item"}>
+                    <Link className={"header__stock header__item"} to={"/stock"}>Stock</Link>
+                    <div className={"header__stock_dropdown"}>
+                        <span className={"dropdown__line"}></span>
+                        <Link to={"/stock/shares"} className={"header__item"}>Shares</Link>
+                        <Link to={"/stock/products"} className={"header__item"}>Products</Link>
+                    </div>
                 </div>
+                {isAuth && <Link to={"/profile"} className={"header__item"}>Profile</Link>}
                 <Link to={"/companies"} className={"header__item"}>Companies</Link>
                 <Link to={"/news"} className={"header__item"}>News</Link>
                 <Link to={"/laws"} className={"header__item"} >Laws</Link>
