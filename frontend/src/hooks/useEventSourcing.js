@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
+import {baseSseURL} from "./useApiInterceptor";
 
 const UseEventSourcing = (event_url, key) => {
     const [messages, setMessages] = useState([]); //Let it be for now, maybe remove it in the future
@@ -8,7 +9,7 @@ const UseEventSourcing = (event_url, key) => {
     const subscribe = async () => {
         if (eventSourceRef.current || localStorage.getItem(key)) return;
 
-        const eventSource = new EventSource(event_url);
+        const eventSource = new EventSource(`${baseSseURL}${event_url}`);
         eventSourceRef.current = eventSource;
 
         eventSource.onmessage = (event) => {
