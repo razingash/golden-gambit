@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from celery import shared_task
 from django.db import transaction
+from django.db.models import Sum, F
 
 from macroeconomics_simulator import settings
 from services.critical_services import calculate_company_price
@@ -18,7 +19,7 @@ from stock.consumers import TopUsersConsumer, TopCompaniesConsumer
 
 @shared_task # redis
 def document_gold_silver_rate():
-    gold_silver_stock = GoldSilverExchange.objects.afirst()
+    gold_silver_stock = GoldSilverExchange.objects.first()
 
     json_path = os.path.join(settings.MEDIA_ROOT, 'gold_silver_rate', f"{gold_silver_stock.id}.json")
 
@@ -33,29 +34,67 @@ def document_gold_silver_rate():
     with open(json_path, 'w') as file:
         json.dump(json_data, file, indent=2)
 
+
 @shared_task # rabbitMQ
+def accrue_company_passive_income():
+    """passive income is available only to companies that manage gold,
+     and it depends on the cartoonist and current events"""
+    gold_silver_rate = GoldSilverExchange.objects.first()
+    companies = Company.objects.select_related('type').filter(gold_reserve__gt=0)
+    companies_to_update = []
+
+    for company in companies:
+        income = int((gold_silver_rate.current_price * company.gold_reserve) * (1 + company.type.cartoonist))
+        company.silver_reserve += income
+        companies_to_update.append(company)
+
+    with transaction.atomic():
+        Company.objects.bulk_update(companies_to_update, ['silver_reserve'])
+
+
+@shared_task # rabbitMQ | this one need personal worker
 def dividends_payment(): # try again later abulk_update
-    """                         WARNING UNREADY!!!
-    To update companies correctly, you need to project the optimized code of the
-    recalculate_company_price function and save it to a file in this functio
-    """
+    """At the beginning, dividends are paid and then the company’s value is recalculated"""
+
+    companies = Company.objects.prefetch_related('companywarehouse_set').all()
     shareholders = PlayerCompanies.objects.select_related('company', 'player').all()
     pay_dividendes = []
     companies_recalculation = []
 
-    for shareholder in shareholders:
+    gold_rate_current_price = GoldSilverExchange.objects.only('current_price').first().current_price
+
+    for shareholder in shareholders: # оставить как есть
         if not shareholder.isHead:
             shareholder.player.silver += Decimal(shareholder.shares_amount * shareholder.company.share_price)
-            companies_recalculation.append(shareholder.company)
             pay_dividendes.append(shareholder)
 
-    Player.objects.bulk_update(pay_dividendes, ['silver'])
-    Company.objects.bulk_save()
-    with transaction.atomic():
-        Company.objects.bulk_update(companies_recalculation, ['some_field'])
+    for company in companies:
+        company_silver = company.silver_reserve
+        warehouses = company.companywarehouse_set.annotate(
+            sale_price=F('product__productsexchange__sale_price')).aggregate(
+            company_income=Sum(F('amount') * F('sale_price'))
+        )
+        company_income = warehouses['company_income'] if warehouses['company_income'] is not None else 0
 
-    #for company in companies_recalculation:
-    #    company.save(document=True)
+        if company.gold_reserve > 0:
+            gold_price = gold_rate_current_price * company.gold_reserve
+            assets_price = gold_price + company_silver
+        else:
+            assets_price = company_silver
+
+        shares_amount = Decimal(company.shares_amount)
+        share_price = Decimal(company.share_price)
+        dividendes_percent = Decimal(company.dividendes_percent)
+
+        commitment = round(Decimal(shares_amount * share_price * dividendes_percent / 100), 2)
+
+        company.company_price = (assets_price + company_income) - commitment
+        companies_recalculation.append(company)
+
+    with transaction.atomic():
+        Player.objects.bulk_update(pay_dividendes, ['silver'])
+        Company.objects.bulk_update(companies_recalculation, ['company_price'])
+
 
 @shared_task # rabbitMQ
 def update_daily_company_prices(): # try again later abulk_update

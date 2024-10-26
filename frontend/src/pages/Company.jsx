@@ -4,12 +4,12 @@ import {useParams} from "react-router-dom";
 import {useFetching} from "../hooks/useFetching";
 import CompaniesService from "../API/CompaniesService";
 import AdaptiveLoading from "../components/UI/AdaptiveLoading";
-import Chart from "../components/UI/Chart/Chart";
 import BlankResult from "../components/UI/BlankResult/BlankResult";
 import UpdateCompanyForm from "../components/UI/Forms/UpdateCompanyForm";
 import {useAuth} from "../hooks/context/useAuth";
 import CompanySharesList from "../components/UI/CompanySharesList/CompanySharesList";
 import {decodeProductType} from "../functions/utils";
+import ChartSvg from "../components/UI/ChartSvg";
 
 const Company = () => {
     const {isAuth, tokenRef} = useAuth();
@@ -162,7 +162,9 @@ const Company = () => {
                     </div>
                     )}
                 {chartData ? (chartData.length > 1 ? (
-                        <Chart data={chartData} searchKey={'company_price'}/>
+                        <div className="field__chart chart__company">
+                            <ChartSvg data={chartData} searchKey={'company_price'}/>
+                        </div>
                     ) : (
                         <BlankResult title={"Not enough data to draw chart"} info={"This company hasn't made a sufficient contribution to the market economy yet"}/>
                     )

@@ -16,7 +16,7 @@ def create_new_company(user_id, request_data):
     """
     if the user does not have established tickers, then he establishes it for free, if there is a founded company,
         if he already has a company the price will be equal to the cost of 100 gold in silver
-            if user don’t have that kind of money, then ...
+            if user don’t have that kind of money, then ... he lost, let him create a new account
     """
     company_type = request_data.get('type')
     ticker = request_data.get('ticker')
@@ -52,6 +52,8 @@ def get_company_inventory(ticker):
 
 
 def update_produced_products_amount(ticker):
+    """available only to the owner of this company, receives goods produced up to the present moment"""
+
     company = Company.objects.prefetch_related('companycharacteristics').get(ticker=ticker)
     company_data = company.companycharacteristics
     production_speed = company_data.production_speed
@@ -110,7 +112,8 @@ def make_new_shares(user_id, ticker, shares_type, amount, price):
 def recalculate_shares(obj: PlayerCompanies, shares_type, shares_amount):
     """
     there is no need to recalculate the user's share in the company since this will be done after someone
-    buys the user's shares on the stock exchange
+    buys the user's shares on the stock exchange.
+    Now they are on the stock exchange, but the owner is still the one who posted them
     """
     if shares_type == 1:
         obj.shares_amount -= shares_amount
@@ -194,6 +197,7 @@ def sell_products(ticker, product_type, amount) -> None:
 
 def validate_company_recipe(recipe_id, tickers: list):
     """checking the possibility of transmutating a company"""
+
     company_recipe = CompanyRecipe.objects.select_related('recipe', 'ingredient').filter(recipe_id=recipe_id)
     if len(company_recipe) == 0:
         raise CustomException('Recipe object with selected conditions does not exists')
@@ -274,8 +278,10 @@ def distribution_of_company_shares(user_id, companies, new_company, new_shares_a
 
     #clearing outdated shares
     PlayerCompanies.objects.filter(company__in=companies).delete()
+
     #warehouse demolition - no need for improvement for now
     CompanyWarehouse.objects.filter(company__in=companies).delete()
+
     #destruction of companies | in the future possible let them be, but silenced
     Company.objects.filter(ticker__in=[company.ticker for company in companies]).delete()
 

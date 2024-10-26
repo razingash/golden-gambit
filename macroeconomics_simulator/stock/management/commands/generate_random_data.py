@@ -11,7 +11,7 @@ from macroeconomics_simulator import settings
 from stock.models import GoldSilverExchange, Player, Company, PlayerCompanies, SharesExchange
 
 
-def falsify_gols_silver_history(gold_silver, iterations):
+def falsify_gold_silver_history(gold_silver, iterations):
     json_path = os.path.join(settings.MEDIA_ROOT, 'gold_silver_rate', f"{gold_silver.id}.json")
     current_time = datetime.datetime.now()
     min_gold_limit, max_gold_limit = 900_000_000, 1_001_000_000
@@ -23,7 +23,7 @@ def falsify_gols_silver_history(gold_silver, iterations):
     with open(json_path, 'r') as file:
         json_data = json.load(file)
 
-    for i in range(1, iterations):
+    for i in range(iterations):
         iteration_date = current_time - datetime.timedelta(days=i)
         timestamp = int(iteration_date.timestamp())
 
@@ -67,7 +67,7 @@ def falsify_company_history(iteration_days, company):
         "contents": []
     }
 
-    for i in range(1, iteration_days):
+    for i in range(iteration_days):
         timestamp = int((current_time - datetime.timedelta(days=i)).timestamp())
 
         affordable_silver = max(1, (affordable_silver * (1 + random.uniform(-0.05, 0.05))))
@@ -87,7 +87,7 @@ def falsify_company_history(iteration_days, company):
     with open(json_path, 'w') as json_file:
         json.dump(json_schema, json_file, indent=2)
 
-    company.save(document=True)
+    company.save()
 
 
 def sell_shares_retroactively(user_id, company, amount, price, shares_type, timezone1, timezone2):
@@ -152,7 +152,7 @@ class Command(BaseCommand):
 
         # creating Stock with history
         gold_silver = GoldSilverExchange.objects.create()
-        falsify_gols_silver_history(gold_silver, iteration_days)
+        falsify_gold_silver_history(gold_silver, iteration_days)
 
         # creating tickers & their history
         generate_companies(iteration_days)

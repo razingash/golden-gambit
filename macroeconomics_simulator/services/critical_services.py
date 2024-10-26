@@ -41,6 +41,10 @@ def get_top_companies_wealth(amount=10):
 
 """Perhaps these functions will be needed when creating bots"""
 def calculate_company_price(instance: Company): # company_income
+    """
+    currently used only for test celery tasks since there is no point in using save(document=True) for tests.
+    This will most likely all be removed later.
+    """
     assets_price = calculate_assets_price(instance.gold_reserve, instance.silver_reserve)
     commitment = calculate_commitment(instance)
     company_income = calculate_company_income(instance.id)

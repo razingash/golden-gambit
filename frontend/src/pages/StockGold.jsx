@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import "../styles/stock.css"
-import Chart from "../components/UI/Chart/Chart";
 import {useFetching} from "../hooks/useFetching";
 import StockServices from "../API/StockServices";
 import AdaptiveLoading from "../components/UI/AdaptiveLoading";
 import {useAuth} from "../hooks/context/useAuth";
 import GlobalTradeGoldForm from "../components/UI/Forms/GlobalTradeGoldForm";
 import UseEventSourcing from "../hooks/useEventSourcing";
+import ChartSvg from "../components/UI/ChartSvg";
 
 const StockGold = () => {
     const {isAuth} = useAuth();
@@ -84,7 +84,9 @@ const StockGold = () => {
                     )}
                 </div>
                 {chartData && chartData.length > 1 ? (
-                    <Chart data={chartData} strokeStyle={0} backgroundStyle={0} pointerStyle={0} searchKey={'current price'}/>
+                    <div className="field__chart chart__gold">
+                        <ChartSvg data={chartData} strokeStyle={1} backgroundStyle={1} pointerStyle={0} searchKey={'current price'}/>
+                    </div>
                 ) : (
                     <div className={"global__loading"}><AdaptiveLoading/></div>
                 )}

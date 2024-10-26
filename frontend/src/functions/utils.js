@@ -10,6 +10,12 @@ export const formatNumber = (num) => {
     return num.toString();
 }
 
+export const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleDateString([],
+        {hour:'2-digit',  minute:'2-digit',  day:'2-digit',  month:'2-digit',  year:'numeric'});
+}
+
 export const percentageOfNumber = (num1, num2) => {
     return (100 - (num1 * 100 / num2).toFixed(2)).toFixed(2)
 };
@@ -20,13 +26,6 @@ export const calculateFluctuations = (num1, num2) => {
 
 export const calculateWealth = (silver, gold, goldRate) => {
     return (+silver + +gold * goldRate).toFixed(2)
-}
-
-export const calculateWealthChanges = (current, previous, goldRate) => {
-    return percentageOfNumber(
-        calculateWealth(previous.silver, previous.gold, goldRate),
-        calculateWealth(current.silver, current.gold, goldRate)
-    ) + '%';
 }
 
 export const sharesTypes = { "ordinary": 1, "preferred": 2 };

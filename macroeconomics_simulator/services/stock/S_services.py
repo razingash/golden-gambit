@@ -35,7 +35,9 @@ def calculate_products_price(product_id, products_amount: int):
     return silver
 
 
-def get_available_company_shares_for_everyone(ticker, current_time, is_full=False): # unlogged users
+def get_available_company_shares_for_everyone(ticker, current_time, is_full=False): # non-logged users
+    """returns a list of shares for non-logged in users"""
+
     if is_full:
         objects = SharesExchange.objects.select_related(
             'company', 'player'
@@ -51,7 +53,7 @@ def get_availabale_company_shares_for_shareholders(ticker, current_time, user_id
     user_company = PlayerCompanies.objects.filter(company__ticker=ticker,
                                                   player_id=user_id).values_list('company_id', flat=True)
 
-    if user_company.exists():
+    if user_company.exists(): # shareholders
         if is_full:
             objects = SharesExchange.objects.select_related(
                 'company', 'player'
@@ -59,7 +61,7 @@ def get_availabale_company_shares_for_shareholders(ticker, current_time, user_id
                                                                                  'id', 'player_id').order_by('price')
         else:
             objects = SharesExchange.objects.filter(company_id=user_company.first(), owners_right__lt=current_time).order_by('price')
-    else:
+    else: # others
         objects = get_available_company_shares_for_everyone(ticker, current_time)
 
     return objects
@@ -75,20 +77,24 @@ def get_available_company_shares_for_owners(ticker, user_id, is_full=False): # l
             ).filter(company=user_company.first()).only('id', 'price', 'company_id', 'amount', 'player_id').order_by('price')
         else:
             objects = SharesExchange.objects.filter(company=user_company.first()).order_by('price')
-    else:
+    else: # this case should never arise
         objects = []
 
     return objects
 
 def get_available_company_shares(query_params, ticker, user_id=None):
-    if user_id is None:
+    """
+    returns a list of shares for the exchange depending on the user category: [company owner, shareholders, others]
+    """
+    if user_id is None: # non-logged users
         current_time = timezone.now()
         objects = get_available_company_shares_for_everyone(ticker, current_time)
     elif not PlayerCompanies.objects.filter(company__ticker=ticker, player_id=user_id, isHead=True).exists():
+        # sharegolders and others
         current_time = timezone.now()
         objects = get_availabale_company_shares_for_shareholders(ticker, current_time, user_id)
     else:
-        objects = get_available_company_shares_for_owners(ticker, user_id)
+        objects = get_available_company_shares_for_owners(ticker, user_id) # company owner
 
     obj, has_next = paginate_objects(objects, query_params)
 
@@ -101,6 +107,7 @@ def get_shares_on_stock_for_wholesale(query_params):
     able to receive shares available for purchase only to him or the owners of the shares, because implementing
     such logic is too resource-intensive
     """
+
     current_time = timezone.now()
 
     min_price_subquery = SharesExchange.objects.filter(
@@ -120,6 +127,7 @@ def get_shares_on_stock_for_wholesale(query_params):
 
 def buy_shares(user_id, ticker, amount, price, pk): # for silver
     """buys company shares in a certain quantity at a fixed price"""
+
     company = get_object(model=Company, condition=Q(ticker=ticker), fields=['id', 'silver_reserve', 'gold_reserve', 'company_price'])
 
     stock_shares = SharesExchange.objects.select_related(
@@ -166,6 +174,7 @@ def buy_shares(user_id, ticker, amount, price, pk): # for silver
 
 def buy_management_shares(user_id, ticker, amount, price, pk):
     """buys company shares in a certain quantity at a fixed price"""
+
     company = get_object(model=Company, condition=Q(ticker=ticker), fields=['id', 'silver_reserve', 'gold_reserve', 'company_price'])
 
     stock_shares = SharesExchange.objects.select_related(
@@ -216,6 +225,7 @@ def buy_management_shares(user_id, ticker, amount, price, pk):
 
 def transfer_money_from_buying_shares(seller, shares_type, company, player, available_shares, total_cost_for_lot):
     """charging money to the seller or company"""
+
     seller.shares_amount -= available_shares
     seller.save()
 
@@ -238,6 +248,7 @@ def buy_shares_wholesale(user_id, ticker, amount, offered_money, shares_type):
     money for the purchase will go to the company if the seller is the head of the company,
     otherwise the seller will receive the money
     """
+
     company = get_object(model=Company, condition=Q(ticker=ticker), fields=['id', 'silver_reserve', 'gold_reserve', 'company_price'])
     user = get_object(model=Player, condition=Q(id=user_id))
     offered_money = Decimal(offered_money)

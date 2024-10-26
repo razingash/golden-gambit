@@ -303,6 +303,24 @@ body {
     cursor: pointer;
 }
 
+.field__chart { /* настроить max-heiht в vh для частных случаев */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-basis: 100%;
+    aspect-ratio: 2 / 1;
+}
+.chart__company {
+    max-width: 1000px;
+    max-height: 500px;
+    height: fit-content;
+}
+.chart__gold {
+    max-width: 1000px;
+    max-height: 500px;
+    height: fit-content;
+}
+
 .dynamic_update_static {
     animation: calm 5s forwards;
 }
@@ -365,6 +383,14 @@ body {
     }
 }
 
+@media (max-width: 1100px) {
+    .chart__company {
+        margin: 0 40px;
+    }
+    .chart__gold {
+        margin: 0 40px;
+    }
+}
 @media (max-width: 768px){
     .menu__button {
         display: block;

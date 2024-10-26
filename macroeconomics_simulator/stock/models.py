@@ -18,7 +18,7 @@ def recalculate_company_price(company_instance): # good
     """company_cartoonist not included but most likely it is better to ignore it here"""
     company_silver = company_instance.silver_reserve
 
-    warehouses = CompanyWarehouse.objects.filter(company=company_instance).annotate(
+    warehouses = CompanyWarehouse.objects.filter(company_id=company_instance.pk).annotate(
         sale_price=F('product__productsexchange__sale_price')).aggregate(
         company_income=Sum(F('amount') * F('sale_price'))
     )

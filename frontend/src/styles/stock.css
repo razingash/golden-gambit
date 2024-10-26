@@ -10,7 +10,7 @@
     display: flex;
     align-items: center;
     justify-content: space-around;
-    margin: 0 15px 15px 15px;
+    margin: 0 40px 15px 40px;
     max-width: 1000px;
     width: 100%;
     padding: 14px;
@@ -64,6 +64,8 @@
     border-bottom: 2px solid var(--highlight-element-2);
     padding-bottom: 3px;
     margin-bottom: 3px;
+    position: relative;
+    z-index: 2;
 }
 .share__title {
     text-decoration: none;
