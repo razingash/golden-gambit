@@ -10,8 +10,8 @@ from django.db import models
 from django.db.models import Sum, F
 
 from macroeconomics_simulator import settings
-from stock.utils.utils_models import ProductTypes, CompanyTypes, SharesTypes, EventTypes,\
-    right_of_purchase_for_shareholders, right_of_purchase_for_owners
+from stock.utils.utils_models import ProductTypes, CompanyTypes, SharesTypes, EventTypes, \
+    right_of_purchase_for_shareholders, right_of_purchase_for_owners, EventStates
 
 
 def recalculate_company_price(company_instance): # good
@@ -52,7 +52,7 @@ class Player(AbstractUser):
 
 
 class ProductType(models.Model):
-    type = models.IntegerField(choices=ProductTypes.choices, blank=False, null=False)
+    type = models.PositiveSmallIntegerField(choices=ProductTypes.choices, blank=False, null=False)
     base_price = models.PositiveSmallIntegerField(blank=False, null=False)
 
     def __str__(self):
@@ -62,9 +62,11 @@ class ProductType(models.Model):
         db_table = 'dt_ProductType'
 
 
-class CompanyType(models.Model):
+class CompanyType(models.Model): # minimum is 600 per hour, maximum 6000, without events
     """all changes caused by laws and events are reflected on this model, and not on the Company model"""
-    type = models.IntegerField(choices=CompanyTypes.choices, blank=False, null=False)
+    type = models.PositiveSmallIntegerField(choices=CompanyTypes.choices, blank=False, null=False)
+    production_speed = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(10)], blank=False,  null=False)
+    production_volume = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(10)], blank=False, null=False)
     cartoonist = models.SmallIntegerField(blank=False, null=False)
 
     def __str__(self):
@@ -112,7 +114,7 @@ class AvailableProductsForProduction(models.Model):
 
 
 class Recipe(models.Model):
-    company_type = models.IntegerField(choices=CompanyTypes.choices, blank=False, null=False)
+    company_type = models.PositiveSmallIntegerField(choices=CompanyTypes.choices, blank=False, null=False)
     isAvailable = models.BooleanField(default=True, blank=False, null=False)
 
     def __str__(self):
@@ -197,6 +199,7 @@ class Company(models.Model):
 
 
 class CompanyWarehouse(models.Model):
+    """50_000 thousand for the company's target product and 10_000 for other products"""
     company = models.ForeignKey(Company, on_delete=models.PROTECT) # custom scenario
     product = models.ForeignKey(ProductType, on_delete=models.PROTECT)
     amount = models.PositiveIntegerField(default=0, blank=False, null=False)
@@ -220,23 +223,12 @@ class PlayerCompanies(models.Model):
         db_table = 'dt_PlayerCompanies'
 
 
-class CompanyCharacteristics(models.Model):
-    """changes caused by laws and events can be reflected in speed and volume fields"""
-    company = models.OneToOneField(Company, on_delete=models.CASCADE)
-    production_speed = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(5)], blank=False, null=False)
-    production_volume = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(5)], blank=False, null=False)
-    warehouse_capacity = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(5)], blank=False, null=False)
-
-    class Meta:
-        db_table = 'dt_CompanyData'
-
-
 class SharesExchange(models.Model):
     """this model is needed so that the company’s shareholders and the head himself have a chance to buy back
         the shares before they are put up for trading on SharesExchange model"""
     company = models.ForeignKey(Company, on_delete=models.CASCADE) # custom scenario?
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
-    shares_type = models.IntegerField(choices=SharesTypes.choices, blank=False, null=False)
+    shares_type = models.PositiveSmallIntegerField(choices=SharesTypes.choices, blank=False, null=False)
     amount = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100000)], blank=False, null=False)
     price = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10000)], blank=False, null=False)
     owners_right = models.DateTimeField(default=right_of_purchase_for_owners, blank=True, null=True)
@@ -249,7 +241,7 @@ class SharesExchange(models.Model):
 class SharesWholesaleTrade(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     buyer = models.ForeignKey(Player, on_delete=models.CASCADE)
-    shares_type = models.IntegerField(choices=SharesTypes.choices, blank=False, null=False)
+    shares_type = models.PositiveSmallIntegerField(choices=SharesTypes.choices, blank=False, null=False)
     desired_quantity = models.PositiveSmallIntegerField(blank=False, null=False, validators=[MinValueValidator(1)])
     reserved_money = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))], blank=False, null=False)
     purchased = models.PositiveSmallIntegerField(blank=False, null=False, validators=[MinValueValidator(1)]) # how many shares were purchased
@@ -301,11 +293,17 @@ class StateLaw(models.Model):
 
 
 class GlobalEvent(models.Model): # mb improve this model (add fields for custom description)
-    """events are needed mainly to stabilize the market and force some players to lose their tickers"""
-    type = models.IntegerField(choices=EventTypes.choices, blank=False, null=False)
-    since = models.DateField(auto_now_add=True, blank=False, null=False)
-    to = models.DateField(blank=True, null=True)
-    isActual = models.BooleanField(default=True, blank=False, null=False)
+    """
+    events are needed mainly to stabilize the market and force some players to lose their companies.
+    you can make a separate table for interrelated descriptions of events, but even if the maximum number of events
+    is only 5 events, you will have to do 13! / 8! special cases
+    """
+    type = models.PositiveSmallIntegerField(choices=EventTypes.choices, blank=False, null=False)
+    state = models.PositiveSmallIntegerField(choices=EventStates.choices, default=EventStates.INACTIVE, blank=False, null=False)
+    isActive = models.BooleanField(default=True, blank=False, null=False)
+    description = models.CharField(blank=False, null=False, max_length=500)
+    since = models.DateField(blank=False, null=True)
+    to = models.DateField(blank=False, null=True)
 
     class Meta:
         db_table = 'dt_Events'

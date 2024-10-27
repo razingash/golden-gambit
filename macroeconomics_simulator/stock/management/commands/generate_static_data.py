@@ -1,11 +1,25 @@
 from django.core.management import BaseCommand
 
 from stock.models import ProductType, CompanyType, AvailableProductsForProduction, CompanyRecipe, Recipe, \
-    ProductsExchange, StateLaw
-from stock.utils.utils_models import CompanyTypes, ProductTypes
+    ProductsExchange, StateLaw, GlobalEvent
+from stock.utils.utils_models import CompanyTypes, ProductTypes, EventTypes
 
 
-def add_available_products_for_production(company_instance):
+class Command(BaseCommand):
+    help = "command to fill database with static data"
+
+    def handle(self, *args, **options):
+        self.stdout.write(self.style.NOTICE('generating static data...'))
+
+        add_product_types()
+        add_company_types_and_recipes()
+        add_events()
+        create_laws()
+
+        self.stdout.write(self.style.SUCCESS('Static data generation has been completed'))
+
+
+def add_available_products_for_production(company_instance) -> None:
     company_type = company_instance.type
     product_type = None
     if company_type in [CompanyTypes.FARM, CompanyTypes.FISH_FARM, CompanyTypes.PLANTATION, CompanyTypes.DEEP_SEA_FISHING_ENTERPRISE]:
@@ -54,7 +68,7 @@ def add_available_products_for_production(company_instance):
         AvailableProductsForProduction.objects.create(company_type=company_instance, product_type=product_instance)
 
 
-def create_recipe(company_instance, *ingredients_with_amounts):
+def create_recipe(company_instance, *ingredients_with_amounts) -> None:
     recipe = Recipe.objects.create(company_type=company_instance)
 
     for company_type, amount in ingredients_with_amounts:
@@ -62,7 +76,7 @@ def create_recipe(company_instance, *ingredients_with_amounts):
         CompanyRecipe.objects.create(recipe=recipe, ingredient=ingredient, amount=amount)
 
 
-def add_advanced_company_recipes(company_type):  # adds recipes for tickers whose tier is higher than the first
+def add_advanced_company_recipes(company_type) -> None:  # adds recipes for tickers whose tier is higher than the first
     """
     probably it would be better to use fixtures, but considering that the balance may change, I chose this method,
     and it looks stupid...
@@ -120,60 +134,82 @@ def add_advanced_company_recipes(company_type):  # adds recipes for tickers whos
         create_recipe(company_instance, (CompanyTypes.OIL_COMPANY, 1), (CompanyTypes.CHEMICAL_PLANT, 1))
 
 
-class Command(BaseCommand):
-    help = "command to fill database with static data"
+def add_product_types() -> None:
+    product_types = [product_type.value for product_type in ProductTypes]
+    pt = ProductTypes
+    products_tier_1 = [pt.UNPROCESSED_FOOD, pt.MINERALS, pt.BASE_METALS, pt.CONSTRUCTION_RAW_MATERIALS, pt.WOOD,
+                       pt.SLATE, pt.LIMESTONE, pt.CLAY]
+    products_tier_2 = [pt.PROCESSED_FOOD, pt.PROCESSED_WOOD, pt.CHEMICALS, pt.PROCESSED_METALS, pt.BUILDING_MATERIALS,
+                       pt.TEXTILE]
+    products_tier_3 = [pt.MEDICINES, pt.MICROELECTRONICS, pt.MECHANICAL_PARTS, pt.FURNITURES, pt.CLOTHING]
+    products_tier_4 = [pt.OIL]
+    products_tier_5 = [pt.SPECIAL_CLOTHING, pt.WEAPONS, pt.FUEL]
 
-    def handle(self, *args, **options):
-        self.stdout.write(self.style.NOTICE('generating static data...'))
-        laws = [
-            {"title": "Law on Supporting Small Businesses During Gold Market Shortages", "description": "During severe market crises, when there is a shortage of gold on the exchange, developed tickers in the higher economic sectors may only purchase gold through a gold auction to protect small businesses and ensure a more equitable distribution of resources."},
-            {"title": "Law on State Monopoly over Gold Mining and Transit", "description": "The exclusive right to mine and transport gold belongs to the state."},
-            {"title": "Law on Progressive Tax for Idle Gold", "description": "Gold that remains unused for an extended period is subject to mandatory purchase by the state."},
-            {"title": "Law on State Support for Shareholding Companies", "description": "The state commits to purchasing products from tickers, at a state-determined price, if it owns at least 10% of their shares."},
-            {"title": "Law on supporting beginning investors", "description": "Those, and only those, whose savings are less than 100 gold can open a company once for free, while the rest will have to pay the full amount in order to expand their influence"},
-        ]
+    for product_type in product_types:  # adding product types
+        base_price = None
+        if product_type in products_tier_1:
+            base_price = 10
+        elif product_type in products_tier_2:
+            base_price = 20
+        elif product_type in products_tier_3:
+            base_price = 40
+        elif product_type in products_tier_4:
+            base_price = 60
+        elif product_type in products_tier_5:
+            base_price = 80
+        purchase_price = base_price * 10
 
-        pt = ProductTypes
-        product_types = [product_type.value for product_type in ProductTypes]
+        product = ProductType.objects.create(type=product_type, base_price=base_price)
+        ProductsExchange.objects.create(product=product, sale_price=base_price, purchase_price=purchase_price)
 
-        products_tier_1 = [pt.UNPROCESSED_FOOD, pt.MINERALS, pt.BASE_METALS, pt.CONSTRUCTION_RAW_MATERIALS, pt.WOOD,
-                           pt.SLATE, pt.LIMESTONE, pt.CLAY]
-        products_tier_2 = [pt.PROCESSED_FOOD, pt.PROCESSED_WOOD, pt.CHEMICALS, pt.PROCESSED_METALS, pt.BUILDING_MATERIALS,
-                           pt.TEXTILE]
-        products_tier_3 = [pt.MEDICINES, pt.MICROELECTRONICS, pt.MECHANICAL_PARTS, pt.FURNITURES, pt.CLOTHING]
-        products_tier_4 = [pt.OIL]
-        products_tier_5 = [pt.SPECIAL_CLOTHING, pt.WEAPONS, pt.FUEL]
 
-        company_types = [company_type.value for company_type in CompanyTypes]
-        default_companies = [CompanyTypes.FARM, CompanyTypes.FISH_FARM, CompanyTypes.MINE, CompanyTypes.QUARRY,
-                             CompanyTypes.SAWMILL, CompanyTypes.PLANTATION, CompanyTypes.ORE_MINE]
-        advanced_companies = [company_type.value for company_type in CompanyTypes if company_type not in default_companies]
+def add_company_types_and_recipes() -> None:
+    company_types = [company_type.value for company_type in CompanyTypes]
+    default_companies = [CompanyTypes.FARM, CompanyTypes.FISH_FARM, CompanyTypes.MINE, CompanyTypes.QUARRY,
+                         CompanyTypes.SAWMILL, CompanyTypes.PLANTATION, CompanyTypes.ORE_MINE]
+    advanced_companies = [company_type.value for company_type in CompanyTypes if company_type not in default_companies]
 
-        for product_type in product_types: # adding product types
-            base_price = None
-            if product_type in products_tier_1:
-                base_price = 10
-            elif product_type in products_tier_2:
-                base_price = 20
-            elif product_type in products_tier_3:
-                base_price = 40
-            elif product_type in products_tier_4:
-                base_price = 60
-            elif product_type in products_tier_5:
-                base_price = 80
-            purchase_price = base_price * 10
+    for company_type in company_types:  # adding company types
+        company = CompanyType.objects.create(type=company_type)
+        add_available_products_for_production(company)
 
-            product = ProductType.objects.create(type=product_type, base_price=base_price)
-            ProductsExchange.objects.create(product=product, sale_price=base_price, purchase_price=purchase_price)
+    for advanced_company_type in advanced_companies:  # adding recipes for tickers with a tier > 1
+        add_advanced_company_recipes(advanced_company_type)
 
-        for company_type in company_types: # adding company types
-            company = CompanyType.objects.create(type=company_type)
-            add_available_products_for_production(company)
 
-        for advanced_company_type in advanced_companies: # adding recipes for tickers with a tier > 1
-            add_advanced_company_recipes(advanced_company_type)
+def add_events() -> None:
+    events_description = {
+        "crop failure": "The harvest was significantly lower than expected, causing rising prices and food shortages.",
+        "rich harvest": "The land produced a bountiful harvest, filling warehouses and increasing the supply of products on the market.",
+        "earthquake": "Powerful aftershocks destroyed infrastructure, disrupting supplies and forcing businesses and communities to focus on recovery",
+        "flood": "Heavy rains caused rivers to overflow, flooding fields and populated areas, which caused disruptions in the production and supply of goods.",
+        "extreme heat": "Unprecedented heat has settled over the region, reducing worker productivity and leading to resource shortages in agriculture.",
+        "drought": "Long-term lack of rainfall has dried up farmland, sharply reducing food production.",
+        "forest fires": "Widespread forest fires have consumed large areas, destroying some of the resource reserves and limiting transportation options.",
+        "epidemic": "The disease is rapidly spreading throughout the region, limiting production capabilities and affecting supply and demand.",
+        "pandemic outbreak": "A rapidly spreading disease has swept through the population, causing massive labor losses and stalling economic activity.",
+        "workers’ strikes": "Massive strikes led to production stoppages and supply disruptions, increasing social tensions.",
+        "protests": "Mass protests swept the city, temporarily blocking transport and causing the suspension of many economic processes.",
+        "civil war": "The country is engulfed in internal conflict, which has destabilized the market, paralyzed business and led to mass migrations.",
+        "war": "Due to the outbreak of hostilities, supplies and production chains are threatened, and the population experiences shortages of essential goods.",
+    }
+    events = [event for event in EventTypes]
+    for event in events:
+        GlobalEvent.objects.create(type=event.value, description=events_description.get(event.label))
 
-        for law in laws:  # creating basic laws
-            StateLaw.objects.create(title=law.get('title'), description=law.get('description'))
 
-        self.stdout.write(self.style.SUCCESS('Static data generation has been completed'))
+def create_laws() -> None:
+    laws = [
+        {"title": "Law on Supporting Small Businesses During Gold Market Shortages",
+         "description": "During severe market crises, when there is a shortage of gold on the exchange, developed tickers in the higher economic sectors may only purchase gold through a gold auction to protect small businesses and ensure a more equitable distribution of resources."},
+        {"title": "Law on State Monopoly over Gold Mining and Transit",
+         "description": "The exclusive right to mine and transport gold belongs to the state."},
+        {"title": "Law on Progressive Tax for Idle Gold",
+         "description": "Gold that remains unused for an extended period is subject to mandatory purchase by the state."},
+        {"title": "Law on State Support for Shareholding Companies",
+         "description": "The state commits to purchasing products from tickers, at a state-determined price, if it owns at least 10% of their shares."},
+        {"title": "Law on supporting beginning investors",
+         "description": "Those, and only those, whose savings are less than 100 gold can open a company once for free, while the rest will have to pay the full amount in order to expand their influence"},
+    ]
+    for law in laws:  # creating basic laws
+        StateLaw.objects.create(title=law.get('title'), description=law.get('description'))

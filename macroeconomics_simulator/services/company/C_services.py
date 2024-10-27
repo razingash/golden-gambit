@@ -54,11 +54,9 @@ def get_company_inventory(ticker):
 def update_produced_products_amount(ticker):
     """available only to the owner of this company, receives goods produced up to the present moment"""
 
-    company = Company.objects.prefetch_related('companycharacteristics').get(ticker=ticker)
-    company_data = company.companycharacteristics
-    production_speed = company_data.production_speed
-    production_volume = company_data.production_volume
-    warehouse_capacity = company_data.warehouse_capacity
+    company = Company.objects.select_related('type').get(ticker=ticker)
+    production_speed = company.type.production_speed
+    production_volume = company.type.production_volume
 
     products = CompanyWarehouse.objects.filter(company_id=company.id)
     products_for_update = AvailableProductsForProduction.objects.filter(company_type=company.type, product_type__in=products.values_list('product', flat=True))
@@ -69,19 +67,19 @@ def update_produced_products_amount(ticker):
         time_difference = time_now - warehouse.check_date
         hours_passed = time_difference.total_seconds() / 3600
 
-        produced_per_hour = 60 * production_speed * production_volume
+        produced_per_hour = 600 * production_speed * production_volume
 
         total_produced = int(produced_per_hour * hours_passed)
 
         new_amount = warehouse.amount + total_produced
         remainder = warehouse.remainder or 0
 
-        if new_amount > warehouse_capacity * warehouse.max_amount: # при изменении логики warehouse_capacity!!!
+        if new_amount > warehouse.max_amount: # при изменении логики warehouse_capacity!!!
             remainder += new_amount - warehouse.max_amount
             new_amount = warehouse.max_amount
 
-        if remainder > 10000:
-            remainder = 10000
+        if remainder > 50000:
+            remainder = 50000
 
         warehouse.amount = new_amount
         warehouse.remainder = remainder

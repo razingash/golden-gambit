@@ -11,6 +11,24 @@ from macroeconomics_simulator import settings
 from stock.models import GoldSilverExchange, Player, Company, PlayerCompanies, SharesExchange
 
 
+class Command(BaseCommand):
+    help = "command to fill database with random data"
+
+    def handle(self, *args, **options):
+        self.stdout.write(self.style.NOTICE('generating random data...'))
+
+        iteration_days = 1001 # 1000
+
+        # creating Stock with history
+        gold_silver = GoldSilverExchange.objects.create()
+        falsify_gold_silver_history(gold_silver, iteration_days)
+
+        # creating tickers & their history
+        generate_companies(iteration_days)
+
+        self.stdout.write(self.style.SUCCESS('Random data generation has been completed'))
+
+
 def falsify_gold_silver_history(gold_silver, iterations):
     json_path = os.path.join(settings.MEDIA_ROOT, 'gold_silver_rate', f"{gold_silver.id}.json")
     current_time = datetime.datetime.now()
@@ -140,21 +158,3 @@ def generate_companies(iteration_days):
             company_ordinary_shares -= shares_for_sale
 
             sell_shares_retroactively(user.id, new_company, shares_for_sale, shares_price, 1, None, None)
-
-
-class Command(BaseCommand):
-    help = "command to fill database with random data"
-
-    def handle(self, *args, **options):
-        self.stdout.write(self.style.NOTICE('generating random data...'))
-
-        iteration_days = 1001 # 1000
-
-        # creating Stock with history
-        gold_silver = GoldSilverExchange.objects.create()
-        falsify_gold_silver_history(gold_silver, iteration_days)
-
-        # creating tickers & their history
-        generate_companies(iteration_days)
-
-        self.stdout.write(self.style.SUCCESS('Random data generation has been completed'))

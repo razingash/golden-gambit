@@ -66,15 +66,29 @@ class SharesTypes(models.IntegerChoices):
     PREFERRED = 2, 'preferred'
 
 
+class EventStates(models.IntegerChoices):
+    """You can make sure that the duration of events isn't random, but this is unnecessary"""
+    INACTIVE = 1, 'inactive' # default state
+    BEGINNING = 2, 'beginning' # weak price spike lasting 1-3 days
+    CULMINATION = 3, 'culmination' # depends on the event
+    CONSEQUENCES = 4, 'consequences' # average price spike lasting 3-6 days
+
+
 class EventTypes(models.IntegerChoices):
     CROP_FAILURE = 1, 'crop failure'
     RICH_HARVEST = 2, 'rich harvest'
     EARTHQUAKE = 3, 'earthquake'
-    LANDSLIDES = 4, 'landslides'
-    FLOOD = 5, 'flood'
-    EPIDEMIC = 6, 'epidemic'
-    PROTESTS = 7, 'Protests'
-    WAR = 8, 'war'
+    FLOOD = 4, 'flood'
+    EXTREME_HEAT = 5, 'extreme heat'
+    DROUGHT = 6, 'drought'
+    FOREST_FIRES = 7, 'forest fires'
+    EPIDEMIC = 8, 'epidemic'
+    PANDEMIC_OUTBREAK = 9, 'pandemic outbreak'
+    WORKERS_STRIKES = 10, 'workers’ strikes'
+    PROTESTS = 11, 'protests'
+    CIVIL_WAR = 12, 'civil war'
+    WAR = 13, 'war'
+
 
 def right_of_purchase_for_owners(): # shares are available only to the head of a company | mb owner also
     return timezone.now() + timedelta(hours=1)
