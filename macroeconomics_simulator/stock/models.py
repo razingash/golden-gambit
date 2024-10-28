@@ -62,11 +62,10 @@ class ProductType(models.Model):
         db_table = 'dt_ProductType'
 
 
-class CompanyType(models.Model): # minimum is 600 per hour, maximum 6000, without events
+class CompanyType(models.Model): # normally is 420 per hour, minimum is 4 p/h, maximum 840
     """all changes caused by laws and events are reflected on this model, and not on the Company model"""
     type = models.PositiveSmallIntegerField(choices=CompanyTypes.choices, blank=False, null=False)
-    production_speed = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(10)], blank=False,  null=False)
-    production_volume = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(10)], blank=False, null=False)
+    productivity = models.PositiveSmallIntegerField(default=20, validators=[MaxValueValidator(40)], blank=False,  null=False)
     cartoonist = models.SmallIntegerField(blank=False, null=False)
 
     def __str__(self):
@@ -300,10 +299,29 @@ class GlobalEvent(models.Model): # mb improve this model (add fields for custom 
     """
     type = models.PositiveSmallIntegerField(choices=EventTypes.choices, blank=False, null=False)
     state = models.PositiveSmallIntegerField(choices=EventStates.choices, default=EventStates.INACTIVE, blank=False, null=False)
-    isActive = models.BooleanField(default=True, blank=False, null=False)
     description = models.CharField(blank=False, null=False, max_length=500)
     since = models.DateField(blank=False, null=True)
     to = models.DateField(blank=False, null=True)
 
     class Meta:
         db_table = 'dt_Events'
+
+
+class EventImpactOnProduct(models.Model):
+    """needed to track random price changes so that after a change in the state of events, prices can be changed correctly"""
+    event = models.ForeignKey(GlobalEvent, on_delete=models.DO_NOTHING)
+    product = models.ForeignKey(ProductsExchange, on_delete=models.DO_NOTHING)
+    influence = models.SmallIntegerField(blank=False, null=False) # size of the price jump FOR SALE
+
+    class Meta:
+        db_table = 'dt_Impact_on_Products'
+
+
+class EventIpmactOnCompany(models.Model):
+    """needed to track random price changes so that after a change in the state of events, prices can be changed correctly"""
+    event = models.ForeignKey(GlobalEvent, on_delete=models.DO_NOTHING)
+    company_type = models.ForeignKey(CompanyType, on_delete=models.DO_NOTHING)
+    influence = models.SmallIntegerField(blank=False, null=False) # this field contains the level of productivity change
+
+    class Meta:
+        db_table = 'dt_Impact_on_Companies'

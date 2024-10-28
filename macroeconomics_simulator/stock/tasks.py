@@ -10,6 +10,7 @@ from django.db.models import Sum, F
 
 from macroeconomics_simulator import settings
 from services.critical_services import calculate_company_price
+from services.events.E_services import events_manager
 from stock.models import GoldSilverExchange, Player, Company, PlayerCompanies
 
 """
@@ -53,7 +54,7 @@ def accrue_company_passive_income():
 
 
 @shared_task # rabbitMQ | this one need personal worker
-def dividends_payment(): # try again later abulk_update
+def dividends_payment():
     """At the beginning, dividends are paid and then the company’s value is recalculated"""
 
     companies = Company.objects.prefetch_related('companywarehouse_set').all()
@@ -107,6 +108,11 @@ def update_daily_company_prices(): # try again later abulk_update
 
     with transaction.atomic():
         Company.objects.bulk_update(companies_to_update, ['daily_company_price'])
+
+@shared_task # rabbitMQ
+def attempt_to_run_event():
+    """starts an event or changes its stage with a certain probability"""
+    events_manager()
 
 
 """ testing(using redis) | Remove all later"""

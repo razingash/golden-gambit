@@ -24,6 +24,11 @@ app.conf.beat_schedule = {
         'schedule': crontab(hour='1'),
         'options': {'expires': 600}
     },
+    'attempt-to-change-the-market-every-2-hours': { # starts an event or changes its stage with a certain probability,
+        'task': 'stock.tasks.attempt_to_run_event',
+        'schedule': crontab(minute='0', hour='*/2'),
+        'options': {'expires': 3600}
+    },
     'accrue-passive-income-every-evening': {
         'task': 'stock.tasks.accrue_company_passive_income',
         'schedule': crontab(hour='22', minute='0'),

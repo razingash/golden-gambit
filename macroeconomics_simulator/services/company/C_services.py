@@ -1,7 +1,8 @@
 import json
 from decimal import Decimal
 
-from django.db.models import Q
+from django.db import transaction
+from django.db.models import Q, Sum, F
 
 from services.base import get_object
 from services.general_services import recalculation_of_the_shareholders_influence
@@ -10,6 +11,41 @@ from stock.utils.exceptions import CustomException
 from stock.models import Company, CompanyWarehouse, AvailableProductsForProduction, PlayerCompanies, \
     SharesExchange, Player, CompanyRecipe, GoldSilverExchange, ProductType
 from django.utils import timezone
+
+
+
+def recalculate_all_companies_prices(): # if there is time to make sure that only specific types of companies are changed
+    """recalculation of prices for all companies"""
+    companies = Company.objects.prefetch_related('companywarehouse_set').all()
+    companies_recalculation = []
+
+    gold_rate_current_price = GoldSilverExchange.objects.only('current_price').first().current_price
+
+    for company in companies:
+        company_silver = company.silver_reserve
+        warehouses = company.companywarehouse_set.annotate(
+            sale_price=F('product__productsexchange__sale_price')).aggregate(
+            company_income=Sum(F('amount') * F('sale_price'))
+        )
+        company_income = warehouses['company_income'] if warehouses['company_income'] is not None else 0
+
+        if company.gold_reserve > 0:
+            gold_price = gold_rate_current_price * company.gold_reserve
+            assets_price = gold_price + company_silver
+        else:
+            assets_price = company_silver
+
+        shares_amount = Decimal(company.shares_amount)
+        share_price = Decimal(company.share_price)
+        dividendes_percent = Decimal(company.dividendes_percent)
+
+        commitment = round(Decimal(shares_amount * share_price * dividendes_percent / 100), 2)
+
+        company.company_price = (assets_price + company_income) - commitment
+        companies_recalculation.append(company)
+
+    with transaction.atomic():
+        Company.objects.bulk_update(companies_recalculation, ['company_price'])
 
 
 def create_new_company(user_id, request_data):
@@ -55,19 +91,18 @@ def update_produced_products_amount(ticker):
     """available only to the owner of this company, receives goods produced up to the present moment"""
 
     company = Company.objects.select_related('type').get(ticker=ticker)
-    production_speed = company.type.production_speed
-    production_volume = company.type.production_volume
+    productivity = company.type.productivity
 
     products = CompanyWarehouse.objects.filter(company_id=company.id)
     products_for_update = AvailableProductsForProduction.objects.filter(company_type=company.type, product_type__in=products.values_list('product', flat=True))
     updated_products = []
-    for product_for_update in products_for_update:
+    for product_for_update in products_for_update: # the cycle occurs once
         warehouse = products.get(product=product_for_update.product_type)
         time_now = timezone.now()
         time_difference = time_now - warehouse.check_date
         hours_passed = time_difference.total_seconds() / 3600
 
-        produced_per_hour = 600 * production_speed * production_volume
+        produced_per_hour = int(4.2 * productivity)
 
         total_produced = int(produced_per_hour * hours_passed)
 
