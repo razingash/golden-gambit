@@ -67,6 +67,7 @@ class CompanyType(models.Model): # normally is 420 per hour, minimum is 4 p/h, m
     type = models.PositiveSmallIntegerField(choices=CompanyTypes.choices, blank=False, null=False)
     productivity = models.PositiveSmallIntegerField(default=20, validators=[MaxValueValidator(40)], blank=False,  null=False)
     cartoonist = models.SmallIntegerField(blank=False, null=False)
+    external_influence = models.SmallIntegerField(default=0, blank=False, null=False)
 
     def __str__(self):
         return CompanyTypes(self.type).label
@@ -251,7 +252,6 @@ class SharesWholesaleTrade(models.Model):
         db_table = 'dt_SharesWholesaleTrade'
 
 
-# Unrelated models
 class GoldSilverExchange(models.Model):
     base_price = models.PositiveSmallIntegerField(default=1000, unique=True, blank=False, null=False)
     current_price = models.DecimalField(max_digits=10, decimal_places=2, default=1000, blank=False, null=False)
@@ -274,6 +274,7 @@ class ProductsExchange(models.Model):
     product = models.OneToOneField(ProductType, on_delete=models.CASCADE)
     purchase_price = models.PositiveIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
     sale_price = models.PositiveIntegerField(validators=[MinValueValidator(1)], blank=False, null=False)
+    external_influence = models.SmallIntegerField(default=0, blank=False, null=False)
 
     class Meta:
         db_table = 'dt_ProductsExchange'
@@ -300,8 +301,7 @@ class GlobalEvent(models.Model): # mb improve this model (add fields for custom 
     type = models.PositiveSmallIntegerField(choices=EventTypes.choices, blank=False, null=False)
     state = models.PositiveSmallIntegerField(choices=EventStates.choices, default=EventStates.INACTIVE, blank=False, null=False)
     description = models.CharField(blank=False, null=False, max_length=500)
-    since = models.DateField(blank=False, null=True)
-    to = models.DateField(blank=False, null=True)
+    active_since = models.DateTimeField(blank=False, null=True, auto_now=True)
 
     class Meta:
         db_table = 'dt_Events'

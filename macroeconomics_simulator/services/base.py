@@ -15,7 +15,7 @@ def get_object(model: object, condition, fields=None): # the best way
         return obj
 
 
-def get_object_or_create(model: object, condition, condtion_create):
+def get_object_or_create(model: object, condition, condtion_create: dict):
     try:
         obj = model.objects.get(condition)
     except model.DoesNotExist:

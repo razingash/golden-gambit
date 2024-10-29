@@ -36,19 +36,19 @@ def events_operator(event_num):
     event = GlobalEvent.objects.get(type=EventTypes(event_num))
     price_jumps = { # bg - beginning, cn - culmination, cs - consequences
         "bg+": (10, 25), "bg++": (15, 45), "bg+++": (35, 65), "bg++++": (55, 105),
-        "bg-": (-10, -25), "bg--": (-15, -45), "bg---": (-35, -65), "bg----": (-55, -105),
+        "bg-": (-25, -10), "bg--": (-45, -15), "bg---": (-65, -35), "bg----": (-105, -55),
         "cn+": (10, 20), "cn++": (15, 40), "cn+++": (35, 60), "cn++++": (55, 100),
-        "cn-": (-10, -20), "cn--": (-15, -40), "cn---": (-35, -60), "cn----": (-55, -100),
+        "cn-": (-20, -10), "cn--": (-40, -15), "cn---": (-60, -35), "cn----": (-100, -55),
         "cs+": (5, 15), "cs++": (10, 35), "cs+++": (30, 55), "cs++++": (50, 95),
-        "cs-": (-5, -15), "cs--": (-10, -35), "cs---": (-30, -55), "cs----": (-50, -95),
+        "cs-": (-15, -5), "cs--": (-35, -10), "cs---": (-55, -30), "cs----": (-95, -50),
     }
     productivity_jumps = {
         "bg+": (1, 4), "bg++": (2, 5), "bg+++": (3, 7), "bg++++": (6, 10),
-        "bg-": (-1, -4), "bg--": (-2, -5), "bg---": (-3, -7), "bg----": (-6, -10),
+        "bg-": (-4, -1), "bg--": (-5, -2), "bg---": (-7, -3), "bg----": (-10, -6),
         "cn+": (1, 3), "cn++": (2, 4), "cn+++": (3, 6), "cn++++": (4, 8),
-        "cn-": (-1, -3), "cn--": (-2, -4), "cn---": (-3, -6), "cn----": (-4, -8),
+        "cn-": (-3, -1), "cn--": (-4, -2), "cn---": (-6, -3), "cn----": (-8, -4),
         "cs+": (1, 2), "cs++": (2, 3), "cs+++": (3, 5), "cs++++": (4, 7),
-        "cs-": (-1, -2), "cs--": (-2, -3), "cs---": (-3, -5), "cs----": (-4, -7),
+        "cs-": (-2, -1), "cs--": (-3, -2), "cs---": (-5, -3), "cs----": (-7, -4),
     }
     if event_num == 1:
         event_crop_failure(event, price_jumps, productivity_jumps, pt=ProductTypes, ct=CompanyTypes)
@@ -80,35 +80,57 @@ def events_operator(event_num):
 
 def change_product_prices(items_for_update: dict, jumps):
     new_prices = {}
-    for key, value in items_for_update:
-        new_prices[key] = random.randint(*jumps.get(value))
+    for key, value in items_for_update.items():
+        new_prices[key] = random.randint(*jumps[value])
 
     return new_prices
 
 
-def clear_event_consequences(event: GlobalEvent) -> None:
+def roll_back_event_consequences(event: GlobalEvent) -> None: # работает правильно для одного ивента и положительных модификаторов
     """neutralizes the consequences of the event"""
-    affected_products = EventImpactOnProduct.objects.select_related('product').filter(event=event)
+    """не учитывается пробитие предела"""
+    affected_products = EventImpactOnProduct.objects.select_related('product', 'product__product').filter(event=event)
     affected_companies = EventIpmactOnCompany.objects.select_related('company_type').filter(event=event)
     products_to_update, company_types_to_update = [], []
 
     for affected_product in affected_products:
         influence = affected_product.influence # 'influence' stores the level of price change for sale only
 
+        print('old', affected_product.product.purchase_price, affected_product.product.sale_price, influence)
+
         affected_product.product.purchase_price -= influence * 10
         affected_product.product.sale_price -= influence
+        """сделать для пробитого предела и всего остольного""" # базову цену можно получить!
+        """ пробитие предела с множеством действующих ивентов или одним не имеет смысла, все сразу сделать"""
+        affected_product.product.external_influence -= influence
 
+
+        if affected_product.product.purchase_price < 1:
+            affected_product.product.purchase_price = 1
+        elif affected_product.product.purchase_price > 1 and affected_product.product.purchase_price % 10 == 1:
+            affected_product.product.purchase_price -= 1
+        if affected_product.product.sale_price < 1:
+            affected_product.product.sale_price = 1
+        elif affected_product.product.sale_price > 1 and affected_product.product.sale_price % 10 == 1:
+            affected_product.product.sale_price -= 1
+
+        print('new', affected_product.product.purchase_price, affected_product.product.sale_price, influence)
         products_to_update.append(affected_product.product)
 
     for affected_company in affected_companies:
         influence = affected_company.influence # 'influence' stores the level of productivity
 
         affected_company.company_type.productivity -= influence
+        if affected_company.company_type.productivity < 0:
+            affected_company.company_type.productivity = 0
+        elif affected_company.company_type.productivity > 40:
+            affected_company.company_type.productivity = 40
+
         company_types_to_update.append(affected_company.company_type)
 
     with transaction.atomic():
-        ProductsExchange.objects.bulk_update(products_to_update, ['purchase_price', 'sale_price'])
-        CompanyType.objects.bulk_update(company_types_to_update, ['productivity'])
+        ProductsExchange.objects.bulk_update(products_to_update, ['purchase_price', 'sale_price', 'external_influence'])
+        CompanyType.objects.bulk_update(company_types_to_update, ['productivity', 'external_influence'])
 
         event.state = EventStates.INACTIVE
         event.save()
@@ -119,23 +141,91 @@ def clear_event_consequences(event: GlobalEvent) -> None:
 
 def set_event_consequences(event: GlobalEvent, products_on_stock: list, new_products_prices: dict, new_productivity: dict) -> None:
     """changes the economy according to events"""
-    changed_products = []
-    changed_company_types = []
+    # тут может быть что-то не так с changed_products для 10 потому что там возвращается числовое значение ивента
+    product_types_on_update, companies_type_on_update = [], [] # bulk_update
+    products_impact_on_update, companies_impact_on_update = [], [] # bulk_update
+    products_impact_on_create, companies_impact_on_create = [], [] # bulk_create
+    print(new_products_prices, new_productivity, sep='_____')
+    active_products_changes = EventImpactOnProduct.objects.select_related('product').filter(event=event)
+    active_companies_changes = EventIpmactOnCompany.objects.select_related('company_type').filter(event=event)
+
+    active_products = {obj.product.product: obj for obj in active_products_changes}
+    active_companies = {obj.company_type.type: obj for obj in active_companies_changes}
+
     for product_exchange in products_on_stock:
         product_type = product_exchange.product.type
-        price_influence = new_products_prices.get(product_type)
+        new_price_influence = new_products_prices.get(product_type)
 
-        changed_product = EventImpactOnProduct(event=event, influence=price_influence, product=product_exchange)
-        changed_products.append(changed_product)
+        # check if an EventImpactOnProduct already exists for this event and product
+        if product_exchange.product in active_products: # update
+            updated_product_impact = active_products[product_exchange.product]
+            # cancel out a previous change from the same event
+            product_exchange.purchase_price += (new_price_influence - updated_product_impact.influence) * 10
+            product_exchange.sale_price += (new_price_influence - updated_product_impact.influence)
+            product_exchange.external_influence += (new_price_influence - updated_product_impact.influence)
+            # updates outdated data
+            updated_product_impact.influence = new_price_influence
+            products_impact_on_update.append(updated_product_impact)
+        else: # create
+            product_exchange.purchase_price += new_price_influence * 10
+            product_exchange.sale_price += new_price_influence
+            product_exchange.external_influence += new_price_influence
+            new_product = EventImpactOnProduct(event=event, influence=new_price_influence, product=product_exchange)
+            products_impact_on_create.append(new_product)
 
-    for key, value in new_productivity:
-        changed_company_type = EventIpmactOnCompany(event=event, company__type=key, influence=value)
-        changed_company_types.append(changed_company_type)
+        # modification of prices for goods
+        if product_exchange.purchase_price < 1:
+            product_exchange.purchase_price = 1
+        elif product_exchange.purchase_price > 1 and product_exchange.purchase_price % 10 == 1:
+            product_exchange.purchase_price -= 1
+        if product_exchange.sale_price < 1:
+            product_exchange.sale_price = 1
+        elif product_exchange.sale_price > 1 and product_exchange.sale_price % 10 == 1:
+            product_exchange.sale_price -= 1
+
+        product_types_on_update.append(product_exchange)  # store new product price
+
+    company_types = CompanyType.objects.filter(type__in=new_productivity.keys())
+    for company_type in company_types:
+        new_influence = new_productivity[company_type.type]
+        # check if an EventIpmactOnCompany already exists for this event and company
+        if company_type.type in active_companies: # update
+            updated_company_impact = active_companies[company_type.type]
+
+            # cancel out a previous change from the same event
+            company_type.productivity += (new_influence - updated_company_impact.influence)
+            company_type.external_influence += (new_influence - updated_company_impact.influence)
+
+            updated_company_impact.influence = new_influence
+            companies_impact_on_update.append(updated_company_impact)
+        else: # create
+            company_type.productivity += new_influence
+            new_company = EventIpmactOnCompany(event=event, company_type=company_type, influence=new_influence)
+            companies_impact_on_create.append(new_company)
+
+        # modification of productivity for company types
+        if company_type.productivity < 0:
+            company_type.productivity = 0
+        elif company_type.productivity > 40:
+            company_type.productivity = 40
+
+        companies_type_on_update.append(company_type)  # store new productivity
 
     with transaction.atomic():
         event.state += 1
         event.save()
-        EventImpactOnProduct.objects.bulk_create(changed_products)
+        # saving changes so that prices can be rolled back correctly later
+        EventImpactOnProduct.objects.bulk_update(products_impact_on_update, ['influence'])
+        EventImpactOnProduct.objects.bulk_create(products_impact_on_create)
+
+        EventIpmactOnCompany.objects.bulk_update(companies_impact_on_update, ['influence'])
+        EventIpmactOnCompany.objects.bulk_create(companies_impact_on_create)
+
+        #saving changes directrly
+        print([k.__dict__ for k in product_types_on_update])
+        print([k.__dict__ for k in companies_type_on_update])
+        ProductsExchange.objects.bulk_update(product_types_on_update, ['purchase_price', 'sale_price', 'external_influence'])
+        CompanyType.objects.bulk_update(companies_type_on_update, ['productivity', 'external_influence'])
 
 
 def event_crop_failure(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) -> None:
@@ -145,9 +235,9 @@ def event_crop_failure(event: GlobalEvent, price_jumps, productivity_jumps, pt, 
     -- FARM, PLANTATION
     - FOOD_FACTORY
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4: # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         products_on_stock = ProductsExchange.objects.select_related('product').filter(
             product__type__in=[pt.UNPROCESSED_FOOD, pt.PROCESSED_FOOD]
@@ -170,9 +260,9 @@ def event_rich_harvest(event: GlobalEvent, price_jumps, productivity_jumps, pt, 
     ++ FARM, PLANTATION
     + FOOD_FACTORY
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4:  # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         products_on_stock = ProductsExchange.objects.select_related('product').filter(
             product__type__in=[pt.UNPROCESSED_FOOD, pt.PROCESSED_FOOD]
@@ -199,9 +289,9 @@ def event_earthquake(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct
     [from - to --] DEEP_SEA_FISHING_ENTERPRISE
     [from - to ---] random companies except FISH_FARM, DEEP_SEA_FISHING_ENTERPRISE, MINE, ORE_MINE, CONSTRUCTION_COMPANY
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4:  # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         products_on_stock = ProductsExchange.objects.select_related('product').filter(
             product__type__in=[pt.CONSTRUCTION_RAW_MATERIALS, pt.FURNITURES, pt.MINERALS, pt.BASE_METALS, pt.SLATE,
@@ -242,9 +332,9 @@ def event_flood(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) -> 
     [from - to --] for SAWMILL, FARM, PLANTATION
     [from - to --] random companies except FISH_FARM, DEEP_SEA_FISHING_ENTERPRISE, DEFENSE_INDUSTRY
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4:  # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         products_on_stock = ProductsExchange.objects.select_related('product').filter(
             product__type__in=[pt.UNPROCESSED_FOOD, pt.PROCESSED_FOOD, pt.CLOTHING]
@@ -259,11 +349,13 @@ def event_flood(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) -> 
         companies_for_update = {}
 
         for i in range(random.randint(1, 6)):
-            companies_for_update[ct(random.randint(1, 25))] = random.randint(1, 2) * '-'
+            companies_for_update[ct(random.randint(1, 25))] = f"{mod}{random.randint(1, 2) * '-'}"
 
         companies_for_update.update({
-            ct.SAWMILL: ct_fluctuation1, ct.FARM: ct_fluctuation2, ct.PLANTATION: ct_fluctuation3
+            ct.SAWMILL: f'{mod}{ct_fluctuation1}', ct.FARM: f'{mod}{ct_fluctuation2}',
+            ct.PLANTATION: f'{mod}{ct_fluctuation3}'
         })
+
         excluded_company_types = {ct.FISH_FARM, ct.DEEP_SEA_FISHING_ENTERPRISE, ct.DEFENSE_INDUSTRY}
         for key in excluded_company_types:
             companies_for_update.pop(key, None)
@@ -282,9 +374,9 @@ def event_extreme_heat(event: GlobalEvent, price_jumps, productivity_jumps, pt, 
     -- FARM, PLANTATION
     - DEEP_SEA_FISHING_ENTERPRISE
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4:  # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         products_on_stock = ProductsExchange.objects.select_related('product').filter(
             product__type__in=[pt.UNPROCESSED_FOOD, pt.PROCESSED_FOOD]
@@ -308,9 +400,9 @@ def event_drought(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) -
     -- FARM, PLANTATION
     - SAWMILL
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4:  # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         products_on_stock = ProductsExchange.objects.select_related('product').filter(
             product__type__in=[pt.UNPROCESSED_FOOD, pt.PROCESSED_FOOD, pt.WOOD]
@@ -335,9 +427,9 @@ def event_forest_fires(event: GlobalEvent, price_jumps, productivity_jumps, pt, 
     [from - to --] WOOD_PROCESSING_PLANT
     - FURNITURE_FACTORY,
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4:  # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         products_on_stock = ProductsExchange.objects.select_related('product').filter(
             product__type__in=[pt.WOOD, pt.PROCESSED_WOOD]
@@ -346,7 +438,7 @@ def event_forest_fires(event: GlobalEvent, price_jumps, productivity_jumps, pt, 
         ct_fluctuation1 = random.randint(1, 2) * '-'
 
         products_for_update = {pt.WOOD: f'{mod}++', pt.PROCESSED_WOOD: f'{mod}++'}
-        companies_for_update = {ct.SAWMILL: f'{mod}--', ct.WOOD_PROCESSING_PLANT: ct_fluctuation1,
+        companies_for_update = {ct.SAWMILL: f'{mod}--', ct.WOOD_PROCESSING_PLANT: f'{mod}{ct_fluctuation1}',
                                 ct.FURNITURE_FACTORY: f'{mod}-'}
 
         new_products_prices = change_product_prices(items_for_update=products_for_update, jumps=price_jumps)
@@ -365,9 +457,9 @@ def event_epidemic(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) 
     - OIL_COMPANY, OIL_REFINING_COMPANY
     [from 'no changes' to -] random companies except OIL_COMPANY, OIL_REFINING_COMPANY
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4:  # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         products_on_stock = ProductsExchange.objects.select_related('product').filter(
             product__type__in=[pt.MEDICINES, pt.FUEL]
@@ -385,7 +477,7 @@ def event_epidemic(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) 
                 companies_for_update[company_type] = f'{mod}-'
 
         companies_for_update.update({
-            ct.CHEMICAL_PLANT: f'{mod}+', ct.PHARMACEUTICAL_COMPANY: ct_fluctuation1,
+            ct.CHEMICAL_PLANT: f'{mod}+', ct.PHARMACEUTICAL_COMPANY: f'{mod}{ct_fluctuation1}',
             ct.OIL_COMPANY: f'{mod}-', ct.OIL_REFINING_COMPANY: f'{mod}-'
         })
 
@@ -406,9 +498,9 @@ def event_pandemic_outbreak(event: GlobalEvent, price_jumps, productivity_jumps,
     [from - to --] for all except PHARMACEUTICAL_COMPANY, CHEMICAL_PLANT, DEEP_SEA_FISHING_ENTERPRISE, FARM, FISH_FARM,
     MINE, ORE_MINE, QUARRY, SAWMILL
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4:  # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         products_on_stock = ProductsExchange.objects.select_related('product').filter(
             product__type__in=[pt.MEDICINES, pt.PROCESSED_FOOD, pt.CHEMICALS, pt.OIL, pt.FUEL]
@@ -425,7 +517,7 @@ def event_pandemic_outbreak(event: GlobalEvent, price_jumps, productivity_jumps,
             ct.FISH_FARM, ct.MINE, ct.ORE_MINE, ct.QUARRY, ct.SAWMILL
         }
         companies_for_update = {
-            company: f"{random.randint(1, 2) * '-'}"
+            company: f"{mod}{random.randint(1, 2) * '-'}"
             for company in ct if company not in excluded_companies
         }
 
@@ -439,15 +531,15 @@ def event_pandemic_outbreak(event: GlobalEvent, price_jumps, productivity_jumps,
                                new_products_prices=new_products_prices, new_productivity=new_productivity)
 
 
-def event_workers_strikes(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) -> None: # чекнуть эту хуйню |x3
+def event_workers_strikes(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) -> None: # тут что-то не то с продуктами
     """                 impact on product prices
     [from + to ++] for several products
                         impact on companies' production capacity
     [from - to --] for several companies
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4:  # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         random_companies = []
         for i in range(random.randint(1, 6)):
@@ -483,9 +575,9 @@ def event_protests(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) 
     --- for one or two companies
     [from 'no changes' to -] for all companies
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4:  # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         company_types_for_change, targeted_company_types = [], []
         for company_type in ct:
@@ -530,9 +622,9 @@ def event_civil_war(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct)
                         impact on companies' production capacity
     [from - to --] for all companies
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4:  # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         products_on_stock = ProductsExchange.objects.select_related('product').all()
         mod = get_modificator(event_value)
@@ -566,9 +658,9 @@ def event_war(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) -> No
     + GLASS_FACTORY, FOOD_FACTORY
     [from - to ---] for all
     """
-    event_value = event.state.value
+    event_value = event.state
     if event_value == 4:  # from consequences, to inactive state
-        clear_event_consequences(event)
+        roll_back_event_consequences(event)
     else:
         products_on_stock = ProductsExchange.objects.select_related('product').all()
 
