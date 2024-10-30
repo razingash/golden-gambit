@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useFetching} from "../hooks/useFetching";
 import StockServices from "../API/StockServices";
 import AdaptiveLoading from "../components/UI/AdaptiveLoading";
@@ -15,7 +15,7 @@ const StockShares = () => {
     const [hasNext, setNext] = useState(false);
     const lastElement = useRef();
     const [shares, setShares] = useState([]);
-    const [fetchShares, isSharesLoading] = useFetching(async () => {
+    const [fetchShares, isSharesLoading] = useFetching(useCallback(async () => {
         const data = await StockServices.getStockShares(page);
         setShares((prevShares) => {
             const newShares = data.data.filter(
@@ -24,7 +24,7 @@ const StockShares = () => {
             return [...prevShares, ...newShares]
         })
         setNext(data.has_next)
-    })
+    }, [page]))
 
     useObserver(lastElement, fetchShares, isSharesLoading, hasNext, page, setPage);
 
@@ -45,7 +45,7 @@ const StockShares = () => {
                 {shares.length > 0 ? (
                     <div className={"shares__list"}>
                         {shares.map((share, index) => (
-                            <div className={"share__item"} key={share.id} ref={index === shares.length - 1 ? lastElement : null}>
+                            <div className={"share__item"} key={share.ticker} ref={index === shares.length - 1 ? lastElement : null}>
                                 <Link to={`/companies/${share.ticker}/`} className={"share__title"}>{share.name}</Link>
                                 <div className={"share__row"}>
                                     <div>ticker</div>

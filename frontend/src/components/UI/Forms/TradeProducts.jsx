@@ -2,7 +2,7 @@ import React from 'react';
 import {useFetching} from "../../../hooks/useFetching";
 import StockServices from "../../../API/StockServices";
 import useInput from "../../../hooks/useInput";
-import {tradingTypes} from "../../../functions/utils";
+import {selectTradingType} from "../../../functions/utils";
 
 const TradeProducts = ( {productType} ) => {
     const amount = useInput('');
@@ -24,8 +24,8 @@ const TradeProducts = ( {productType} ) => {
             {productsTradeError?.amount && <div className={"cell__error"}>{productsTradeError?.amount}</div>}
             <input className={"input__default"} {...ticker} type={"text"} placeholder={"ticker"}/>
             {productsTradeError?.ticker && <div className={"cell__error"}>{productsTradeError?.ticker}</div>}
-            <select {...tradingTypes} onChange={(e) => tradeType.onChange(e)}>
-                {Object.entries(tradingTypes).map(([trade, type]) => (
+            <select {...selectTradingType} onChange={(e) => tradeType.onChange(e)}>
+                {Object.entries(selectTradingType).map(([trade, type]) => (
                     <option key={trade} value={type}>{trade}</option>
                 ))}
             </select>

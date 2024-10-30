@@ -8,6 +8,7 @@ from django.core.management import BaseCommand
 from django.utils import timezone
 
 from macroeconomics_simulator import settings
+from services.events.E_services import events_manager
 from stock.models import GoldSilverExchange, Player, Company, PlayerCompanies, SharesExchange
 
 
@@ -26,7 +27,14 @@ class Command(BaseCommand):
         # creating tickers & their history
         generate_companies(iteration_days)
 
+        call_events() #calling events
+
         self.stdout.write(self.style.SUCCESS('Random data generation has been completed'))
+
+
+def call_events(num=10): # for 10 iterations there will be approximately 6 active events
+    for i in range(num):
+        events_manager()
 
 
 def falsify_gold_silver_history(gold_silver, iterations):

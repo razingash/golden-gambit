@@ -21,8 +21,10 @@ def events_manager(): # calibrate?
         events_operator(event_num)
 
         recalculate_all_companies_prices()
-    elif random_value < probability * 2: # probability of pushing an active event
-        event_num = active_events[random.randint(0, len(active_events)-1)].type.value
+    elif random_value < probability * 2 and active_events: # probability of pushing an active event
+        index = random.randint(0, len(active_events) - 1)
+        event_num = active_events[index].type
+
         events_operator(event_num)
 
         recalculate_all_companies_prices()

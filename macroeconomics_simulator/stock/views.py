@@ -12,11 +12,12 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from rest_framework_simplejwt.views import TokenVerifyView
 
-from services.base import get_paginated_objects, get_object
+from services.base import get_paginated_objects, get_object, paginate_objects
 from services.critical_services import get_current_gold_silver_rate
 from services.company.C_services import create_new_company, get_company_inventory, update_produced_products_amount, \
     make_new_shares, put_up_shares_for_sale, get_company_history, buy_products, sell_products, get_top_companies, \
     get_available_recipes, merge_companies
+from services.general_services import get_current_events
 from services.stock.S_services import purchase_gold, sell_gold, get_gold_history, get_available_company_shares, \
     buy_shares, buy_management_shares, buy_shares_wholesale, get_shares_on_stock_for_wholesale
 from services.user.U_services import get_player, get_user_companies, get_top_users, get_user_shares
@@ -391,7 +392,9 @@ class LawsApiView(APIView):
 
 class EventsApiView(APIView):
     def get(self, request):
-        events, has_next = get_paginated_objects(model=GlobalEvent, query_params=request.query_params)
+        objects = get_current_events()
+
+        events, has_next = paginate_objects(objects=objects, query_params=request.query_params)
         serializer = EventsSerializer(events, many=True)
 
         return Response({'data': serializer.data, 'has_next': has_next})

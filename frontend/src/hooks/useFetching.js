@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useCallback, useState} from "react";
 
 export const useFetching = (callback, delay=0) => {
     const [isLoading, setIsLoading] = useState(null);
@@ -7,6 +7,7 @@ export const useFetching = (callback, delay=0) => {
 
     const fetching = async (...args) => {
         if (isSpammed) return;
+        console.log('usefetching')
         try {
             setIsSpammed(true);
             setIsLoading(true);

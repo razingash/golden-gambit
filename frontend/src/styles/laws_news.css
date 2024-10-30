@@ -27,22 +27,12 @@
 .law__limits {
     display: flex;
     flex-wrap: wrap;
-}
-
-.law__start {
-
-}
-
-.law__end {
-
+    flex-grow: 1;
+    justify-content: space-between;
 }
 
 .law__description {
     margin: 8px;
-}
-
-.law__is-actual {
-
 }
 
 @media (max-width: 789px) {

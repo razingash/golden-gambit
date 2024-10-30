@@ -1,4 +1,5 @@
-from stock.models import PlayerCompanies
+from stock.models import PlayerCompanies, GlobalEvent
+
 
 def recalculation_of_the_shareholders_influence(company_id) -> None:
     """recalculates the influence of shareholders to determine the current head of the company"""
@@ -8,3 +9,9 @@ def recalculation_of_the_shareholders_influence(company_id) -> None:
         current_head.isHead = False
         head.isHead = True
         current_head.save(), head.save()
+
+
+def get_current_events():
+    events = GlobalEvent.objects.only('type', 'state', 'description').filter(state__in=[2, 3, 4])
+
+    return events

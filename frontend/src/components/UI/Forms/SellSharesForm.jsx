@@ -2,7 +2,7 @@ import React from 'react';
 import useInput from "../../../hooks/useInput";
 import {useFetching} from "../../../hooks/useFetching";
 import CompaniesService from "../../../API/CompaniesService";
-import {sharesTypes} from "../../../functions/utils";
+import {selectSharesType} from "../../../functions/utils";
 
 const SellSharesForm = ({ticker, setShares}) => {
     const amount = useInput('');
@@ -37,8 +37,8 @@ const SellSharesForm = ({ticker, setShares}) => {
             {sellSharesError?.amount && <div className={"cell__error"}>{sellSharesError?.amount}</div>}
             <input className={"input__default"} {...price} type={"price"} placeholder={"price"}/>
             {sellSharesError?.price && <div className={"cell__error"}>{sellSharesError?.price}</div>}
-            <select className={"select__default"} {...sharesTypes} onChange={(e) => sharesType.onChange(e)}>
-                {Object.entries(sharesTypes).map(([shares, type]) => (
+            <select className={"select__default"} {...selectSharesType} onChange={(e) => sharesType.onChange(e)}>
+                {Object.entries(selectSharesType).map(([shares, type]) => (
                     <option className={"option__default"} key={shares} value={type}>{shares}</option>
                 ))}
             </select>

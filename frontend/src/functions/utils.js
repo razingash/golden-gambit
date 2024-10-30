@@ -28,121 +28,47 @@ export const calculateWealth = (silver, gold, goldRate) => {
     return (+silver + +gold * goldRate).toFixed(2)
 }
 
-export const sharesTypes = { "ordinary": 1, "preferred": 2 };
-
-export const tradingTypes = { "purchase": "buy", "sale": "sell" };
+export const selectSharesType = { "ordinary": 1, "preferred": 2 };
+export const selectTradingType = { "purchase": "buy", "sale": "sell" };
 
 export const decodeSharesType = (num) => {
-    switch (num) {
-        case 1:
-            return 'ordinary'
-        case 2:
-            return 'preferred'
-    }
+    const data = {1: 'ordinary', 2: 'preferred'}
+    return data[num] || 'incorrect data was transmitted';
 }
 
 export const decodeCompanyType = (num) => {
-    switch (num) {
-        case 1:
-            return "farm"
-        case 2:
-            return "fish farm"
-        case 3:
-            return "mine"
-        case 4:
-            return "ore mine"
-        case 5:
-            return "quarry"
-        case 6:
-            return "sawmill"
-        case 7:
-            return "plantation"
-        case 8:
-            return "food factory"
-        case 9:
-            return "deep sea fishing enterprise"
-        case 10:
-            return "chemical plant"
-        case 11:
-            return "metallburgical plant"
-        case 12:
-            return "brick factory"
-        case 13:
-            return "glass factory"
-        case 14:
-            return "wood processing plant"
-        case 15:
-            return "textile factory"
-        case 16:
-            return "pharmaceutical company"
-        case 17:
-            return "microelectonics production plant"
-        case 18:
-            return "engineering plant"
-        case 19:
-            return "furniture factory"
-        case 20:
-            return "clothing factory"
-        case 21:
-            return "oil company"
-        case 22:
-            return "oil refining company"
-        case 23:
-            return "defense industry"
-        case 24:
-            return "construction company"
-        case 25:
-            return "clothing factory 2"
+    const data = {
+        1: "farm", 2: "fish farm", 3: "mine", 4: "ore mine", 5: "quarry", 6: "sawmill", 7: "plantation",
+        8: "food factory", 9: "deep sea fishing enterprise", 10: "chemical plant", 11: "metallburgical plant",
+        12: "brick factory", 13: "glass factory", 14: "wood processing plant", 15: "textile factory",
+        16: "pharmaceutical company", 17: "microelectonics production plant", 18: "engineering plant",
+        19: "furniture factory", 20: "clothing factory", 21: "oil company", 22: "oil refining company",
+        23: "defense industry", 24: "construction company", 25: "clothing factory 2"
     }
+    return data[num] || 'incorrect data was transmitted';
 }
 
 export const decodeProductType = (num) => {
-    switch (num) {
-        case 1:
-            return "unprocessed food"
-        case 2:
-            return "minerals"
-        case 3:
-            return "base metals"
-        case 4:
-            return "slate"
-        case 5:
-            return "limestone"
-        case 6:
-            return "clay"
-        case 7:
-            return "wood"
-        case 8:
-            return "processed food"
-        case 9:
-            return "chemicals"
-        case 10:
-            return "processed metals"
-        case 11:
-            return "building materials"
-        case 12:
-            return "processed wood"
-        case 13:
-            return "textile"
-        case 14:
-            return "medicines"
-        case 15:
-            return "microelectronics"
-        case 16:
-            return "mechanical parts"
-        case 17:
-            return "furnitures"
-        case 18:
-            return "clothing"
-        case 19:
-            return "oil"
-        case 20:
-            return "special clothing"
-        case 21:
-            return "weapons"
-        case 22:
-            return "fuel"
-        case 23:
-            return "construction raw materials"
+    const data = {
+        1: "unprocessed food", 2: "minerals", 3: "base metals", 4: "slate", 5: "limestone", 6: "clay", 7: "wood",
+        8: "construction raw materials", 9: "processed food", 10: "chemicals", 11:" processed metals",
+        12: "building materials", 13: "processed wood", 14:" textile", 15: "medicines", 16: "microelectronics",
+        17: "mechanical parts", 18: "furnitures", 19: "clothing", 20: "oil", 21: "special clothing", 22: "weapons",
+        23: "fuel",
     }
+    return data[num] || 'incorrect data was transmitted';
+}
+
+export const decodeEventType = (num) => {
+    const data = {
+        1: 'Crop Failure', 2: 'Rich Harvest', 3: 'Earthquake', 4: 'Flood', 5: 'Extreme heat', 6: 'Drought',
+        7: 'Forest Fires', 8: 'Epidemic', 9: 'Pandemic Outbreak', 10: 'Workers’ Strikes', 11: 'Protests',
+        12: 'Civil War', 13: 'War'
+    }
+    return data[num] || 'incorrect data was transmitted';
+}
+
+export const decodeEventState = (num) => {
+    const data = {2: 'beginning', 3: "culmination", 4: "consequences"}
+    return data[num] || 'incorrect data was transmitted';
 }

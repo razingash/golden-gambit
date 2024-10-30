@@ -40,26 +40,25 @@ class ProductTypes(models.IntegerChoices):
     LIMESTONE = 5, 'limestone'
     CLAY = 6, 'clay'
     WOOD = 7, 'wood'
+    CONSTRUCTION_RAW_MATERIALS = 8, 'construction raw materials'
     # 2x
-    PROCESSED_FOOD = 8, 'processed food'
-    CHEMICALS = 9, 'chemicals'
-    PROCESSED_METALS = 10, 'processed metals'
-    BUILDING_MATERIALS = 11, 'building materials' # x8
-    PROCESSED_WOOD = 12, 'processed wood'
-    TEXTILE = 13, 'textile'
+    PROCESSED_FOOD = 9, 'processed food'
+    CHEMICALS = 10, 'chemicals'
+    PROCESSED_METALS = 11, 'processed metals'
+    BUILDING_MATERIALS = 12, 'building materials' # x8
+    PROCESSED_WOOD = 13, 'processed wood'
+    TEXTILE = 14, 'textile'
     # 4x
-    MEDICINES = 14, 'medicines'
-    MICROELECTRONICS = 15, 'microelectronics'
-    MECHANICAL_PARTS = 16, 'mechanical parts'
-    FURNITURES = 17, 'furnitures'
-    CLOTHING = 18, 'clothing'
-    OIL = 19, 'oil' # x6
+    MEDICINES = 15, 'medicines'
+    MICROELECTRONICS = 16, 'microelectronics'
+    MECHANICAL_PARTS = 17, 'mechanical parts'
+    FURNITURES = 18, 'furnitures'
+    CLOTHING = 19, 'clothing'
+    OIL = 20, 'oil' # x6
     # x8
-    SPECIAL_CLOTHING = 20, 'special clothing'
-    WEAPONS = 21, 'weapons'
-    FUEL = 22, 'fuel'
-    CONSTRUCTION_RAW_MATERIALS = 23, 'construction raw materials'
-
+    SPECIAL_CLOTHING = 21, 'special clothing'
+    WEAPONS = 22, 'weapons'
+    FUEL = 23, 'fuel'
 
 class SharesTypes(models.IntegerChoices):
     ORDINARY = 1, 'ordinary'

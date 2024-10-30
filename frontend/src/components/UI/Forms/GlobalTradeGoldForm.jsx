@@ -2,7 +2,7 @@ import React from 'react';
 import useInput from "../../../hooks/useInput";
 import {useFetching} from "../../../hooks/useFetching";
 import StockServices from "../../../API/StockServices";
-import {tradingTypes} from "../../../functions/utils";
+import {selectTradingType} from "../../../functions/utils";
 
 const GlobalTradeGoldForm = ({onClose}) => {
     const amount = useInput('');
@@ -23,8 +23,8 @@ const GlobalTradeGoldForm = ({onClose}) => {
                 <form onSubmit={tradeGold} className={"gold_trade__form"}>
                     <input className={"input__default"} {...amount} type={"number"} placeholder={"amount"}/>
                     {goldTradeError?.amount && <div className={"cell__error"}>{goldTradeError?.amount}</div>}
-                    <select className={"select__default-2"} {...tradingTypes} onChange={(e) => tradeType.onChange(e)}>
-                        {Object.entries(tradingTypes).map(([trade, type]) => (
+                    <select className={"select__default-2"} {...selectTradingType} onChange={(e) => tradeType.onChange(e)}>
+                        {Object.entries(selectTradingType).map(([trade, type]) => (
                             <option className={"option__default-2"} key={trade} value={type}>{trade}</option>
                         ))}
                     </select>

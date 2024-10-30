@@ -19,7 +19,7 @@ const StockGold = () => {
         return await StockServices.getGoldRateHistory();
     })
     const [highlightedElement, setHighlightedElement] = useState(null);
-    const [messages, value, setInitialValue] = UseEventSourcing('/stock/gold/', 'goldRate')
+    const [, value, setInitialValue] = UseEventSourcing('/stock/gold/', 'goldRate')
     const [prevValue, setPrevValue] = useState(null);
 
     const spawnForm = () => {
@@ -63,7 +63,7 @@ const StockGold = () => {
             }
         }
         void loadData();
-    }, [isGoldRateHistoryLoading])
+    }, [fetchGoldRateHistory, isGoldRateHistoryLoading])
 
     return (
         <div className={"section__main"}>

@@ -286,7 +286,7 @@ class LawsSerializer(serializers.ModelSerializer):
 class EventsSerializer(serializers.ModelSerializer):
     class Meta:
         model = GlobalEvent
-        fields = '__all__'
+        fields = ['type', 'state', 'description']
 
 
 class TopPlayerSerializer(serializers.ModelSerializer): # could be useless later

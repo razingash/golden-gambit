@@ -21,8 +21,12 @@ const Laws = () => {
         void loadLaws();
     }, [isLawsLoading])
 
-    if (laws.length === 0 && isLawsLoading) {
+    if (isLawsLoading) {
         return <div className={"global__loading"}><AdaptiveLoading/></div>
+    }
+
+    if (!laws) {
+        return <BlankResult title={"Server Error 502"} info={"no response was received from the server"}/>
     }
 
     return (
@@ -34,10 +38,9 @@ const Laws = () => {
                             <div className={"law__title"}>{law.title}</div>
                             <div className={"law__description"}>{law.description}</div>
                             <div className={"law__limits"}>
-                                <div className={"law__start"}>{law.since}</div>
-                                <div className={"law__end"}>{law.to}</div>
+                                <div>{law.since}</div>
+                                <div >{law.to}</div>
                             </div>
-                            <div className={"law__is-actual"}>{law.isActual}</div>
                         </div>
                     ))) : (
                         <BlankResult title={"Lawless lands"} info={"no laws have been passed yet"}/>
