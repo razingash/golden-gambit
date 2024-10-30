@@ -63,7 +63,10 @@ class ProductType(models.Model):
 
 
 class CompanyType(models.Model): # normally is 420 per hour, minimum is 4 p/h, maximum 840
-    """all changes caused by laws and events are reflected on this model, and not on the Company model"""
+    """ all changes caused by laws and events are reflected on this model, and not on the Company model
+        if you need to change the default value for productivity, you must also change the 'base_productivity' variable
+        in the 'set_event_consequences' and 'roll_back_event_consequences' functions
+    """
     type = models.PositiveSmallIntegerField(choices=CompanyTypes.choices, blank=False, null=False)
     productivity = models.PositiveSmallIntegerField(default=20, validators=[MaxValueValidator(40)], blank=False,  null=False)
     cartoonist = models.SmallIntegerField(blank=False, null=False)

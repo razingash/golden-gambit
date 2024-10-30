@@ -27,12 +27,10 @@ def events_manager(): # calibrate?
 
         recalculate_all_companies_prices()
 
-def events_operator(event_num):
+def events_operator(event_num): # calibrate later
     """chooses which event to launch"""
-    # new_product_price = old_price(basic) + tier * price_jump
     # price_jumps are higher at the beginning and stabilize towards the end of the event
     # These settings are approximate and don't need to be applied in this order
-
     event = GlobalEvent.objects.get(type=EventTypes(event_num))
     price_jumps = { # bg - beginning, cn - culmination, cs - consequences
         "bg+": (10, 25), "bg++": (15, 45), "bg+++": (35, 65), "bg++++": (55, 105),
@@ -78,32 +76,20 @@ def events_operator(event_num):
         event_war(event, price_jumps, productivity_jumps, pt=ProductTypes, ct=CompanyTypes)
 
 
-def change_product_prices(items_for_update: dict, jumps):
-    new_prices = {}
-    for key, value in items_for_update.items():
-        new_prices[key] = random.randint(*jumps[value])
-
-    return new_prices
-
-
-def roll_back_event_consequences(event: GlobalEvent) -> None: # работает правильно для одного ивента и положительных модификаторов
+def roll_back_event_consequences(event: GlobalEvent) -> None:
     """neutralizes the consequences of the event"""
-    """не учитывается пробитие предела"""
+    base_productivity = 20 # default is 20, this value will not change
     affected_products = EventImpactOnProduct.objects.select_related('product', 'product__product').filter(event=event)
     affected_companies = EventIpmactOnCompany.objects.select_related('company_type').filter(event=event)
     products_to_update, company_types_to_update = [], []
 
     for affected_product in affected_products:
+        base_price = affected_product.product.product.base_price
         influence = affected_product.influence # 'influence' stores the level of price change for sale only
 
-        print('old', affected_product.product.purchase_price, affected_product.product.sale_price, influence)
-
-        affected_product.product.purchase_price -= influence * 10
-        affected_product.product.sale_price -= influence
-        """сделать для пробитого предела и всего остольного""" # базову цену можно получить!
-        """ пробитие предела с множеством действующих ивентов или одним не имеет смысла, все сразу сделать"""
         affected_product.product.external_influence -= influence
-
+        affected_product.product.purchase_price = (base_price + affected_product.product.external_influence) * 10
+        affected_product.product.sale_price = base_price + affected_product.product.external_influence
 
         if affected_product.product.purchase_price < 1:
             affected_product.product.purchase_price = 1
@@ -114,13 +100,14 @@ def roll_back_event_consequences(event: GlobalEvent) -> None: # работает
         elif affected_product.product.sale_price > 1 and affected_product.product.sale_price % 10 == 1:
             affected_product.product.sale_price -= 1
 
-        print('new', affected_product.product.purchase_price, affected_product.product.sale_price, influence)
         products_to_update.append(affected_product.product)
 
     for affected_company in affected_companies:
         influence = affected_company.influence # 'influence' stores the level of productivity
 
-        affected_company.company_type.productivity -= influence
+        affected_company.company_type.external_influence -= influence
+        affected_company.company_type.productivity = base_productivity + affected_company.company_type.external_influence
+
         if affected_company.company_type.productivity < 0:
             affected_company.company_type.productivity = 0
         elif affected_company.company_type.productivity > 40:
@@ -141,12 +128,12 @@ def roll_back_event_consequences(event: GlobalEvent) -> None: # работает
 
 def set_event_consequences(event: GlobalEvent, products_on_stock: list, new_products_prices: dict, new_productivity: dict) -> None:
     """changes the economy according to events"""
-    # тут может быть что-то не так с changed_products для 10 потому что там возвращается числовое значение ивента
+    base_productivity = 20 # default is 20, this value will not change
     product_types_on_update, companies_type_on_update = [], [] # bulk_update
     products_impact_on_update, companies_impact_on_update = [], [] # bulk_update
     products_impact_on_create, companies_impact_on_create = [], [] # bulk_create
-    print(new_products_prices, new_productivity, sep='_____')
-    active_products_changes = EventImpactOnProduct.objects.select_related('product').filter(event=event)
+
+    active_products_changes = EventImpactOnProduct.objects.select_related('product__product').filter(event=event)
     active_companies_changes = EventIpmactOnCompany.objects.select_related('company_type').filter(event=event)
 
     active_products = {obj.product.product: obj for obj in active_products_changes}
@@ -158,18 +145,19 @@ def set_event_consequences(event: GlobalEvent, products_on_stock: list, new_prod
 
         # check if an EventImpactOnProduct already exists for this event and product
         if product_exchange.product in active_products: # update
+            base_price = active_products[product_exchange.product].product.product.base_price
             updated_product_impact = active_products[product_exchange.product]
             # cancel out a previous change from the same event
-            product_exchange.purchase_price += (new_price_influence - updated_product_impact.influence) * 10
-            product_exchange.sale_price += (new_price_influence - updated_product_impact.influence)
-            product_exchange.external_influence += (new_price_influence - updated_product_impact.influence)
+            product_exchange.external_influence += (new_price_influence - updated_product_impact.influence) # valid
+            product_exchange.purchase_price = (base_price + product_exchange.external_influence) * 10
+            product_exchange.sale_price = base_price + product_exchange.external_influence
             # updates outdated data
             updated_product_impact.influence = new_price_influence
             products_impact_on_update.append(updated_product_impact)
         else: # create
+            product_exchange.external_influence += new_price_influence
             product_exchange.purchase_price += new_price_influence * 10
             product_exchange.sale_price += new_price_influence
-            product_exchange.external_influence += new_price_influence
             new_product = EventImpactOnProduct(event=event, influence=new_price_influence, product=product_exchange)
             products_impact_on_create.append(new_product)
 
@@ -193,13 +181,14 @@ def set_event_consequences(event: GlobalEvent, products_on_stock: list, new_prod
             updated_company_impact = active_companies[company_type.type]
 
             # cancel out a previous change from the same event
-            company_type.productivity += (new_influence - updated_company_impact.influence)
             company_type.external_influence += (new_influence - updated_company_impact.influence)
+            company_type.productivity = base_productivity + company_type.external_influence
 
             updated_company_impact.influence = new_influence
             companies_impact_on_update.append(updated_company_impact)
         else: # create
             company_type.productivity += new_influence
+            company_type.external_influence += new_influence
             new_company = EventIpmactOnCompany(event=event, company_type=company_type, influence=new_influence)
             companies_impact_on_create.append(new_company)
 
@@ -222,10 +211,26 @@ def set_event_consequences(event: GlobalEvent, products_on_stock: list, new_prod
         EventIpmactOnCompany.objects.bulk_create(companies_impact_on_create)
 
         #saving changes directrly
-        print([k.__dict__ for k in product_types_on_update])
-        print([k.__dict__ for k in companies_type_on_update])
         ProductsExchange.objects.bulk_update(product_types_on_update, ['purchase_price', 'sale_price', 'external_influence'])
         CompanyType.objects.bulk_update(companies_type_on_update, ['productivity', 'external_influence'])
+
+
+def change_product_prices(items_for_update: dict, jumps):
+    new_prices = {}
+    for key, value in items_for_update.items():
+        new_prices[key] = random.randint(*jumps[value])
+
+    return new_prices
+
+
+def get_modificator(event_value: int) -> str:
+    if event_value == 1:  # bg
+        mod = 'bg'
+    elif event_value == 2:  # cn
+        mod = 'cn'
+    else:  # event_value == 3: # cs
+        mod = 'cs'
+    return mod
 
 
 def event_crop_failure(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) -> None:
@@ -531,7 +536,7 @@ def event_pandemic_outbreak(event: GlobalEvent, price_jumps, productivity_jumps,
                                new_products_prices=new_products_prices, new_productivity=new_productivity)
 
 
-def event_workers_strikes(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) -> None: # тут что-то не то с продуктами
+def event_workers_strikes(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) -> None:
     """                 impact on product prices
     [from + to ++] for several products
                         impact on companies' production capacity
@@ -687,13 +692,3 @@ def event_war(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) -> No
         new_productivity = change_product_prices(items_for_update=companies_for_update, jumps=productivity_jumps)
         set_event_consequences(event=event, products_on_stock=products_on_stock,
                                new_products_prices=new_products_prices, new_productivity=new_productivity)
-
-
-def get_modificator(event_value: int) -> str:
-    if event_value == 1:  # bg
-        mod = 'bg'
-    elif event_value == 2:  # cn
-        mod = 'cn'
-    else:  # event_value == 3: # cs
-        mod = 'cs'
-    return mod
