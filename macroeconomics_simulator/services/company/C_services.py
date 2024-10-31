@@ -193,7 +193,7 @@ def buy_products(ticker, product_type, amount) -> None:
 
     try:
         warehouse = CompanyWarehouse.objects.select_related(
-            'product').get(company_id=company.id, product__type=product_type).only('id', 'amount', 'product__id')
+            'product').only('id', 'amount', 'product__id').get(company_id=company.id, product__type=product_type)
 
         products_price = calculate_products_price(product_id=warehouse.product_id, products_amount=amount)
     except CompanyWarehouse.DoesNotExist: # if there is no warehouse, then create...

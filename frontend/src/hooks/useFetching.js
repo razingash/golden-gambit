@@ -4,8 +4,8 @@ export const useFetching = (callback, delay=0) => {
     const [isLoading, setIsLoading] = useState(null);
     const [error, setError] = useState(null);
     const [isSpammed, setIsSpammed] = useState(null);
-
-    const fetching = async (...args) => {
+    // useCallback может быть неоправдан если useFetching не используется в useEffect
+    const fetching = useCallback(async (...args) => {
         if (isSpammed) return;
         console.log('usefetching')
         try {
@@ -22,7 +22,7 @@ export const useFetching = (callback, delay=0) => {
                 setIsSpammed(false);
             }, delay);
         }
-    }
+    }, [callback, delay, isSpammed]);
 
     return [fetching, isLoading, error];
 };

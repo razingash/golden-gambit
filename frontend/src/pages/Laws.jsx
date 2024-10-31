@@ -19,7 +19,7 @@ const Laws = () => {
             }
         };
         void loadLaws();
-    }, [isLawsLoading])
+    }, [fetchLaws, laws.length, isLawsLoading])
 
     if (isLawsLoading) {
         return <div className={"global__loading"}><AdaptiveLoading/></div>

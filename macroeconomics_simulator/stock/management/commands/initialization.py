@@ -3,7 +3,7 @@ from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 
 
-class Command(BaseCommand): # mb change file name to another one
+class Command(BaseCommand):
     help = "initialization command, run this command once"
 
     def has_migrations_applied(self):

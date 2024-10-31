@@ -11,6 +11,7 @@ from django.db.models import Sum, F
 from macroeconomics_simulator import settings
 from services.critical_services import calculate_company_price
 from services.events.E_services import events_manager
+from services.simulation.manager import simulation_manager
 from stock.models import GoldSilverExchange, Player, Company, PlayerCompanies
 
 """
@@ -67,7 +68,7 @@ def dividends_payment():
     for shareholder in shareholders: # оставить как есть
         if not shareholder.isHead:
             shareholder.player.silver += Decimal(shareholder.shares_amount * shareholder.company.share_price)
-            pay_dividendes.append(shareholder)
+            pay_dividendes.append(shareholder.player)
 
     for company in companies:
         company_silver = company.silver_reserve
@@ -113,6 +114,12 @@ def update_daily_company_prices(): # try again later abulk_update
 def attempt_to_run_event():
     """starts an event or changes its stage with a certain probability"""
     events_manager()
+
+
+@shared_task # rabbitMQ | delete this task
+def simulation():
+    """trying to create the appearance of a living economy by managing bots"""
+    simulation_manager()
 
 
 """ testing(using redis) | Remove all later"""

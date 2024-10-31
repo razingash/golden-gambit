@@ -17,7 +17,7 @@ def events_manager(): # calibrate?
     random_value = random.random()
 
     if random_value < probability:
-        event_num = random.randint(1, 14)
+        event_num = random.randint(1, 13)
         events_operator(event_num)
 
         recalculate_all_companies_prices()

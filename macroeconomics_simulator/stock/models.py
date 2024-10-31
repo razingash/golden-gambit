@@ -232,8 +232,8 @@ class SharesExchange(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE) # custom scenario?
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     shares_type = models.PositiveSmallIntegerField(choices=SharesTypes.choices, blank=False, null=False)
-    amount = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100000)], blank=False, null=False)
-    price = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10000)], blank=False, null=False)
+    amount = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100_000)], blank=False, null=False)
+    price = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100_00)], blank=False, null=False)
     owners_right = models.DateTimeField(default=right_of_purchase_for_owners, blank=True, null=True)
     shareholders_right = models.DateTimeField(default=right_of_purchase_for_shareholders, blank=True, null=True)
 
