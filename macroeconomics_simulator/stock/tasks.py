@@ -99,7 +99,7 @@ def dividends_payment():
 
 
 @shared_task # rabbitMQ
-def update_daily_company_prices(): # try again later abulk_update
+def update_daily_company_prices():
     companies = Company.objects.all()
     companies_to_update = []
 
@@ -122,7 +122,7 @@ def simulation():
     simulation_manager()
 
 
-""" testing(using redis) | Remove all later"""
+""" Remove all later"""
 @shared_task
 def rand_company_price():
     company_silver = random.randint(300_00, 300_000)
@@ -130,7 +130,7 @@ def rand_company_price():
     company = Company.objects.get(id=company_id)
     company.silver_reserve = company_silver
     company.company_price = calculate_company_price(company)
-    company.save() # no point in fixing the price
+    company.save()
 
 @shared_task
 def rand_user_gold(): # test

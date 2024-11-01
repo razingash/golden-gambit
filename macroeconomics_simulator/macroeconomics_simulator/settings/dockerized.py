@@ -14,7 +14,7 @@ CACHES = {
     }
 }
 
-CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_BROKER_URL = "amqp://guest:guest@rabbitmq:5672//" # "redis://redis:6379/0"
 
 CHANNEL_LAYERS = {
     'default': {
@@ -25,4 +25,15 @@ CHANNEL_LAYERS = {
             "expiry": 10,
         },
     },
+}
+
+
+# Database
+# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }

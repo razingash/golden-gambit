@@ -34,7 +34,7 @@ const StockGold = () => {
             }
         }
         void loadData();
-    }, [isInitialGoldRateLoading])
+    }, [fetchInitialGoldRate, isInitialGoldRateLoading])
 
     useEffect(() => {
         if (value) {

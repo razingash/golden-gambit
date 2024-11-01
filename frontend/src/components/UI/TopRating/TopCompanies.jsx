@@ -11,7 +11,7 @@ const TopCompanies = () => {
     const [fetchTopCompanies, isTopCompaniesLoading] = useFetching(async () => {
         return await RatingService.getTopCompanies();
     })
-    const [, value] = useWebSocket('/top-companies-wealth/');
+    const [value] = useWebSocket('/top-companies-wealth/');
 
     const updateCompanyPriceAndChange = (ticker, newPrice) => {
         setTopCompanies(prevCompanies =>

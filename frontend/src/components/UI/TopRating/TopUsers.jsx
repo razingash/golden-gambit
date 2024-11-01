@@ -10,7 +10,7 @@ const TopUsers = ({goldRate}) => {
     const [fetchTopUsers, isTopUsersLoading] = useFetching(async () => {
         return await RatingService.getTopUsers();
     });
-    const [, value] = useWebSocket('/top-players-wealth/');
+    const [value] = useWebSocket('/top-players-wealth/');
 
     const updateUserWealth = (username, userSilver, userGold) => {
         setTopUsers(prevUsers =>

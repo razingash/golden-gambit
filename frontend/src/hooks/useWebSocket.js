@@ -1,9 +1,7 @@
-import React, {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {websocketBaseURL} from "./useApiInterceptor";
 
 const UseWebSocket = (link) => {
-    // лучше всего будет сделать два хука - для графиков с messages и обычный с прошлым состоянием
-    const [messages, setMessages] = useState([]);
     const [prevValue, setPrevValue] = useState(null);
     const [value, setValue] = useState(null);
     const [connected, setConnected] = useState(false);
@@ -22,7 +20,6 @@ const UseWebSocket = (link) => {
             const message = JSON.parse(event.data);
             console.log(message)
             if (JSON.stringify(message) !== JSON.stringify(prevValue)) {
-                setMessages(prev => [message, ...prev]);
                 setPrevValue(message);
                 setValue(message);
             }
@@ -36,9 +33,9 @@ const UseWebSocket = (link) => {
             console.log('error')
         }
 
-    }, [])
+    }, [link])
 
-    return [messages, value, setValue, prevValue, connected];
+    return [value, setValue, prevValue, connected];
 };
 
 export default UseWebSocket;

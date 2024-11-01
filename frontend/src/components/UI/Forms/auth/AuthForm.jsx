@@ -1,6 +1,6 @@
 import useInput from "../../../../hooks/useInput";
 import "./auth.css"
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {useAuth} from "../../../../hooks/context/useAuth";
 
 const AuthForm = () => {
@@ -35,15 +35,15 @@ const AuthForm = () => {
         }, 1000)
     }
 
-    const handleSignUpClick = (event) => {
+    const handleSignUpClick = useCallback((event) => {
         setIsNewbie(true);
         setActiveElement(event.target);
-    }
+    }, [])
 
-    const handleSignInClick = (event) => {
+    const handleSignInClick = useCallback((event) => {
         setIsNewbie(false);
         setActiveElement(event.target);
-    }
+    }, [])
 
     useEffect(() => {
         setActiveElement(document.querySelector('.conductor__item:first-child'));

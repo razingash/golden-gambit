@@ -592,7 +592,7 @@ def event_protests(event: GlobalEvent, price_jumps, productivity_jumps, pt, ct) 
                 company_types_for_change.append(company_type)
 
         for i in range(random.randint(1, 2)):
-            k = random.randint(1, len(company_types_for_change))
+            k = random.randrange(len(company_types_for_change))
             targeted_company_types.append(company_types_for_change[k])
             company_types_for_change.pop(k)
 

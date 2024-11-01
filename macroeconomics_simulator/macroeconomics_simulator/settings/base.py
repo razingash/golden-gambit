@@ -82,17 +82,6 @@ WSGI_APPLICATION = 'macroeconomics_simulator.wsgi.application'
 
 ASGI_APPLICATION = 'macroeconomics_simulator.asgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -184,8 +173,33 @@ MEDIA_URL = "/media/"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
 CELERY_TIMEZONE = "UTC"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_TASK_TIME_LIMIT = 30 * 60
+
+CELERY_TASK_QUEUES = {
+    'redis_queue': {
+        'exchange': 'redis_tasks',
+        'routing_key': 'redis',
+        'type': 'simple',
+    },
+    'rabbitmq_queue': {
+        'exchange': 'rabbitmq_tasks',
+        'routing_key': 'rabbitmq',
+        'type': 'simple',
+    },
+}
+
+CELERY_TASK_ROUTES = {
+    'stock.tasks.document_gold_silver_rate': {'queue': 'redis_queue'},
+    'stock.tasks.accrue_company_passive_income': {'queue': 'rabbitmq_queue'},
+    'stock.tasks.dividends_payment': {'queue': 'rabbitmq_queue'},
+    'stock.tasks.update_daily_company_prices': {'queue': 'rabbitmq_queue'},
+    'stock.tasks.attempt_to_run_event': {'queue': 'rabbitmq_queue'},
+    'stock.tasks.simulation': {'queue': 'rabbitmq_queue'}, #
+    'stock.tasks.rand_company_price': {'queue': 'rabbitmq_queue'}, #
+    'stock.tasks.rand_user_gold': {'queue': 'rabbitmq_queue'} #
+}

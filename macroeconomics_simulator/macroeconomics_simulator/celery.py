@@ -11,14 +11,14 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    #'test-change-company-price-every-4-seconds': {  # delete later
-    #    'task': 'stock.tasks.rand_company_price',
-    #    'schedule': timedelta(seconds=4),
-    #},
-    #'test-change-gold-every-5-seconds': {  # delete later
-    #    'task': 'stock.tasks.rand_user_gold',
-    #    'schedule': timedelta(seconds=5),
-    #},
+    'test-change-company-price-every-4-seconds': {  # delete later
+        'task': 'stock.tasks.rand_company_price',
+        'schedule': timedelta(seconds=4),
+    },
+    'test-change-gold-every-5-seconds': {  # delete later
+        'task': 'stock.tasks.rand_user_gold',
+        'schedule': timedelta(seconds=5),
+    },
     'test-simulation-every-6-seconds': {  # delete later
         'task': 'stock.tasks.simulation',
         'schedule': timedelta(seconds=5),

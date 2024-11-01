@@ -1,27 +1,20 @@
 version: '3.8'
 
 services:
-  redis: # later add RabbitMq for more serious tasks
-    image: redis
-    container_name: redis # most likely remain only for caching
+  redis: # used for caching, websockets and one periodic task
+    image: redis:7.2.4
+    container_name: redis
     ports:
       - "6379:6379"
     networks:
       - localnet
 
-  django-rest:
-    build:
-      context: ./macroeconomics_simulator
-    container_name: django-rest_mes
-    depends_on:
-      - redis
+  rabbitmq:
+    image: rabbitmq:4.0.3
+    container_name: rabbitmq
     ports:
-      - "8000:8000"
-    environment:
-      - DJANGO_SETTINGS_MODULE=macroeconomics_simulator.settings.dockerized
-    command: >
-      sh -c "python manage.py runserver 0.0.0.0:8000 --settings=macroeconomics_simulator.settings.dockerized"
-    restart: unless-stopped
+      - "5672:5672"
+      - "15672:15672"
     networks:
       - localnet
 
@@ -30,7 +23,7 @@ services:
     container_name: react_mes
     ports:
       - "3000:3000"
-    environment: # instead of 192.168.1.25:80 write your local IPV4 address or remove environment from this container
+    environment: # instead of 192.168.1.25 write your local IPV4 address
       - REACT_APP_BASE_URL=http://192.168.1.25:80/api/v1
       - REACT_APP_BASE_SSE_URL=http://192.168.1.25:80/api/sse
       - REACT_APP_WEBSOCKET_URL=ws://192.168.1.25:80/ws
@@ -40,27 +33,59 @@ services:
     networks:
       - localnet
 
+  django-rest:
+    build:
+      context: ./macroeconomics_simulator
+    container_name: django-rest_mes
+    depends_on:
+      - redis
+      - rabbitmq
+      - react
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_SETTINGS_MODULE: macroeconomics_simulator.settings.dockerized
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000 --settings=macroeconomics_simulator.settings.dockerized"
+    restart: unless-stopped
+    networks:
+      - localnet
+
   celery-worker-redis:
     build:
       context: ./macroeconomics_simulator
     container_name: celery-worker-redis
     environment:
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - DJANGO_SETTINGS_MODULE=macroeconomics_simulator.settings.dockerized
+      CELERY_BROKER_URL: redis://redis:6379/1
+      DJANGO_SETTINGS_MODULE: macroeconomics_simulator.settings.dockerized
     depends_on:
       - redis
     command: >
-      sh -c "celery -A macroeconomics_simulator worker -l info"
+      sh -c "celery -A macroeconomics_simulator worker -l info --queues=redis_queue"
     networks:
       - localnet
 
-  celery-beat:
+  celery-worker-rabbit:
+    build:
+      context: ./macroeconomics_simulator
+    container_name: celery-worker-rabbit
+    environment:
+      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
+      DJANGO_SETTINGS_MODULE: macroeconomics_simulator.settings.dockerized
+    depends_on:
+      - rabbitmq
+    command: >
+      sh -c "celery -A macroeconomics_simulator worker -l info --queues=rabbitmq_queue"
+    networks:
+      - localnet
+
+  celery-beat: # using rabbitMQ
     build:
       context: ./macroeconomics_simulator
     container_name: celery_beat
     environment:
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - DJANGO_SETTINGS_MODULE=macroeconomics_simulator.settings.dockerized
+      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
+      DJANGO_SETTINGS_MODULE: macroeconomics_simulator.settings.dockerized
     depends_on:
       - redis
     command: >
@@ -87,9 +112,6 @@ services:
     networks:
       - internet
       - localnet
-
-volumes:
-  static_volume:
 
 networks:
   internet:
