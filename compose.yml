@@ -1,6 +1,18 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_DB: 'macroeconomics_simulator'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'root'
+    ports:
+      - "5432:5432"
+    networks:
+      - localnet
+
   redis: # used for caching, websockets and one periodic task
     image: redis:7.2.4
     container_name: redis
@@ -40,13 +52,13 @@ services:
     depends_on:
       - redis
       - rabbitmq
-      - react
+      - postgres
     ports:
       - "8000:8000"
     environment:
       DJANGO_SETTINGS_MODULE: macroeconomics_simulator.settings.dockerized
     command: >
-      sh -c "python manage.py runserver 0.0.0.0:8000 --settings=macroeconomics_simulator.settings.dockerized"
+      sh -c "python manage.py initialization && python manage.py runserver 0.0.0.0:8000 --settings=macroeconomics_simulator.settings.dockerized"
     restart: unless-stopped
     networks:
       - localnet

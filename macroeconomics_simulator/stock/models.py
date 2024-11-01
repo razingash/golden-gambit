@@ -207,7 +207,7 @@ class CompanyWarehouse(models.Model):
     product = models.ForeignKey(ProductType, on_delete=models.PROTECT)
     amount = models.PositiveIntegerField(default=0, blank=False, null=False)
     remainder = models.PositiveIntegerField(default=0, blank=True, null=True)
-    max_amount = models.PositiveSmallIntegerField(default=10000, blank=False, null=False)
+    max_amount = models.PositiveIntegerField(default=10000, blank=False, null=False)
     check_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
 
     class Meta:
@@ -232,8 +232,8 @@ class SharesExchange(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE) # custom scenario?
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     shares_type = models.PositiveSmallIntegerField(choices=SharesTypes.choices, blank=False, null=False)
-    amount = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100_000)], blank=False, null=False)
-    price = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100_00)], blank=False, null=False)
+    amount = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100_000)], blank=False, null=False)
+    price = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100_00)], blank=False, null=False)
     owners_right = models.DateTimeField(default=right_of_purchase_for_owners, blank=True, null=True)
     shareholders_right = models.DateTimeField(default=right_of_purchase_for_shareholders, blank=True, null=True)
 
@@ -258,7 +258,7 @@ class SharesWholesaleTrade(models.Model):
 class GoldSilverExchange(models.Model):
     base_price = models.PositiveSmallIntegerField(default=1000, unique=True, blank=False, null=False)
     current_price = models.DecimalField(max_digits=10, decimal_places=2, default=1000, blank=False, null=False)
-    amount = models.PositiveSmallIntegerField(default=1_000_000_000, blank=False, null=False)
+    amount = models.PositiveIntegerField(default=1_000_000_000, blank=False, null=False)
     history = models.FilePathField(path=os.path.join(settings.MEDIA_ROOT, 'gold_to_silver'), match='.*\.json$',
                                    blank=False, null=False)
 

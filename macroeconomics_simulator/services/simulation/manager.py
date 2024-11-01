@@ -11,7 +11,7 @@ from stock.models import Player, GoldSilverExchange, PlayerCompanies, ProductsEx
 def simulation_manager():
     """selects a random user to trigger the action"""
     users = Player.objects.filter(id__lte=13)
-    random_user = users[random.randint(1, len(users)-1)]
+    random_user = users[random.randint(0, len(users)-1)]
 
     simulation_orchestrator(random_user)
 
@@ -83,7 +83,8 @@ def simulation_operator_unprofitable(user: Player, expedience: int): # expedienc
             if product.difference == 0: # buy random product
                 get_produced_products(user_company.ticker)
 
-                random_product = ProductsExchange.objects.all().only('purchase_price')
+                products = ProductsExchange.objects.all().only('purchase_price')
+                random_product = products[random.randint(0, len(products)-1)]
                 maximum_purchase = int(user_silver / random_product.purchase_price / 4)
                 if maximum_purchase > 1:
                     amount = random.randint(1, maximum_purchase)
