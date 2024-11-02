@@ -57,8 +57,7 @@ def accrue_company_passive_income():
 @shared_task # rabbitMQ | this one need personal worker
 def dividends_payment():
     """At the beginning, dividends are paid and then the company’s value is recalculated"""
-
-    companies = Company.objects.prefetch_related('companywarehouse_set').all()
+    companies = Company.objects.prefetch_related('companywarehouse_set', 'type').all()
     shareholders = PlayerCompanies.objects.select_related('company', 'player').all()
     pay_dividendes = []
     companies_recalculation = []
@@ -88,9 +87,10 @@ def dividends_payment():
         share_price = Decimal(company.share_price)
         dividendes_percent = Decimal(company.dividendes_percent)
 
-        commitment = round(Decimal(shares_amount * share_price * dividendes_percent / 100), 2)
+        productivity_factor = Decimal(2 * company.type.productivity / 40)
+        commitment = shares_amount * share_price * dividendes_percent / 100
 
-        company.company_price = (assets_price + company_income) - commitment
+        company.company_price = round((assets_price + company_income - commitment) * productivity_factor, 2)
         companies_recalculation.append(company)
 
     with transaction.atomic():
@@ -127,7 +127,7 @@ def simulation():
 def rand_company_price():
     company_silver = random.randint(300_00, 300_000)
     company_id = random.randint(1, 11)
-    company = Company.objects.get(id=company_id)
+    company = Company.objects.select_related('type').get(id=company_id)
     company.silver_reserve = company_silver
     company.company_price = calculate_company_price(company)
     company.save()

@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import "../../styles/profile.css"
+import "../../styles/company.css"
 import {useFetching} from "../../hooks/useFetching";
 import UserService from "../../API/UserService";
 import BlankResult from "../../components/UI/BlankResult/BlankResult";

@@ -7,7 +7,7 @@ import {calculateFluctuations, calculateWealth, formatNumber} from "../../../fun
 
 const TopUsers = ({goldRate}) => {
     const [topUsers, setTopUsers] = useState([]);
-    const [fetchTopUsers, isTopUsersLoading] = useFetching(async () => {
+    const [fetchTopUsers, isTopUsersLoading, fetchTopUsersError] = useFetching(async () => {
         return await RatingService.getTopUsers();
     });
     const [value] = useWebSocket('/top-players-wealth/');
@@ -31,7 +31,7 @@ const TopUsers = ({goldRate}) => {
 
     useEffect(() => {
         const loadData = async () => {
-            if (!isTopUsersLoading && Object.keys(topUsers).length === 0) {
+            if (!isTopUsersLoading && Object.keys(topUsers).length === 0 && !fetchTopUsersError) {
                 const data = await fetchTopUsers();
                 data && setTopUsers(data);
             }
@@ -55,7 +55,7 @@ const TopUsers = ({goldRate}) => {
                     <div className={"text_mod_int mod_hide"}>gold</div>
                     <div className={"text_mod_fluctuations"}>changes</div>
                 </div>
-                {topUsers && topUsers.map((user) => (
+                {topUsers && !fetchTopUsersError ? topUsers.map((user) => (
                     <div className={"cell__simple"} key={user.username}>
                         <div className={"text_mod_username hover_backlight"}>{user.username}</div>
                         <div className={"text_mod_int hover_backlight"}>
@@ -72,8 +72,9 @@ const TopUsers = ({goldRate}) => {
                             <div className={"text_mod_fluctuations state__default"}>0.00%</div>
                         )}
                     </div>
-                    ))
-                }
+                )) : (
+                    <div>No reply from the server</div>
+                )}
             </div>
         </div>
     );

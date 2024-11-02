@@ -100,8 +100,10 @@ services:
       DJANGO_SETTINGS_MODULE: macroeconomics_simulator.settings.dockerized
     depends_on:
       - redis
+      - celery-worker-redis
+      - celery-worker-rabbit
     command: >
-      sh -c "celery -A macroeconomics_simulator beat -l INFO"
+      sh -c "sleep 30 && celery -A macroeconomics_simulator beat -l INFO"
     networks:
       - localnet
 

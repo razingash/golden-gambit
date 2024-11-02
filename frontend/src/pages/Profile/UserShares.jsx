@@ -13,7 +13,7 @@ const UserShares = () => {
     const [hasNext, setNext] = useState(false);
     const lastElement = useRef();
     const [shares, setShares] = useState([]);
-    const [fetchUserShares, isUserSharesLoading] = useFetching(async () => {
+    const [fetchUserShares, isUserSharesLoading, fetchUserSharesError] = useFetching(async () => {
         const data = await UserService.getUserShares(page);
         setShares((prevShares) => {
             const newShares = data.data.filter(
@@ -74,8 +74,11 @@ const UserShares = () => {
                     </div>
                     <SellSharesForm ticker={company.ticker} setShares={setShares}/>
                 </div>
-            ))) : (
+            ))) : (!fetchUserSharesError ? (
                 <BlankResult title={"No shares found"} info={"You don't have any shares yet"}/>
+                ) : (
+                <BlankResult title={"Server Error"} info={"No reply from the server"}/>
+                )
             )}
         </div>
     );

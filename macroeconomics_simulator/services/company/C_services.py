@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models import Q, Sum, F
 
 from services.base import get_object
+from services.critical_services import calculate_new_company_price
 from services.general_services import recalculation_of_the_shareholders_influence
 from services.stock.S_services import calculate_products_price
 from stock.utils.exceptions import CustomException
@@ -16,32 +17,22 @@ from django.utils import timezone
 
 def recalculate_all_companies_prices(): # if there is time to make sure that only specific types of companies are changed
     """recalculation of prices for all companies"""
-    companies = Company.objects.prefetch_related('companywarehouse_set').all()
+    companies = Company.objects.prefetch_related('companywarehouse_set', 'type').all()
     companies_recalculation = []
 
     gold_rate_current_price = GoldSilverExchange.objects.only('current_price').first().current_price
 
     for company in companies:
-        company_silver = company.silver_reserve
         warehouses = company.companywarehouse_set.annotate(
             sale_price=F('product__productsexchange__sale_price')).aggregate(
             company_income=Sum(F('amount') * F('sale_price'))
         )
         company_income = warehouses['company_income'] if warehouses['company_income'] is not None else 0
 
-        if company.gold_reserve > 0:
-            gold_price = gold_rate_current_price * company.gold_reserve
-            assets_price = gold_price + company_silver
-        else:
-            assets_price = company_silver
+        company_price = calculate_new_company_price(instance=company, company_income=company_income,
+                                                    gold_rate=gold_rate_current_price)
+        company.company_price = company_price
 
-        shares_amount = Decimal(company.shares_amount)
-        share_price = Decimal(company.share_price)
-        dividendes_percent = Decimal(company.dividendes_percent)
-
-        commitment = round(Decimal(shares_amount * share_price * dividendes_percent / 100), 2)
-
-        company.company_price = (assets_price + company_income) - commitment
         companies_recalculation.append(company)
 
     with transaction.atomic():

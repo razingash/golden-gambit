@@ -24,9 +24,9 @@ const TradeProducts = ( {productType} ) => {
             {productsTradeError?.amount && <div className={"cell__error"}>{productsTradeError?.amount}</div>}
             <input className={"input__default"} {...ticker} type={"text"} placeholder={"ticker"}/>
             {productsTradeError?.ticker && <div className={"cell__error"}>{productsTradeError?.ticker}</div>}
-            <select {...selectTradingType} onChange={(e) => tradeType.onChange(e)}>
+            <select className={"select__default"} {...selectTradingType} onChange={(e) => tradeType.onChange(e)}>
                 {Object.entries(selectTradingType).map(([trade, type]) => (
-                    <option key={trade} value={type}>{trade}</option>
+                    <option className={"option__default"} key={trade} value={type}>{trade}</option>
                 ))}
             </select>
             {productsTradeError?.detail && <div className={"cell__error"}>{productsTradeError?.detail}</div>}

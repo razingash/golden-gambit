@@ -8,25 +8,22 @@ import AdaptiveLoading from "../components/UI/AdaptiveLoading";
 
 const News = () => {
     const [news, setNews] = useState([]);
-    const [fetchNews, inNewsLoading] = useFetching(async () => {
+    const [fetchNews, inNewsLoading, error] = useFetching(async () => {
         return await NewsService.getNewsList();
     })
 
     useEffect(() => {
         const loadData = async () => {
-            if (!inNewsLoading && news.length === 0) {
+            if (!inNewsLoading && news.length === 0 && !error) {
                 const news = await fetchNews();
                 news && setNews(news.data);
             }
         }
         void loadData();
-    }, [fetchNews, news.length, inNewsLoading])
+    }, [inNewsLoading, error])
 
     if (inNewsLoading) {
         return <div className={"global__loading"}><AdaptiveLoading/></div>
-    }
-    if (!news) {
-        return <BlankResult title={"Server Error 502"} info={"no response was received from the server"}/>
     }
 
     return (
@@ -41,8 +38,11 @@ const News = () => {
                                 <div>{decodeEventState(item.state)}</div>
                             </div>
                         </div>
-                    ))) : (
+                    ))) : (!error ? (
                         <BlankResult title={"Switzerland be like"} info={"nothing significant has happened yet"}/>
+                        ) : (
+                        <BlankResult title={"Server Error"} info={"No reply from the server"}/>
+                        )
                     )}
                 </div>
             </div>

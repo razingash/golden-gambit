@@ -1,12 +1,13 @@
 import {useCallback, useState} from "react";
 
-export const useFetching = (callback, delay=0) => {
+export const useFetching = (callback, delay=0, maxRetries=1) => {
+    const [retryCount, setRetryCount] = useState(0);
     const [isLoading, setIsLoading] = useState(null);
     const [error, setError] = useState(null);
     const [isSpammed, setIsSpammed] = useState(null);
-    // useCallback может быть неоправдан если useFetching не используется в useEffect
+    // useCallback может быть неоправдан если useFetching не используется в useEffect | если использовать будет только хуже
     const fetching = useCallback(async (...args) => {
-        if (isSpammed) return;
+        if (isSpammed || retryCount >= maxRetries) return;
         console.log('usefetching')
         try {
             setIsSpammed(true);
@@ -15,14 +16,15 @@ export const useFetching = (callback, delay=0) => {
         } catch (e) {
             console.log(e?.status, e)
             console.log(e?.response?.data)
-            setError(e?.response?.data);
+            setError(e?.response?.data || e?.message);
+            setRetryCount(prev => prev + 1);
         } finally {
             setIsLoading(false);
             setTimeout(() => {
                 setIsSpammed(false);
             }, delay);
         }
-    }, [callback, delay, isSpammed]);
+    }, [callback, delay, isSpammed, retryCount, maxRetries]);
 
     return [fetching, isLoading, error];
 };

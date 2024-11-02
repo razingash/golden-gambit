@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 
 from asgiref.sync import sync_to_async
 from django.core.cache import cache
@@ -39,36 +40,36 @@ def get_top_companies_wealth(amount=10):
     return list(top)
 
 
+def calculate_new_company_price(instance: Company, company_income, gold_rate=None):
+    company_gold = instance.gold_reserve
+    company_silver = instance.silver_reserve
+
+    commitment = instance.shares_amount * instance.share_price * instance.dividendes_percent / 100
+    productivity_factor = Decimal(2 * instance.type.productivity / 40)
+
+    if company_gold > 0:
+        if gold_rate:
+            gold_price = gold_rate
+        else: # optimize later
+            gold_price = calculate_gold_price(company_gold)
+        assets_price = gold_price + company_silver
+    else:
+        assets_price = company_silver
+
+    company_price = round((assets_price + company_income - commitment) * productivity_factor, 2)
+    return company_price
+
 """Perhaps these functions will be needed when creating bots"""
 def calculate_company_price(instance: Company): # company_income
     """
     currently used only for test celery tasks since there is no point in using save(document=True) for tests.
     This will most likely all be removed later.
     """
-    assets_price = calculate_assets_price(instance.gold_reserve, instance.silver_reserve)
-    commitment = calculate_commitment(instance)
-    company_income = calculate_company_income(instance.id)
-
-    company_price = (assets_price + company_income) - commitment
-    return company_price
-
-def calculate_commitment(company: Company): # mb change id to something else
-    obligations = int(company.shares_amount * company.share_price * company.dividendes_percent / 100)
-    return obligations
-
-def calculate_assets_price(company_gold, company_silver):
-    if company_gold > 0:
-        gold_price = calculate_gold_price(company_gold) # optimize later
-        assets_price = gold_price + company_silver
-    else:
-        assets_price = company_silver
-    return assets_price
-
-def calculate_company_income(company_id):
-    warehouses = CompanyWarehouse.objects.filter(company_id=company_id).annotate(
+    warehouses = CompanyWarehouse.objects.filter(company_id=instance.id).annotate(
         sale_price=F('product__productsexchange__sale_price')).aggregate(
         company_income=Sum(F('amount') * F('sale_price'))
     )
     company_income = warehouses['company_income'] if warehouses['company_income'] is not None else 0
-    return company_income
 
+    company_price = calculate_new_company_price(instance=instance, company_income=company_income)
+    return company_price

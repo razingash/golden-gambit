@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import "../styles/stock.css"
 import {useFetching} from "../hooks/useFetching";
 import StockServices from "../API/StockServices";
 import AdaptiveLoading from "../components/UI/AdaptiveLoading";
@@ -15,7 +16,7 @@ const StockShares = () => {
     const [hasNext, setNext] = useState(false);
     const lastElement = useRef();
     const [shares, setShares] = useState([]);
-    const [fetchShares, isSharesLoading] = useFetching(useCallback(async () => {
+    const [fetchShares, isSharesLoading, error] = useFetching(useCallback(async () => {
         const data = await StockServices.getStockShares(page);
         setShares((prevShares) => {
             const newShares = data.data.filter(
@@ -73,8 +74,10 @@ const StockShares = () => {
                             </div>
                         ))}
                     </div>
-                ) : (
+                ) : !error ? (
                     <BlankResult title={"server problem"} info={"Data hasn't been initialized yet"}/>
+                ) : (
+                    <BlankResult title={"Server Error"} info={"No reply from the server"}/>
                 )}
             </div>
         </div>

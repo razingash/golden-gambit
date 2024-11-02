@@ -8,7 +8,7 @@ import {Link} from "react-router-dom";
 
 const TopCompanies = () => {
     const [topCompanies, setTopCompanies] = useState([]);
-    const [fetchTopCompanies, isTopCompaniesLoading] = useFetching(async () => {
+    const [fetchTopCompanies, isTopCompaniesLoading, fetchTopCompaniesError] = useFetching(async () => {
         return await RatingService.getTopCompanies();
     })
     const [value] = useWebSocket('/top-companies-wealth/');
@@ -27,7 +27,7 @@ const TopCompanies = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            if (!isTopCompaniesLoading && topCompanies.length === 0) {
+            if (!isTopCompaniesLoading && topCompanies.length === 0 && !fetchTopCompaniesError) {
                 const data = await fetchTopCompanies();
                 data && setTopCompanies(data);
             }
@@ -51,7 +51,7 @@ const TopCompanies = () => {
                     <div className={"text_mod_int "}>price</div>
                     <div className={"text_mod_fluctuations"}>changes</div>
                 </div>
-                {topCompanies && topCompanies.map((company) => (
+                {topCompanies && !fetchTopCompaniesError ? topCompanies.map((company) => (
                     <div className={"cell__simple"} key={company.ticker}>
                         <Link to={`/companies/${company.ticker}`} className={"text_mod_username mod_hide hover_clickable_1"}>{company.name}</Link>
                         <Link to={`/companies/${company.ticker}`} className={"text_mod_int hover_clickable_1"}>{company.ticker}</Link>
@@ -66,7 +66,9 @@ const TopCompanies = () => {
                             <div className={"text_mod_fluctuations state__default"}>0.00%</div>
                         )}
                     </div>
-                ))}
+                )) : (
+                    <div>No reply from the server</div>
+                )}
             </div>
         </div>
     );

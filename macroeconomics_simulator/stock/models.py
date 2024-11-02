@@ -35,9 +35,11 @@ def recalculate_company_price(company_instance): # good
     share_price = Decimal(company_instance.share_price)
     dividendes_percent = Decimal(company_instance.dividendes_percent)
 
-    commitment = round(Decimal(shares_amount * share_price * dividendes_percent / 100), 2)
+    productivity_factor = Decimal(2 * company_instance.type.productivity / 40) # additional sql query((
+    commitment = shares_amount * share_price * dividendes_percent / 100
 
-    company_price = (assets_price + company_income) - commitment
+    company_price = round((assets_price + company_income - commitment) * productivity_factor, 2)
+
     return company_price
 
 
@@ -69,7 +71,7 @@ class CompanyType(models.Model): # normally is 420 per hour, minimum is 4 p/h, m
     """
     type = models.PositiveSmallIntegerField(choices=CompanyTypes.choices, blank=False, null=False)
     productivity = models.PositiveSmallIntegerField(default=20, validators=[MaxValueValidator(40)], blank=False,  null=False)
-    cartoonist = models.SmallIntegerField(blank=False, null=False)
+    cartoonist = models.PositiveSmallIntegerField(blank=False, null=False)
     external_influence = models.SmallIntegerField(default=0, blank=False, null=False)
 
     def __str__(self):

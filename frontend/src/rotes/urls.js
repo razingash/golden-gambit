@@ -1,16 +1,18 @@
-import Main from "../pages/Main";
-import Auth from "../pages/Auth";
-import Laws from "../pages/Laws";
-import News from "../pages/News";
-import StockGold from "../pages/StockGold";
-import Companies from "../pages/Companies";
-import StockProducts from "../pages/StockProducts";
-import StockShares from "../pages/StockShares";
-import Company from "../pages/Company";
-import Profile from "../pages/Profile/Profile";
-import UserCompanies from "../pages/Profile/UserCompanies";
-import UserShares from "../pages/Profile/UserShares";
-import UserCompaniesRecipes from "../pages/Profile/UserCompaniesRecipes";
+import {lazy} from "react";
+
+const Main = lazy(() => import("../pages/Main"));
+const Auth = lazy(() => import("../pages/Auth"));
+const Laws = lazy(() => import("../pages/Laws"));
+const News = lazy(() => import("../pages/News"));
+const StockGold = lazy(() => import("../pages/StockGold"));
+const Companies = lazy(() => import("../pages/Companies"));
+const StockProducts = lazy(() => import("../pages/StockProducts"));
+const StockShares = lazy(() => import("../pages/StockShares"));
+const Company = lazy(() => import("../pages/Company"));
+const Profile = lazy(() => import("../pages/Profile/Profile"));
+const UserCompanies = lazy(() => import("../pages/Profile/UserCompanies"));
+const UserShares = lazy(() => import("../pages/Profile/UserShares"));
+const UserCompaniesRecipes = lazy(() => import("../pages/Profile/UserCompaniesRecipes"));
 //investigate why styles are imported all at once
 
 export const publicRotes = [

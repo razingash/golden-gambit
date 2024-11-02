@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
+import "../styles/stock.css"
 import {useFetching} from "../hooks/useFetching";
 import StockServices from "../API/StockServices";
 import BlankResult from "../components/UI/BlankResult/BlankResult";
@@ -14,7 +15,7 @@ const StockProducts = () => {
     const [hasNext, setNext] = useState(false);
     const lastElement = useRef();
     const [products, setProducts] = useState([]);
-    const [fetchProducts, isProductsLoading] = useFetching(async () => {
+    const [fetchProducts, isProductsLoading, error] = useFetching(async () => {
         const data = await StockServices.getStockProducts(page);
         setProducts((prevProducts) => {
             const newProducts = data.data.filter(
@@ -63,9 +64,12 @@ const StockProducts = () => {
                                 </div>
                             )}
                         </div>
-                    ))): (
+                    ))) : !error ? (
                         <BlankResult title={"server problem"} info={"Data hasn't been initialized yet"}/>
-                    )}
+                        ) : (
+                        <BlankResult title={"Server Error"} info={"No reply from the server"}/>
+                        )
+                    }
                 </div>
             </div>
         </div>

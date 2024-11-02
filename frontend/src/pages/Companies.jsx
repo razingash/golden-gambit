@@ -1,6 +1,6 @@
 import {useFetching} from "../hooks/useFetching";
 import CompaniesService from "../API/CompaniesService";
-import {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import AdaptiveLoading from "../components/UI/AdaptiveLoading";
 import BlankResult from "../components/UI/BlankResult/BlankResult";
 import "../styles/companies.css"
@@ -14,7 +14,7 @@ const Companies = () => {
     const [page, setPage] = useState(1);
     const [hasNext, setNext] = useState(false);
     const [companies, setCompanies] = useState([]);
-    const [fetchCompanies, isCompaniesLoading] = useFetching(async () => {
+    const [fetchCompanies, isCompaniesLoading, error] = useFetching(async () => {
         const data = await CompaniesService.getCompaniesList(page);
         setCompanies((prevCompanies) => {
             const newCompanies = data.data.filter(
@@ -72,8 +72,11 @@ const Companies = () => {
                             </div>
                         </div>
                     </div>
-                )) : (
+                )) : (!error ? (
                     <BlankResult title={"Not enough data"} info={"No tickers have been registered yet"}/>
+                    ) : (
+                    <BlankResult title={"Server Error"} info={"No reply from the server"}/>
+                    )
                 )}
                 </div>
             </div>

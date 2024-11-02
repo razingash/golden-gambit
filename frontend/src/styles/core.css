@@ -117,6 +117,10 @@
     color: #fff;
 }
 
+.cell__error {
+    color: #ff3a75;
+}
+
 .cell__simple { /*used 1 time*/
     display: flex;
     column-gap: 25px;

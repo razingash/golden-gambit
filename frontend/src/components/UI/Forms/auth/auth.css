@@ -69,34 +69,6 @@
     margin-right: 5px;
 }
 
-.cell__error {
-    color: #ff3a75;
-}
-
-.button__submit {
-    display: flex;
-    justify-content: center;
-    padding: 3px 0;
-    margin-top: 12px;
-    width: 100%;
-    border: 0;
-    border-radius: 3px;
-    background: radial-gradient(#00d9ff, rgb(0, 88, 255, 0.47));
-    color: #000000;
-    font-family: sans-serif;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    user-select: none;
-}
-
-.button__submit:hover {
-    background: radial-gradient(#8fff00, #00ff0878);
-}
-.button__submit:focus {
-    background: radial-gradient(#ffa500, rgb(255 104 0 / 0.47));
-}
-
 .input__login:focus-visible + .svg__auth-help,
 .input__password:focus-visible + .svg__auth-help {
     fill: #31ff48;

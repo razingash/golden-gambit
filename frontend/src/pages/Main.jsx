@@ -6,19 +6,19 @@ import StockServices from "../API/StockServices";
 
 const Main = () => {
     const [goldRate, setGoldRate] = useState(1000);
-    const [fetchInitialGoldRate, isInitialGoldRateLoading] = useFetching(async () => {
+    const [fetchInitialGoldRate, isInitialGoldRateLoading, error] = useFetching(async () => {
         return await StockServices.getGoldSilverRate();
     });
 
     useEffect(() => {
         const loadData = async () => {
-            if (!isInitialGoldRateLoading) {
+            if (!isInitialGoldRateLoading && !error) {
                 const data = await fetchInitialGoldRate();
                 data && setGoldRate(data.current_price);
             }
         };
         void loadData();
-    }, [isInitialGoldRateLoading]);
+    }, [isInitialGoldRateLoading, error]);
 
     return (
         <div className={"section__main"}>

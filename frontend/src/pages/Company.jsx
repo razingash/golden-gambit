@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import "../styles/company.css"
+import "../styles/stock.css"
 import {useParams} from "react-router-dom";
 import {useFetching} from "../hooks/useFetching";
 import CompaniesService from "../API/CompaniesService";
@@ -20,10 +21,10 @@ const Company = () => {
     const [fetchCompany, isCompanyLoading] = useFetching(async () => {
         return await CompaniesService.getCompany(ticker, tokenRef?.current?.access)
     })
-    const [fetchChartData, isChartDataLoading] = useFetching(async () => {
+    const [fetchChartData, isChartDataLoading, fetchChartError] = useFetching(async () => {
         return await CompaniesService.getCompanyHistory(ticker)
     })
-    const [fetchInventory, isInventoryLoading] = useFetching(async () => {
+    const [fetchInventory, isInventoryLoading, fetchInventoryError] = useFetching(async () => {
         return await CompaniesService.getCompanyInventory(ticker)
     })
     const [fetchProcure] = useFetching(async () => {
@@ -42,23 +43,23 @@ const Company = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            if (!isChartDataLoading && chartData === null) {
+            if (!isChartDataLoading && chartData === null && !fetchChartError) {
                 const data = await fetchChartData();
                 data && setChartData(data.contents);
             }
         }
         void loadData();
-    }, [isChartDataLoading])
+    }, [isChartDataLoading, fetchChartError])
 
     useEffect(() => {
         const loadData = async () => {
-            if (!isInventoryLoading && companyInventory === null) {
+            if (!isInventoryLoading && companyInventory === null && !fetchInventoryError) {
                 const data = await fetchInventory();
                 data && setInventory(data);
             }
         }
         isAuth && void loadData();
-    }, [isInventoryLoading, isAuth])
+    }, [isInventoryLoading, fetchInventoryError, isAuth])
 
     const handleProcure = async () => {
         const newProducts = await fetchProcure();

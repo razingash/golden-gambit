@@ -14,7 +14,7 @@ const CompanySharesList = ({ticker}) => {
     const [hasNext, setNext] = useState(false);
     const lastElement = useRef();
     const [shares, setShares] = useState([]);
-    const [fetchCompanyShares, isCompanySharesLoading] = useFetching(async () => {
+    const [fetchCompanyShares, isCompanySharesLoading, fetchCompanySharesError] = useFetching(async () => {
         const data = await StockServices.getCompanySharesOnSale(page, ticker, tokenRef?.current?.access);
         setShares((prevShares) => {
             const newShares = data.data.filter(
@@ -71,8 +71,10 @@ const CompanySharesList = ({ticker}) => {
                         </div>
                     ))}
                 </div>
-            ) : (
+            ) : !fetchCompanySharesError ? (
                 <BlankResult title={"No lots found for sale"} info={"Company's shares aren't currently for sale"}/>
+            ): (
+                <BlankResult title={"Server Error"} info={"No reply from the server"}/>
             )}
         </div>
     );

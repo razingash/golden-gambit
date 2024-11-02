@@ -7,15 +7,16 @@ import {useAuth} from "../hooks/context/useAuth";
 import GlobalTradeGoldForm from "../components/UI/Forms/GlobalTradeGoldForm";
 import UseEventSourcing from "../hooks/useEventSourcing";
 import ChartSvg from "../components/UI/ChartSvg";
+import BlankResult from "../components/UI/BlankResult/BlankResult";
 
 const StockGold = () => {
     const {isAuth} = useAuth();
     const [isFormSpawned, setForm] = useState(false);
     const [chartData, setChartData] = useState(null);
-    const [fetchInitialGoldRate, isInitialGoldRateLoading] = useFetching(async () => {
+    const [fetchInitialGoldRate, isInitialGoldRateLoading, goldRateError] = useFetching(async () => {
         return await StockServices.getGoldSilverRate();
     })
-    const [fetchGoldRateHistory, isGoldRateHistoryLoading] = useFetching(async () => {
+    const [fetchGoldRateHistory, isGoldRateHistoryLoading, goldRateHistoryError] = useFetching(async () => {
         return await StockServices.getGoldRateHistory();
     })
     const [highlightedElement, setHighlightedElement] = useState(null);
@@ -28,13 +29,13 @@ const StockGold = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            if (!isInitialGoldRateLoading && prevValue === null) {
+            if (!isInitialGoldRateLoading && prevValue === null && !goldRateError) {
                 const data = await fetchInitialGoldRate();
                 data && setInitialValue(data)
             }
         }
         void loadData();
-    }, [fetchInitialGoldRate, isInitialGoldRateLoading])
+    }, [fetchInitialGoldRate, isInitialGoldRateLoading, goldRateError])
 
     useEffect(() => {
         if (value) {
@@ -57,13 +58,13 @@ const StockGold = () => {
 
     useEffect(() => { // unused(useless for now): data.base_price, data.amount
         const loadData = async () => {
-            if (!isGoldRateHistoryLoading && chartData === null) {
+            if (!isGoldRateHistoryLoading && chartData === null && !goldRateHistoryError) {
                 const data = await fetchGoldRateHistory();
                 data && setChartData(data.contents);
             }
         }
         void loadData();
-    }, [fetchGoldRateHistory, isGoldRateHistoryLoading])
+    }, [chartData, isGoldRateHistoryLoading, goldRateHistoryError])
 
     return (
         <div className={"section__main"}>
@@ -83,12 +84,14 @@ const StockGold = () => {
                         <button className={"button__submit trade__gold__button"} onClick={spawnForm}>trade gold</button>
                     )}
                 </div>
-                {chartData && chartData.length > 1 ? (
+                {chartData ? chartData.length > 1 ? (
                     <div className="field__chart chart__gold">
                         <ChartSvg data={chartData} strokeStyle={1} backgroundStyle={1} pointerStyle={0} searchKey={'current price'}/>
                     </div>
                 ) : (
                     <div className={"global__loading"}><AdaptiveLoading/></div>
+                ) : (
+                    <BlankResult title={"Server Error"} info={"No reply from the server"}/>
                 )}
             </div>
             {isFormSpawned && <GlobalTradeGoldForm onClose={spawnForm}/>}

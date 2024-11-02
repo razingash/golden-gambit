@@ -13,7 +13,7 @@ const UserCompanies = () => {
     const [hasNext, setNext] = useState(false);
     const lastElement = useRef();
     const [companies, setCompanies] = useState([]);
-    const [fetchUserCompanies, isUserCompaniesLoading] = useFetching(async () => {
+    const [fetchUserCompanies, isUserCompaniesLoading, fetctUserCompaniesError] = useFetching(async () => {
         const data = await UserService.getUserCompanies(page);
         setCompanies((prevCompanies) => {
             const newCompanies = data.data.filter(
@@ -64,8 +64,10 @@ const UserCompanies = () => {
                     </div>
                     <PrintNewSharesForm ticker={company.ticker} setCompanies={setCompanies}/>
                 </div>
-            ))) : (
+            ))) : !fetctUserCompaniesError ? (
                 <BlankResult title={"No tickers found"} info={"Apparently you have lost all your tickers or haven’t registered any..."}/>
+            ) : (
+                <BlankResult title={"Server Error"} info={"No reply from the server"}/>
             )}
         </div>
     );

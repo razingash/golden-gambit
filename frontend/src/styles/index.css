@@ -321,6 +321,29 @@ body {
     height: fit-content;
 }
 
+.button__submit {
+    display: flex;
+    justify-content: center;
+    padding: 3px 0;
+    margin-top: 12px;
+    width: 100%;
+    border: 0;
+    border-radius: 3px;
+    background: radial-gradient(#00d9ff, rgb(0, 88, 255, 0.47));
+    color: #000000;
+    font-family: sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    user-select: none;
+}
+.button__submit:hover {
+    background: radial-gradient(#8fff00, #00ff0878);
+}
+.button__submit:focus {
+    background: radial-gradient(#ffa500, rgb(255 104 0 / 0.47));
+}
+
 .dynamic_update_static {
     animation: calm 5s forwards;
 }
@@ -334,7 +357,7 @@ body {
     0% {
         color: initial;
     }
-    50% {
+    10%, 90%{
         color: var(--lines);
     }
     100% {
@@ -345,7 +368,7 @@ body {
     0% {
         color: initial;
     }
-    50% {
+    10%, 90% {
         color: var(--hovered-element);
     }
     100% {
@@ -356,7 +379,7 @@ body {
     0% {
         color: initial;
     }
-    50% {
+    10%, 90% {
         color: var(--highlight-element-1);
     }
     100% {
@@ -385,10 +408,10 @@ body {
 
 @media (max-width: 1100px) {
     .chart__company {
-        margin: 0 40px;
+        margin: 0 35px 0 30px;
     }
     .chart__gold {
-        margin: 0 40px;
+        margin: 0 35px 0 30px;
     }
 }
 @media (max-width: 768px){
@@ -418,6 +441,10 @@ body {
 }
 
 @media (max-width: 500px) {
+    .loading__spinner {
+        width: 75px;
+        height: 75px;
+    }
     .header__sitename {
         padding: initial;
         margin-left: initial;

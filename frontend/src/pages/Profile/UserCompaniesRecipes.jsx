@@ -13,7 +13,7 @@ const UserCompaniesRecipes = () => {
     const [fetchCompaniesRecipes, isRecipesLoading] = useFetching(async () => {
         return await CompaniesService.getCompaniesRecipes();
     })
-    const [fetchUserCompanies, isUserCompaniesLoading] = useFetching(async () => {
+    const [fetchUserCompanies, isUserCompaniesLoading, fetchUsercompaniesError] = useFetching(async () => {
         return await UserService.getUserCompanies(1,1000, ['type', 'name', 'ticker'])
     })
     const [isFormSpawned, setForm] = useState(false);
@@ -83,8 +83,11 @@ const UserCompaniesRecipes = () => {
                         ))}
                     </div>
                 </div>
-            )) : (
+            )) : (!fetchUsercompaniesError ? (
                 <BlankResult title={"Server problem"} info={"Data hasn't been initialized yet"}/>
+                ) : (
+                <BlankResult title={"Server Error"} info={"No reply from the server"}/>
+                )
             )}
             {isFormSpawned && <GlobalMergeCompaniesForm recipe={selectedRecipe} userCompanies={userCompanies} onClose={closeForm}/>}
         </div>
