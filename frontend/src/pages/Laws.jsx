@@ -12,15 +12,15 @@ const Laws = () => {
     })
 
     // WARGING: if you specify a function call depending on it, there will be many more unnecessary calls
-    useEffect( () => { // the very minimum of calls in ALL CASES. if you use useCallback there will be 1 more
-        const loadLaws = async () => { // 4 times (2)
-            if (!isLawsLoading && laws.length === 0 && !error) { // 2 times(1)
+    useEffect( () => {
+        const loadLaws = async () => {
+            if (!isLawsLoading && laws.length === 0 && !error) {
                 const data = await fetchLaws();
                 data && setLaws(data.data);
             }
         };
         void loadLaws();
-    }, [isLawsLoading, error])
+    }, [isLawsLoading, laws.length, error])
 
     if (isLawsLoading) {
         return <div className={"global__loading"}><AdaptiveLoading/></div>

@@ -7,7 +7,11 @@ import {useApiInterceptors} from "../hooks/useApiInterceptor";
 
 const AppRouter = () => {
     useApiInterceptors();
-    const {isAuth} = useAuth();
+    const {isAuth, loading} = useAuth();
+
+    if (loading) {
+        return <></>
+    }
 
     return (
         <Suspense fallback={<></>}>

@@ -20,7 +20,7 @@ const News = () => {
             }
         }
         void loadData();
-    }, [inNewsLoading, error])
+    }, [inNewsLoading, news.length, error])
 
     if (inNewsLoading) {
         return <div className={"global__loading"}><AdaptiveLoading/></div>

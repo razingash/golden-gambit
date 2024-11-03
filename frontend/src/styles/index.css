@@ -295,6 +295,10 @@ body {
     border-radius: 4px;
     box-shadow: 0 0 0 2px rgb(0 0 0), 0 2px 4px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.3), 0 0 16px rgb(0 0 0);
 }
+.mod_width {
+    min-width: 200px;
+    width: 100%;
+}
 .area__close {
     position: relative;
     left: 9px;

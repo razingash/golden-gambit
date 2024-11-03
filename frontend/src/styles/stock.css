@@ -16,6 +16,8 @@
     padding: 14px;
     border-radius: 4px;
     background: var(--container-background);
+    flex-wrap: wrap;
+    border: 2px solid;
 }
 .trade__gold__button {
     width: 250px;
@@ -25,6 +27,7 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
+    width: 100%;
 }
 
 /* products & shares */
@@ -42,6 +45,9 @@
     width: 100%;
 }
 .product__item, .share__item {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
     position: relative;
     background: var(--container-background);
     padding: 15px;
@@ -65,7 +71,8 @@
     padding-bottom: 3px;
     margin-bottom: 3px;
     position: relative;
-    z-index: 2;
+    /*z-index: 2; */ /*если установить то глобальная форма не пробьектся сквозь них*/
+    text-align: center;
 }
 .share__title {
     text-decoration: none;

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useFetching} from "../../hooks/useFetching";
 import CompaniesService from "../../API/CompaniesService";
 import AdaptiveLoading from "../../components/UI/AdaptiveLoading";
@@ -44,33 +44,30 @@ const UserCompaniesRecipes = () => {
             }
         }
         void loadData();
-    }, [isUserCompaniesLoading])
+    }, [isUserCompaniesLoading, userCompanies.length])
 
-    const hasFetchedRecipes = useRef(false);
+
     useEffect(() => {
-        // с этим компонентом происходит чертовщина - запрос для рецепта дублируется и из-за этого медленно грузится
-        const loadData = async () => {// что-то не так с этим запросом - вместо двух раз 4 раза вызывается
-            console.log(1)
-            if (!isRecipesLoading && recipes.length === 0 && !hasFetchedRecipes.current) {
-                hasFetchedRecipes.current = true;
-                console.log(2)
+        const loadData = async () => {
+            if (!isRecipesLoading && recipes.length === 0) {
                 const data = await fetchCompaniesRecipes();
                 data && setRecipes(data);
             }
         }
         void loadData();
-    }, [isRecipesLoading])
+    }, [isRecipesLoading, recipes.length])
+
 
     if (recipes.length === 0 && isRecipesLoading) {
         return <AdaptiveLoading/>
     }
 
     return (
-        <div className={"area__column container__default"}>
+        <div className={"area__column container__default flexible_container"}>
             {recipes.length > 0 ? ( recipes.map((recipe) =>
-                <div className={"container__default3"} key={recipe.recipe}>
+                <div key={recipe.recipe}>
                     <div className={"transmutation__header content__header"}>
-                        <div className={"text__direct"}>{decodeCompanyType(recipe.company_type)}</div>
+                        <div>{decodeCompanyType(recipe.company_type)}</div>
                         {areAllIngredientsAvailable(recipe) && (
                             <button className={"button__submit button__transmutation"} onClick={() => spawnForm(recipe)}>transmutate</button>
                         )}

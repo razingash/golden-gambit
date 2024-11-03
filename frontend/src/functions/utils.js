@@ -16,10 +16,6 @@ export const formatTimestamp = (timestamp) => {
         {hour:'2-digit',  minute:'2-digit',  day:'2-digit',  month:'2-digit',  year:'numeric'});
 }
 
-export const percentageOfNumber = (num1, num2) => {
-    return (100 - (num1 * 100 / num2).toFixed(2)).toFixed(2)
-};
-
 export const calculateFluctuations = (num1, num2) => {
     return ((num1 - num2) / 100).toFixed(2)
 }
@@ -30,6 +26,7 @@ export const calculateWealth = (silver, gold, goldRate) => {
 
 export const selectSharesType = { "ordinary": 1, "preferred": 2 };
 export const selectTradingType = { "purchase": "buy", "sale": "sell" };
+export const selectCompanyType = {"farm": 1, "fish farm": 2, "mine": 3, "ore mine": 4, "quarry": 5, "sawmill": 6, "plantation": 7}
 
 export const decodeSharesType = (num) => {
     const data = {1: 'ordinary', 2: 'preferred'}

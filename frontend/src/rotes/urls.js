@@ -13,7 +13,7 @@ const Profile = lazy(() => import("../pages/Profile/Profile"));
 const UserCompanies = lazy(() => import("../pages/Profile/UserCompanies"));
 const UserShares = lazy(() => import("../pages/Profile/UserShares"));
 const UserCompaniesRecipes = lazy(() => import("../pages/Profile/UserCompaniesRecipes"));
-//investigate why styles are imported all at once
+
 
 export const publicRotes = [
     {path: "/", component: <Main/>, key: "main"},

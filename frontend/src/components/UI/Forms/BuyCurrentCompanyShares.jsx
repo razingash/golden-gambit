@@ -9,7 +9,7 @@ const BuyCurrentCompanyShares = ({ticker, pk, sharesType, price} ) => {
 
     const [fetchTradeShares, ,shareError] = useFetching(async () => {
         return await StockServices.tradeShares(ticker, pk, sharesType, amount.value, price)
-    })
+    }, 0, 1000)
 
     const tradeShares = async (e) => {
         e.preventDefault();

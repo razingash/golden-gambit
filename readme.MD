@@ -17,6 +17,12 @@
 1) if you want to recreate database in ordinary version run python manage.py deinitialization
 
 
+## need to know
+1) useEffect has a missing dependency: 'fetch...'. Either include it or remove the dependency array
+   - this error doesn't pose a threat because the fetch... function itself is always used
+     through the custom useFetching hook, which allows you to call this request when it is 
+     actually necessary
+
 # Description
 
 ### role of currency

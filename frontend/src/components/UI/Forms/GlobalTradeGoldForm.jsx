@@ -9,7 +9,7 @@ const GlobalTradeGoldForm = ({onClose}) => {
     const tradeType = useInput('buy');
     const [fetchGoldTrade, , goldTradeError] = useFetching(async () => {
         return await StockServices.tradeGold(tradeType.value, amount.value)
-    }, 1000)
+    }, 500, 1000)
 
     const tradeGold = async (e) => {
         e.preventDefault();
@@ -20,6 +20,7 @@ const GlobalTradeGoldForm = ({onClose}) => {
         <div className={"global__container"}>
             <div className={"form__global"}>
                 <div className={"area__close"} onClick={onClose}><div className="cross"></div></div>
+                <div className={"container__header_1 mod_width"}>Trade Gold</div>
                 <form onSubmit={tradeGold} className={"gold_trade__form"}>
                     <input className={"input__default"} {...amount} type={"number"} placeholder={"amount"}/>
                     {goldTradeError?.amount && <div className={"cell__error"}>{goldTradeError?.amount}</div>}

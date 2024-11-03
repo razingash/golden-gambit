@@ -7,7 +7,7 @@ import BlankResult from "../components/UI/BlankResult/BlankResult";
 import {useAuth} from "../hooks/context/useAuth";
 import {Link} from "react-router-dom";
 import {useObserver} from "../hooks/useObserver";
-import BuySharesWholesale from "../components/UI/Forms/BuySharesWholesale";
+import GlobalBuySharesWholesaleForm from "../components/UI/Forms/GlobalBuySharesWholesaleForm";
 import {decodeSharesType} from "../functions/utils";
 
 const StockShares = () => {
@@ -16,6 +16,9 @@ const StockShares = () => {
     const [hasNext, setNext] = useState(false);
     const lastElement = useRef();
     const [shares, setShares] = useState([]);
+    const [selectedShares, setSelectedShares] = useState(null);
+    const [isFormSpawned, setForm] = useState(false);
+
     const [fetchShares, isSharesLoading, error] = useFetching(useCallback(async () => {
         const data = await StockServices.getStockShares(page);
         setShares((prevShares) => {
@@ -26,6 +29,14 @@ const StockShares = () => {
         })
         setNext(data.has_next)
     }, [page]))
+
+    const spawnForm = (shares) => {
+        setSelectedShares(shares);
+        setForm(true);
+    }
+    const closeForm = () => {
+        setForm(false);
+    }
 
     useObserver(lastElement, fetchShares, isSharesLoading, hasNext, page, setPage);
 
@@ -65,7 +76,7 @@ const StockShares = () => {
                                     <div>{decodeSharesType(share.shares_type)}</div>
                                 </div>
                             {isAuth ? (
-                                <BuySharesWholesale ticker={share.ticker} sharesType={share.shares_type}/>
+                                <button className={"button__submit"} onClick={() => spawnForm(share)}>trade</button>
                             ) : (
                                 <div className={"lon_in_wish_container"}>
                                     <div className={"log_in_wish"}>Sign In!</div>
@@ -80,6 +91,7 @@ const StockShares = () => {
                     <BlankResult title={"Server Error"} info={"No reply from the server"}/>
                 )}
             </div>
+            {isFormSpawned && <GlobalBuySharesWholesaleForm shares={selectedShares} onClose={closeForm}/>}
         </div>
     );
 };

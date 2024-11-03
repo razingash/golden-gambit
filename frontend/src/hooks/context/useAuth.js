@@ -15,19 +15,19 @@ export const AuthProvider = ({ children }) => {
 
     const [fetchRegisteredUser, , registerError] = useFetching(async (username, password) => {
         return await AuthService.register(username, password)
-    })
+    }, 0, 1000)
     const [fetchLoginUser, , loginError] = useFetching(async (username, password) => {
         return await AuthService.login(username, password);
-    })
+    }, 0, 1000)
     const [fetchLogoutUser] = useFetching(async (refreshToken) => {
         return await AuthService.logout(refreshToken);
-    })
+    }, 0, 10)
     const [fetchVerifiedToken] = useFetching(async (token) => {
         return await AuthService.verifyToken(token);
-    })
+    }, 0, 1000)
     const [fetchRefreshedToken] = useFetching(async (refreshToken) => {
         return await AuthService.refreshAccessToken(refreshToken)
-    })
+    }, 0, 1000)
 
     const login = async (username, password) => { // good
         const data = await fetchLoginUser(username, password);

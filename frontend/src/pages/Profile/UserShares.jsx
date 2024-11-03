@@ -6,13 +6,16 @@ import BlankResult from "../../components/UI/BlankResult/BlankResult";
 import {useObserver} from "../../hooks/useObserver";
 import {decodeCompanyType, formatNumber} from "../../functions/utils";
 import {Link} from "react-router-dom";
-import SellSharesForm from "../../components/UI/Forms/SellSharesForm";
+import GlobalSellSharesForm from "../../components/UI/Forms/GlobalSellSharesForm";
 
 const UserShares = () => {
     const [page, setPage] = useState(1);
     const [hasNext, setNext] = useState(false);
     const lastElement = useRef();
     const [shares, setShares] = useState([]);
+    const [selectedTicker, setSelectedTicker] = useState(null);
+    const [isFormSpawned, setForm] = useState(false);
+
     const [fetchUserShares, isUserSharesLoading, fetchUserSharesError] = useFetching(async () => {
         const data = await UserService.getUserShares(page);
         setShares((prevShares) => {
@@ -23,6 +26,15 @@ const UserShares = () => {
         })
         setNext(data.has_next)
     })
+
+    const spawnForm = (company) => {
+        setSelectedTicker(company);
+        setForm(true);
+    }
+    const closeForm = () => {
+        setForm(false);
+    }
+
 
     useObserver(lastElement, fetchUserShares, isUserSharesLoading, hasNext, page, setPage);
 
@@ -72,7 +84,7 @@ const UserShares = () => {
                         <div>preferred shares</div>
                         <div>{formatNumber(company.preferred_shares_amount)}</div>
                     </div>
-                    <SellSharesForm ticker={company.ticker} setShares={setShares}/>
+                    <button className={"button__submit"} onClick={() => spawnForm(company.ticker)}>sell</button>
                 </div>
             ))) : (!fetchUserSharesError ? (
                 <BlankResult title={"No shares found"} info={"You don't have any shares yet"}/>
@@ -80,6 +92,7 @@ const UserShares = () => {
                 <BlankResult title={"Server Error"} info={"No reply from the server"}/>
                 )
             )}
+            {isFormSpawned && <GlobalSellSharesForm ticker={selectedTicker} setShares={setShares} onClose={closeForm}/>}
         </div>
     );
 };

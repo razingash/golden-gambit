@@ -5,7 +5,7 @@ import {useFetching} from "../../hooks/useFetching";
 import UserService from "../../API/UserService";
 import BlankResult from "../../components/UI/BlankResult/BlankResult";
 import {Link, Outlet} from "react-router-dom";
-import NewCompanyForm from "../../components/UI/Forms/NewCompanyForm/NewCompanyForm";
+import NewCompanyForm from "../../components/UI/Forms/NewCompanyForm";
 
 const Profile = () => {
     const [user, setUser] = useState(null);
@@ -15,8 +15,10 @@ const Profile = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            const data = await fetchUser();
-            data && setUser(data);
+            if (!isUserLoading && user === null) {
+                const data = await fetchUser();
+                data && setUser(data);
+            }
         }
         void loadData();
     }, [isUserLoading])

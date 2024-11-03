@@ -1,5 +1,6 @@
 from datetime import timedelta
 from decimal import Decimal
+from re import sub as re_sub
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
@@ -121,9 +122,15 @@ class CompanyCreateSerializer(serializers.ModelSerializer):
         model = Company
         fields = ['type', 'ticker', 'name', 'shares_amount', 'preferred_shares_amount', 'dividendes_percent']
 
+    def validate_ticker(self, value):
+        new_ticker = re_sub(r'[^a-zA-Z0-9]', '', value).upper()
+        if 3 > len(new_ticker) > 9:
+            raise serializers.ValidationError('ticker must be from 4 to 8 characters')
+        return new_ticker
+
     def validate_type(self, value):
         if value.type in [1, 2, 3, 4, 5, 6, 7]:
-            return value
+            return value.type
         raise serializers.ValidationError("Registration of new tickers is only available in the primary sector")
 
     def validate_shares_amount(self, value):

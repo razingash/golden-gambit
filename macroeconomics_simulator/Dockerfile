@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y libpq-dev
 
 WORKDIR /app
 
-COPY requirements.txt requirements.txt
+COPY requirements/unix.txt requirements.txt
 COPY . /app/
 
 RUN pip install -r requirements.txt

@@ -5,7 +5,7 @@ export const useFetching = (callback, delay=0, maxRetries=1) => {
     const [isLoading, setIsLoading] = useState(null);
     const [error, setError] = useState(null);
     const [isSpammed, setIsSpammed] = useState(null);
-    // useCallback может быть неоправдан если useFetching не используется в useEffect | если использовать будет только хуже
+
     const fetching = useCallback(async (...args) => {
         if (isSpammed || retryCount >= maxRetries) return;
         console.log('usefetching')

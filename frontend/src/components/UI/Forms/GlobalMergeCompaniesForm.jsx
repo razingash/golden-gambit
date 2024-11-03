@@ -13,7 +13,7 @@ const GlobalMergeCompaniesForm = ({recipe, userCompanies, onClose}) => {
     const [fetchMergedCommpany, , mergedCompanyError] = useFetching(async () => {
         return await UserService.megreCompanies(recipe.recipe, selectedCompanies.flat(), ticker.value,
             name.value, +dividendesPercent.value);
-    })
+    }, 0, 1000)
 
     const handleCompanySelection = (ingredientIndex, companies) => {
         const updatedSelected = [...selectedCompanies];

@@ -62,10 +62,11 @@
 
 
 /* user tickers recipies */
-
 .content__ingredient__list {
     display: flex;
-    gap: 20px;
+    column-gap: 20px;
+    row-gap: 8px;
+    flex-wrap: wrap;
 }
 .ingredient__item {
     display: flex;
@@ -77,12 +78,8 @@
     border-radius: 6px;
     border: 1px solid #355059;
     color: #fff;
-    text-wrap: nowrap; /* ??? */
 }
 
-.text__direct {
-    text-wrap: nowrap;
-}
 .transmutation__header {
     display: flex;
     justify-content: space-between;

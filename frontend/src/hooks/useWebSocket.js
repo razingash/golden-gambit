@@ -32,7 +32,12 @@ const UseWebSocket = (link) => {
         socketRef.current.onerror = () => {
             console.log('error')
         }
-
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.close();
+                console.log('WebSocket connection closed on cleanup');
+            }
+        };
     }, [link])
 
     return [value, setValue, prevValue, connected];

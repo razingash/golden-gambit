@@ -54,22 +54,21 @@ def create_new_company(user_id, request_data):
 
     user = get_object(model=Player, condition=Q(id=user_id), fields=['id', 'silver'])
 
-    if not PlayerCompanies.objects.filter(player_id=user_id, isFounder=True).exists():
-        pass
-    else: # 100 is amount of gold
+    if PlayerCompanies.objects.filter(player_id=user_id, isFounder=True).exists(): # 100 is amount of gold
         stock_gold_price = get_object(model=GoldSilverExchange, condition=Q(base_price=1000),
                                       fields=['current_price']).current_price
         company_opening_price = 100 * stock_gold_price
         if user.silver >= company_opening_price:
             user.silver -= company_opening_price
-            user.save()
         else:
             raise CustomException('You need more money to open new company')
 
-    new_company = Company.objects.create(type_id=company_type, ticker=ticker, name=name, shares_amount=shares_amount,
-                                         preferred_shares_amount=preferred_shares_amount, dividendes_percent=dividendes_percent)
-    PlayerCompanies.objects.create(player_id=user_id, company=new_company, shares_amount=shares_amount,
-                                   preferred_shares_amount=preferred_shares_amount)
+    with transaction.atomic():
+        new_company = Company.objects.create(type_id=company_type, ticker=ticker, name=name, shares_amount=shares_amount,
+                                             preferred_shares_amount=preferred_shares_amount, dividendes_percent=dividendes_percent)
+        PlayerCompanies.objects.create(player_id=user_id, company=new_company, shares_amount=shares_amount,
+                                       preferred_shares_amount=preferred_shares_amount)
+        user.save()
 
     return new_company
 
@@ -160,7 +159,10 @@ def put_up_shares_for_sale(user_id, company_id, shares_type, amount, price):
         condition = Q(player_id=user_id, company_id=company_id, shares_amount__gte=amount)
     else:
         condition = Q(player_id=user_id, company_id=company_id, preferred_shares_amount__gte=amount)
-    obj = get_object(model=PlayerCompanies, condition=condition, fields=['shares_amount', 'preferred_shares_amount', 'id', 'isHead'])
+
+    obj = PlayerCompanies.objects.only('shares_amount', 'preferred_shares_amount', 'id', 'isHead').filter(condition).first()
+    if obj is None:
+        raise CustomException("you don't have that many shares")
 
     if shares_type == 1: # ordinary
         tz = timezone.now()

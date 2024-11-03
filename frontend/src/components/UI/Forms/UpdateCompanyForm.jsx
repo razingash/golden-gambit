@@ -11,7 +11,7 @@ const UpdateCompanyForm = ({baseName, baseDividendes, setCompanyData}) => {
 
     const [fetchUpdateCompany, ,updateError] = useFetching(async (requestData) => {
         return await CompaniesService.changeUserCompany(ticker, requestData)
-    })
+    }, 0, 1000)
 
     const createRequestUpdateData = () => {
         const data = {}
@@ -44,9 +44,9 @@ const UpdateCompanyForm = ({baseName, baseDividendes, setCompanyData}) => {
         <>
         <div className={"container__header_1"}>change company</div>
         <form className={"form__default"} onSubmit={(e) => updateCompany(e)}>
-            <input {...name} type={"text"} placeholder={"company name"}/>
+            <input className={"input__default"} {...name} type={"text"} placeholder={"company name"}/>
             {updateError?.name && <div className={"cell__error"}>{updateError?.name}</div>}
-            <input {...dividendesPercent} type={"text"} placeholder={"dividendes %"}/>
+            <input className={"input__default"} {...dividendesPercent} type={"text"} placeholder={"dividendes %"}/>
             {updateError?.dividendes_percent && <div className={"cell__error"}>{updateError?.dividendes_percent}</div>}
             <button className={"button__submit"}>Submit</button>
             {updateError?.detail && <div className={"cell__error"}>{updateError?.detail}</div>}

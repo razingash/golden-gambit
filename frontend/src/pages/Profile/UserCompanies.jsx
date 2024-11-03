@@ -6,13 +6,16 @@ import BlankResult from "../../components/UI/BlankResult/BlankResult";
 import {useObserver} from "../../hooks/useObserver";
 import {decodeCompanyType, formatNumber} from "../../functions/utils";
 import {Link} from "react-router-dom";
-import PrintNewSharesForm from "../../components/UI/Forms/PrintNewSharesForm";
+import GlobalPrintNewSharesForm from "../../components/UI/Forms/GlobalPrintNewSharesForm";
 
 const UserCompanies = () => {
     const [page, setPage] = useState(1);
     const [hasNext, setNext] = useState(false);
     const lastElement = useRef();
     const [companies, setCompanies] = useState([]);
+    const [selectedTicker, setSelectedTicker] = useState(null);
+    const [isFormSpawned, setForm] = useState(false);
+
     const [fetchUserCompanies, isUserCompaniesLoading, fetctUserCompaniesError] = useFetching(async () => {
         const data = await UserService.getUserCompanies(page);
         setCompanies((prevCompanies) => {
@@ -23,6 +26,14 @@ const UserCompanies = () => {
         })
         setNext(data.has_next)
     })
+
+    const spawnForm = (company) => {
+        setSelectedTicker(company);
+        setForm(true);
+    }
+    const closeForm = () => {
+        setForm(false);
+    }
 
     useObserver(lastElement, fetchUserCompanies, isUserCompaniesLoading, hasNext, page, setPage);
 
@@ -62,13 +73,14 @@ const UserCompanies = () => {
                         <div>preferred shares</div>
                         <div>{formatNumber(company.cp_shares)}</div>
                     </div>
-                    <PrintNewSharesForm ticker={company.ticker} setCompanies={setCompanies}/>
+                    <button className={"button__submit"} onClick={() => spawnForm(company.ticker)}>print</button>
                 </div>
             ))) : !fetctUserCompaniesError ? (
                 <BlankResult title={"No tickers found"} info={"Apparently you have lost all your tickers or haven’t registered any..."}/>
             ) : (
                 <BlankResult title={"Server Error"} info={"No reply from the server"}/>
             )}
+            {isFormSpawned && <GlobalPrintNewSharesForm ticker={selectedTicker} setCompanies={setCompanies} onClose={closeForm}/>}
         </div>
     );
 };

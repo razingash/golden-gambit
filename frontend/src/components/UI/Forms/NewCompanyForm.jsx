@@ -1,8 +1,9 @@
 import React from 'react';
-import useInput from "../../../../hooks/useInput";
-import {useFetching} from "../../../../hooks/useFetching";
-import CompaniesService from "../../../../API/CompaniesService";
+import useInput from "../../../hooks/useInput";
+import {useFetching} from "../../../hooks/useFetching";
+import CompaniesService from "../../../API/CompaniesService";
 import {useNavigate} from "react-router-dom";
+import {selectCompanyType} from "../../../functions/utils";
 
 const NewCompanyForm = () => {
     const navigate = useNavigate();
@@ -13,12 +14,10 @@ const NewCompanyForm = () => {
     const preferredSharesAmount = useInput('')
     const dividendesPercent = useInput('')
 
-    const companyTypes = {"farm": 1, "fish farm": 2, "mine": 3, "ore mine": 4, "quarry": 5, "sawmill": 6, "plantation": 7}
-
     const [fetchNewCompany, ,formError] = useFetching(async () => {
         return await CompaniesService.createNewCompany(+companyType.value, ticker.value, name.value, sharesAmount.value,
             preferredSharesAmount.value, dividendesPercent.value)
-    })
+    }, 0, 1000)
 
     const createNewCompany = async (e) => {
         e.preventDefault();
@@ -29,11 +28,11 @@ const NewCompanyForm = () => {
     }
 
     return (
-        <div className={"container__default"}>
+        <div className={"container__default flexible_container"}>
             <div className={"container__header_1"}>create new company</div>
             <form onSubmit={(e) => createNewCompany(e)} className={"form__create_company"}>
                 <select className={"select__default"} value={companyType.value} onChange={(e) => companyType.onChange(e)}>
-                    {Object.entries(companyTypes).map(([company, type]) => (
+                    {Object.entries(selectCompanyType).map(([company, type]) => (
                         <option className={"option__default"} key={company} value={type}>{company}</option>
                     ))}
                 </select>

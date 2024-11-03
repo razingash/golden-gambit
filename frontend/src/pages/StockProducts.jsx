@@ -6,7 +6,7 @@ import BlankResult from "../components/UI/BlankResult/BlankResult";
 import AdaptiveLoading from "../components/UI/AdaptiveLoading";
 import {useAuth} from "../hooks/context/useAuth";
 import {useObserver} from "../hooks/useObserver";
-import TradeProducts from "../components/UI/Forms/TradeProducts";
+import GlobalTradeProductsForm from "../components/UI/Forms/GlobalTradeProductsForm";
 import {decodeProductType} from "../functions/utils";
 
 const StockProducts = () => {
@@ -15,6 +15,9 @@ const StockProducts = () => {
     const [hasNext, setNext] = useState(false);
     const lastElement = useRef();
     const [products, setProducts] = useState([]);
+    const [selectedProductType, setSelectedProductType] = useState(null);
+    const [isFormSpawned, setForm] = useState(false);
+
     const [fetchProducts, isProductsLoading, error] = useFetching(async () => {
         const data = await StockServices.getStockProducts(page);
         setProducts((prevProducts) => {
@@ -25,6 +28,14 @@ const StockProducts = () => {
         })
         setNext(data.has_next)
     })
+
+    const spawnForm = (productType) => {
+        setSelectedProductType(productType);
+        setForm(true);
+    }
+    const closeForm = () => {
+        setForm(false);
+    }
 
     useObserver(lastElement, fetchProducts, isProductsLoading, hasNext, page, setPage);
 
@@ -57,7 +68,7 @@ const StockProducts = () => {
                                 </div>
                             </div>
                             {isAuth ? (
-                                <TradeProducts productType={product.type}/>
+                                <button className={"button__submit"} onClick={() => spawnForm(product.type)}>trade</button>
                             ) : (
                                 <div className={"lon_in_wish_container"}>
                                     <div className={"log_in_wish"}>Sign In!</div>
@@ -72,6 +83,7 @@ const StockProducts = () => {
                     }
                 </div>
             </div>
+            {isFormSpawned && <GlobalTradeProductsForm productType={selectedProductType} onClose={closeForm}/>}
         </div>
     );
 };

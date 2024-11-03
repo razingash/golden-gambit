@@ -216,6 +216,7 @@ class CompanyPrintNewSharesApiView(APIView):
 class CompanySellShareApiView(APIView):
     permission_classes = (IsAuthenticated, )
 
+    @custom_exception
     def post(self, request, ticker):
         """
         putting up management shares for an internal auction - 1 hour are given to The Head of the company to buy back the

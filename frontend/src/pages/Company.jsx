@@ -80,8 +80,8 @@ const Company = () => {
         <div className={"section__main"}>
             <div className={"field__company"}>
                 <div className={"area__row"}>
-                    <div className={"container__company"}>
-                        <div className={"company__name"}>{companyData.name}</div>
+                    <div className={"container__default flexible_container"}>
+                        <div className={"container__header_1"}>{companyData.name}</div>
                         <div className={"company__info"}>
                             <div className={"company__column"}>
                                 <div className={"company__row"}>

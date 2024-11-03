@@ -2,7 +2,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import {baseSseURL} from "./useApiInterceptor";
 
 const UseEventSourcing = (event_url, key) => {
-    const [messages, setMessages] = useState([]); //Let it be for now, maybe remove it in the future
     const [value, setValue] = useState(null); // can be used to set the initial value
     const eventSourceRef = useRef(null); // necessary to close the connection
 
@@ -16,7 +15,6 @@ const UseEventSourcing = (event_url, key) => {
             //console.log(event)
             let message = event.data;
             message = JSON.parse(message.replace(/'/g, '"'));
-            setMessages(prev => [message, ...prev])
             setValue(message);
 
             localStorage.setItem(key, JSON.stringify(message));
@@ -44,7 +42,6 @@ const UseEventSourcing = (event_url, key) => {
             void subscribe();
         } else {
             const storedMessage = JSON.parse(existingConnection);
-            setMessages(prev => [storedMessage, ...prev]);
             setValue(storedMessage);
         }
 
@@ -66,7 +63,6 @@ const UseEventSourcing = (event_url, key) => {
         const handleStorage = (e) => { // updating data for non-primary tabs
             if (e.key === key && e.newValue) {
                 const message = JSON.parse(e.newValue);
-                setMessages(prev => [message, ...prev])
                 setValue(message);
             }
         }
@@ -78,7 +74,7 @@ const UseEventSourcing = (event_url, key) => {
         }
     }, [key])
 
-    return [messages, value, setValue];
+    return [value, setValue];
 };
 
 export default UseEventSourcing;
