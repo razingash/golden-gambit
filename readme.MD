@@ -2,26 +2,27 @@
 ## QuickStart
 ### ordinary
 1) in macroeconomics_simulator directory run 
-    - pip install -r requirements.txt
+    - pip install -r requirements/windows.txt  **choose 'windows' or 'unix'**
     - python manage.py initialization
     - - this command will implement database
 2) in frontend directory run npm start
-3) site will be available at http://localhost:3000
+- site will be available at http://localhost:3000
 
 ### using docker
 1) docker compose build
 2) docker compose up
-3) site will be available at http://localhost:3000
+- site will be available at http://localhost:3001
+
 
 ### notifications
-1) if you want to recreate database in ordinary version run python manage.py deinitialization
+1) if you want to recreate database in ordinary version run python manage.py reinitialization
 
 
 ## need to know
-1) useEffect has a missing dependency: 'fetch...'. Either include it or remove the dependency array
-   - this error doesn't pose a threat because the fetch... function itself is always used
+1) useEffect has a missing dependency: "fetch...". Either include it or remove the dependency array
+   - this error doesn't pose a threat because the "fetch..." function itself is always used
      through the custom useFetching hook, which allows you to call this request when it is 
-     actually necessary
+     actually necessary, using the errors encountered and the progress of the request
 
 # Description
 
@@ -47,13 +48,13 @@ which in turn affects the overall value of the company
    - paid daily
 4) ownership
    - The company can be lost if
-   - - won't be able to pay obligations (dividends) to all shareholders
+   - - company won't be able to pay obligations (dividends) to all shareholders
    - - the owner will lose the largest percentage of shares
 5) tier
-   - to increase the company's tier it is necessary to sacrifice other companies to merge
+   - to increase the company's tier you need to sacrifice other companies to merge
    - when merging companies, the shares of shareholders will be transferred to the new company
 6) value
    - depends on what product the company produces, current events, the amount of gold in the company
 7) registration of a new company
-   - player can register 1 company for free, then he will need to deposit an amount
-   in silver which will be equivalent to the cost of 100 gold
+   - player can register 1 company for free. If he has already registered a company,
+then he will need to deposit an amount in silver equivalent to the value of 100 gold.

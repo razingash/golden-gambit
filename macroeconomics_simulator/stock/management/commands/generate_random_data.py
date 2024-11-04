@@ -78,7 +78,11 @@ def falsify_gold_silver_history(gold_silver, iterations):
 
 
 def falsify_company_history(iteration_days, company):
-    json_path = os.path.join(settings.MEDIA_ROOT, 'tickers', f"{company.ticker}.json")
+    current_time = datetime.datetime.now()
+
+    year, month, day = current_time.year, current_time.month, current_time.day
+    json_path = os.path.join(settings.MEDIA_ROOT, 'tickers', str(year), str(month), str(day), f"{company.ticker}.json")
+
     current_time = datetime.datetime.now()
     founding_date = current_time - datetime.timedelta(days=1000)
     affordable_silver = company.silver_reserve

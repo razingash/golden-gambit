@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from datetime import datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -158,9 +159,11 @@ class Company(models.Model):
     founding_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
 
     def save(self, *args, **kwargs):
-        json_path = os.path.join(settings.MEDIA_ROOT, 'tickers', f"{self.ticker}.json")
         document = kwargs.pop('document', False)
         if not self.pk:
+            date = datetime.now()
+            year, month, day = date.year, date.month, date.day
+            json_path = os.path.join(settings.MEDIA_ROOT, 'tickers', str(year), str(month), str(day), f"{self.ticker}.json")
             os.makedirs(os.path.dirname(json_path), exist_ok=True)
             json_schema = {
                 "ticker": self.ticker,
@@ -180,11 +183,10 @@ class Company(models.Model):
 
             document = True
         if document: # if document is True then the data will be written to json
-
             company_price = recalculate_company_price(self)
             self.company_price = company_price
 
-            with open(json_path, 'r') as json_file:
+            with open(self.history, 'r') as json_file:
                 json_data = json.load(json_file)
 
             json_data["contents"].append({
@@ -194,7 +196,7 @@ class Company(models.Model):
                 "gold_reserve": float(self.gold_reserve)
             })
 
-            with open(json_path, 'w') as json_file:
+            with open(self.history, 'w') as json_file:
                 json.dump(json_data, json_file, indent=2)
 
         super(Company, self).save(*args, **kwargs)
