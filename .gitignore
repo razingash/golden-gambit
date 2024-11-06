@@ -6,3 +6,4 @@
 !macroeconomics_simulator/stock/migrations/__init__.py
 /frontend/node_modules
 /macroeconomics_simulator/logs.log
+/k8s/

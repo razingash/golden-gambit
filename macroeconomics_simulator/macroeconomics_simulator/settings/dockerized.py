@@ -14,7 +14,7 @@ CACHES = {
     }
 }
 
-CELERY_BROKER_URL = "amqp://guest:guest@rabbitmq:5672//" # "redis://redis:6379/0"
+CELERY_BROKER_URL = "amqp://admin:admin@rabbitmq:5672//" # "redis://redis:6379/0"
 
 CHANNEL_LAYERS = {
     'default': {

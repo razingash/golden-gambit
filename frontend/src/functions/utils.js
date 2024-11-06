@@ -20,6 +20,10 @@ export const calculateFluctuations = (num1, num2) => {
     return ((num1 - num2) / 100).toFixed(2)
 }
 
+export const percentageChange = (num1, num2) => {
+    return (((num1 - num2) / num2) * 100).toFixed(2);
+};
+
 export const calculateWealth = (silver, gold, goldRate) => {
     return (+silver + +gold * goldRate).toFixed(2)
 }

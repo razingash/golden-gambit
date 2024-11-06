@@ -20,7 +20,7 @@ CACHES = {
     }
 }
 
-CELERY_BROKER_URL = "amqp://guest:guest@127.0.0.1:5672//" # "redis://127.0.0.1:6379/0"
+CELERY_BROKER_URL = "amqp://admin:admin@127.0.0.1:5672//" # "redis://127.0.0.1:6379/0"
 
 CHANNEL_LAYERS = {
     'default': {

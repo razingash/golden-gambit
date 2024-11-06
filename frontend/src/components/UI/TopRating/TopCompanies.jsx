@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import "./top_rating.css"
 import {useFetching} from "../../../hooks/useFetching";
 import RatingService from "../../../API/RatingService";
-import {calculateFluctuations, formatNumber} from "../../../functions/utils";
+import {calculateFluctuations, formatNumber, percentageChange} from "../../../functions/utils";
 import useWebSocket from "../../../hooks/useWebSocket";
 import {Link} from "react-router-dom";
 
@@ -41,6 +41,26 @@ const TopCompanies = () => {
         }
     }, [value]);
 
+    const renderChange = (company) => {
+        const change = company.change ?? percentageChange(company.company_price, company.daily_company_price);
+        return (
+            company.change ? (company.change > 0 ? (
+                <div className={"text_mod_fluctuations state__positive"}>{company.change + "%"}</div>
+                ) : (
+                <div className={"text_mod_fluctuations state__negative"}>{company.change + "%"}</div>
+                )
+            ) : (
+                company.company_price ? (change > 0 ? (
+                    <div className={"text_mod_fluctuations state__positive"}>{change + "%"}</div>
+                    ) : (
+                    <div className={"text_mod_fluctuations state__negative"}>{change + "%"}</div>
+                )) : (
+                    <div className={"text_mod_fluctuations state__default"}>0.00%</div>
+                )
+            )
+        );
+    }
+
     return (
         <div className={"adaptive__field_1"}>
             <div className={"top_rating__list_2"}>
@@ -57,14 +77,7 @@ const TopCompanies = () => {
                         <Link to={`/companies/${company.ticker}`} className={"text_mod_int hover_clickable_1"}>{company.ticker}</Link>
                         <div className={"text_mod_int mod_hide hover_backlight"}>{company.dividendes_percent}%</div>
                         <div className={"text_mod_int hover_backlight"}>{formatNumber(company.company_price)}</div>
-                        {company.change ? (company.change > 0 ? (
-                            <div className={"text_mod_fluctuations state__positive"}>{company.change + "%"}</div>
-                            ) : (
-                            <div className={"text_mod_fluctuations state__negative"}>{company.change + "%"}</div>
-                            )
-                        ) : (
-                            <div className={"text_mod_fluctuations state__default"}>0.00%</div>
-                        )}
+                        {renderChange(company)}
                     </div>
                 )) : (
                     <div>No reply from the server</div>

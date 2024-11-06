@@ -5,7 +5,7 @@ import StockServices from "../../../API/StockServices";
 import {useObserver} from "../../../hooks/useObserver";
 import AdaptiveLoading from "../AdaptiveLoading";
 import BlankResult from "../BlankResult/BlankResult";
-import BuyCurrentCompanyShares from "../Forms/BuyCurrentCompanyShares";
+import GlobalBuyCurrentCompanyShares from "../Forms/GlobalBuyCurrentCompanyShares";
 import {decodeSharesType} from "../../../functions/utils";
 
 const CompanySharesList = ({ticker}) => {
@@ -14,6 +14,9 @@ const CompanySharesList = ({ticker}) => {
     const [hasNext, setNext] = useState(false);
     const lastElement = useRef();
     const [shares, setShares] = useState([]);
+    const [selectedShares, setSelectedShares] = useState(null);
+    const [isFormSpawned, setForm] = useState(false);
+
     const [fetchCompanyShares, isCompanySharesLoading, fetchCompanySharesError] = useFetching(async () => {
         const data = await StockServices.getCompanySharesOnSale(page, ticker, tokenRef?.current?.access);
         setShares((prevShares) => {
@@ -33,6 +36,14 @@ const CompanySharesList = ({ticker}) => {
         }
         void loadData();
     }, [page])
+
+    const spawnForm = (company) => {
+        setSelectedShares(company);
+        setForm(true);
+    }
+    const closeForm = () => {
+        setForm(false);
+    }
 
     if(isCompanySharesLoading === true || isCompanySharesLoading === null) {
         return <AdaptiveLoading/>
@@ -62,7 +73,7 @@ const CompanySharesList = ({ticker}) => {
                                 <div>{decodeSharesType(share.shares_type)}</div>
                             </div>
                             {isAuth ? (
-                                <BuyCurrentCompanyShares ticker={share.ticker} pk={share.id} sharesType={share.shares_type} price={share.price}/>
+                                <button className={"button__submit"} onClick={() => spawnForm(share)}>buy</button>
                         ) : (
                             <div className={"lon_in_wish_container"}>
                                 <div className={"log_in_wish"}>Sign In!</div>
@@ -76,6 +87,7 @@ const CompanySharesList = ({ticker}) => {
             ): (
                 <BlankResult title={"Server Error"} info={"No reply from the server"}/>
             )}
+            {isFormSpawned && <GlobalBuyCurrentCompanyShares shares={selectedShares} onClose={closeForm} setShares={setShares}/>}
         </div>
     );
 };

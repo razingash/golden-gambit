@@ -8,7 +8,7 @@ export const useFetching = (callback, delay=0, maxRetries=1) => {
 
     const fetching = useCallback(async (...args) => {
         if (isSpammed || retryCount >= maxRetries) return;
-        console.log('usefetching')
+        //console.log('usefetching')
         try {
             setIsSpammed(true);
             setIsLoading(true);

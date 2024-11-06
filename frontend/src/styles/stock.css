@@ -47,7 +47,7 @@
 .product__item, .share__item {
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: space-between;
     position: relative;
     background: var(--container-background);
     padding: 15px;
@@ -71,7 +71,7 @@
     padding-bottom: 3px;
     margin-bottom: 3px;
     position: relative;
-    /*z-index: 2; */ /*если установить то глобальная форма не пробьектся сквозь них*/
+    z-index: 1; /*если установить то глобальная форма не пробьектся сквозь них*/
     text-align: center;
 }
 .share__title {
@@ -104,4 +104,7 @@
     rotate: -17deg;
     -webkit-user-select: none;
     user-select: none;
+}
+.stock_products_container_fix{
+    margin-bottom: 5px;
 }

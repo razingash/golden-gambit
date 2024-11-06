@@ -46,6 +46,10 @@ which in turn affects the overall value of the company
 3) dividendes
    - dividend percentage is set by the owner of the company, minimum - 2%
    - paid daily
+   - if the owner of specific shares is also the owner of this company, then the money from dividends will go to
+   the company’s account, which will provoke users to buy shares of other companies in order to buy gold from
+   dividends with silver, which will need to be deposited into the company’s account in order to receive
+   a tiny (but more or less stable) passive income
 4) ownership
    - The company can be lost if
    - - company won't be able to pay obligations (dividends) to all shareholders

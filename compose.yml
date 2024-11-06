@@ -1,27 +1,6 @@
 version: '3.8'
 
 services:
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
-    networks:
-      - localnet
-
-  grafana: # визуализация
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    networks:
-      - localnet
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-
   postgres:
     image: postgres:16
     container_name: postgres
@@ -43,22 +22,14 @@ services:
       - localnet
 
   rabbitmq:
-    image: rabbitmq:4.0.3
+    image: rabbitmq:management
     container_name: rabbitmq
     ports:
       - "5672:5672"
-    networks:
-      - localnet
-
-  rabbitmq-exporter:
-    image: kbudde/rabbitmq-exporter
-    container_name: rabbitmq_exporter
-    ports:
-      - "9419:9419"
-    depends_on:
-      - rabbitmq
+      - "15672:15672"
     environment:
-      RABBIT_URL: "http://guest:guest@rabbitmq:15672"
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
     networks:
       - localnet
 
@@ -119,7 +90,7 @@ services:
       context: ./macroeconomics_simulator
     container_name: celery-worker-rabbit
     environment:
-      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
+      CELERY_BROKER_URL: amqp://admin:admin@rabbitmq:5672//
       DJANGO_SETTINGS_MODULE: macroeconomics_simulator.settings.dockerized
     depends_on:
       - rabbitmq
@@ -135,7 +106,7 @@ services:
       context: ./macroeconomics_simulator
     container_name: celery_beat
     environment:
-      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
+      CELERY_BROKER_URL: amqp://admin:admin@rabbitmq:5672//
       DJANGO_SETTINGS_MODULE: macroeconomics_simulator.settings.dockerized
     depends_on:
       - redis
@@ -165,6 +136,69 @@ services:
     networks:
       - internet
       - localnet
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - localnet
+
+  redis-exporter:
+    image: oliver006/redis_exporter
+    container_name: exporter_redis
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    environment:
+      REDIS_ADDR: redis:6379
+    networks:
+      - localnet
+
+  postgres-exporter:
+    image: wrouesnel/postgres_exporter
+    container_name: exporter_postgres
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:root@postgres:5432/macroeconomics_simulator?sslmode=disable"
+    depends_on:
+      - postgres
+    ports:
+      - "9187:9187"
+    networks:
+      - localnet
+
+  node-exporter:
+    image: prom/node-exporter
+    container_name: exporter_node_exporter
+    ports:
+      - "9100:9100"
+    networks:
+      - localnet
+    restart: unless-stopped
+
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      -  "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - localnet
+
+  grafana: # Basic visualization won't be configured via docker compose
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - localnet
+    volumes:
+      - ./prometheus-datasourse.yml:/etc/grafana/provisioning
 
 volumes:
   media_data:

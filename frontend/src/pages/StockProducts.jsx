@@ -68,7 +68,7 @@ const StockProducts = () => {
                                 </div>
                             </div>
                             {isAuth ? (
-                                <button className={"button__submit"} onClick={() => spawnForm(product.type)}>trade</button>
+                                <button className={"button__submit stock_products_container_fix"} onClick={() => spawnForm(product.type)}>trade</button>
                             ) : (
                                 <div className={"lon_in_wish_container"}>
                                     <div className={"log_in_wish"}>Sign In!</div>
