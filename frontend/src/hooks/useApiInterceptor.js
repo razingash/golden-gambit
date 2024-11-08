@@ -3,8 +3,8 @@ import {useEffect} from "react";
 import {useAuth} from "./context/useAuth";
 
 //later change
-export const baseURL = process.env.REACT_APP_BASE_URL || 'http://127.0.0.1:8000/api/v1';
-export const baseSseURL = process.env.REACT_APP_BASE_SSE_URL || 'http://127.0.0.1:8000/api/sse';
+export const baseURL = process.env.REACT_APP_BASE_URL || 'http://localhost:8000/api/v1';
+export const baseSseURL = process.env.REACT_APP_BASE_SSE_URL || 'http://localhost:8000/api/sse';
 export const websocketBaseURL = process.env.REACT_APP_WEBSOCKET_URL || 'ws://localhost:8000/ws';
 
 

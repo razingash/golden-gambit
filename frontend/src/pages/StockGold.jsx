@@ -40,10 +40,10 @@ const StockGold = () => {
     useEffect(() => {
         if (value) {
             if (highlightedElement === null) {
-                if (value?.current_price > prevValue) {
+                if (value?.current_price < prevValue) {
                     setHighlightedElement('dynamic_update_increase');
                 }
-                else if (value?.current_price < prevValue) {
+                else if (value?.current_price > prevValue) {
                     setHighlightedElement('dynamic_update_decrease');
                 }
                 else if (value?.current_price === prevValue) {

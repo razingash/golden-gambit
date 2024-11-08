@@ -7,3 +7,4 @@
 /frontend/node_modules
 /macroeconomics_simulator/logs.log
 /k8s/
+/terraform/.terraform/

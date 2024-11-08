@@ -1,0 +1,42 @@
+resource "kubernetes_deployment" "rabbitmq" {
+  metadata {
+    name = "rabbitmq"
+    namespace = "backend-service"
+  }
+  spec {
+    replicas = "1"
+    template {
+      metadata {
+        labels = {
+          app = "rabbitmq"
+        }
+      }
+      spec {
+        container {
+          name = "rabbitmq"
+          image = "rabbitmq:4.0.3"
+          port {
+            container_port = 5672
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "rabbitmq-service" {
+  metadata {
+    name = "rabbitmq"
+    namespace = "backend-service"
+  }
+  spec {
+    type = "ClusterIP"
+    port {
+      port = 5672
+      target_port = "5672"
+    }
+    selector = {
+      app = "rabbitmq"
+    }
+  }
+}
