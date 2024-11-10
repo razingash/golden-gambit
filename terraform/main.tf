@@ -11,7 +11,7 @@ terraform {
   }
 }
 
-provider "docker" {}
+
 
 provider "kubernetes" {
   config_path = "~/.kube/config" #??????
@@ -23,16 +23,20 @@ module "infrastructure" {
 
 module "databases" {
   source = "./databases"
+  depends_on = [module.infrastructure]
 }
 
 module "app" {
   source = "./app"
-}
-
-module "queue" {
-  source = "./queue"
+  depends_on = [module.databases]
 }
 
 module "network" {
   source = "./network"
+  depends_on = [module.app]
+}
+
+module "queue" {
+  source = "./queue"
+  depends_on = [module.network]
 }

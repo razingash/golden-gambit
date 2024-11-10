@@ -5,6 +5,11 @@ resource "kubernetes_deployment" "grafana" {
   }
   spec {
     replicas = "1"
+    selector {
+      match_labels = {
+        app = "grafana"
+      }
+    }
     template {
       metadata {
         labels = {

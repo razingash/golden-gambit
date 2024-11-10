@@ -8,6 +8,11 @@ resource "kubernetes_deployment" "django_rest" {
   }
   spec {
     replicas = "1"
+    selector {
+      match_labels = {
+        app = "django-rest"
+      }
+    }
     template {
       metadata {
         labels = {
@@ -16,7 +21,7 @@ resource "kubernetes_deployment" "django_rest" {
       }
       spec {
         container {
-          image = docker_image.backend_image.latest
+          image = module.docker_image_module.backend_image_latest
           name = "django-rest"
           port {
             container_port = 8000

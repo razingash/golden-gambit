@@ -28,6 +28,11 @@ resource "kubernetes_deployment" "prometheus" {
   }
   spec {
     replicas = "1"
+    selector {
+      match_labels = {
+        app = "prometheus"
+      }
+    }
     template {
       metadata {
         labels = {

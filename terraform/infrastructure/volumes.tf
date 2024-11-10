@@ -18,7 +18,7 @@ resource "kubernetes_persistent_volume" "django-mediafiles-pv" {
 
 resource "kubernetes_persistent_volume_claim" "django-mediafiles-pvc" {
   metadata {
-    name = "django-mediafiles-pvc"
+    generate_name = "django-mediafiles-pvc-"
     namespace = "backend"
   }
   spec {

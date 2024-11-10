@@ -8,5 +8,5 @@ terraform {
 }
 
 module "docker_image_module" {
-  source = "../app/"
+  source = "../infrastructure/"
 }

@@ -5,6 +5,11 @@ resource "kubernetes_deployment" "redis" {
   }
   spec {
     replicas = "1"
+    selector {
+      match_labels = {
+        app = "redis"
+      }
+    }
     template {
       metadata {
         labels = {

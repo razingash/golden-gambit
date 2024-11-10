@@ -5,6 +5,11 @@ resource "kubernetes_deployment" "rabbitmq" {
   }
   spec {
     replicas = "1"
+    selector {
+      match_labels = {
+        app = "rabbitmq"
+      }
+    }
     template {
       metadata {
         labels = {

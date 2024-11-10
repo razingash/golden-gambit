@@ -5,6 +5,11 @@ resource "kubernetes_deployment" "postgres" {
   }
   spec {
     replicas = "1"
+    selector {
+      match_labels = {
+        app = "postgres"
+      }
+    }
     template {
       metadata {
         labels = {

@@ -1,10 +1,15 @@
 resource "kubernetes_deployment" "react" {
   metadata {
     name = "react"
-    namespace = "fronted"
+    namespace = "frontend"
   }
   spec {
     replicas = "1"
+    selector {
+      match_labels = {
+        app = "react"
+      }
+    }
     template {
       metadata {
         labels = {
@@ -14,10 +19,11 @@ resource "kubernetes_deployment" "react" {
       spec {
         container {
           name = "react"
-          image = docker_image.frontend_image.latest
+          image = module.docker_image_module.frontend_image_latest
           port {
             container_port = 3001
           }
+          command = ["sh", "-c", "npm start"]
           env {
             name = "PORT"
             value = "3001"

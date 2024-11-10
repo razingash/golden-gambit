@@ -5,6 +5,11 @@ resource "kubernetes_deployment" "celery-beat" {
   }
   spec {
     replicas = "1"
+    selector {
+      match_labels = {
+        app = "celery-beat"
+      }
+    }
     template {
       metadata {
         labels = {
