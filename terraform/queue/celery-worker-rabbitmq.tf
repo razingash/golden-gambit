@@ -1,7 +1,7 @@
 resource "kubernetes_deployment" "worker-rabbitmq" {
   metadata {
     name = "worker-rabbitmq"
-    namespace = "celery-workers"
+    namespace = var.celery_workers_namespace
   }
   spec {
     replicas = "1" # Change to 3
@@ -44,7 +44,7 @@ resource "kubernetes_deployment" "worker-rabbitmq" {
 resource "kubernetes_service" "worker-rabbitmq-service" {
   metadata {
     name = "worker-rabbitmq"
-    namespace = "celery-workers"
+    namespace = var.celery_workers_namespace
   }
   spec {
     type = "ClusterIP"

@@ -144,7 +144,7 @@ const Company = () => {
                         <div className={"button__submit"} onClick={handleProcure}>procure</div>
                         <div className={"company__products_list"}>
                         {companyInventory && (companyInventory.map((product) => (
-                            <div className={"company__products_item"} key={product.product}>
+                            <div key={product.product}>
                                 <div className={"cell__row"}>
                                     <div>type</div>
                                     <div>{decodeProductType(product.product)}</div>

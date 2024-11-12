@@ -1,7 +1,7 @@
 resource "kubernetes_deployment" "django_rest" {
   metadata {
     name = "django-rest"
-    namespace = "backend"
+    namespace = var.backend_namespace
     labels = {
       app = "django-rest"
     }
@@ -49,7 +49,7 @@ resource "kubernetes_deployment" "django_rest" {
 resource "kubernetes_service" "django_rest_service" {
   metadata {
     name = "django-rest"
-    namespace = "backend"
+    namespace = var.backend_namespace
   }
   spec {
     type = "ClusterIP"

@@ -6,3 +6,8 @@ terraform {
     }
   }
 }
+
+variable "monitoring_namespace" {
+  description = "Namespace for the monitoring services"
+  type        = string
+}

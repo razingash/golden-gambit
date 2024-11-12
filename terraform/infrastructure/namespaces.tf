@@ -39,3 +39,24 @@ resource "kubernetes_namespace" "monitoring" {
   }
 }
 # # Prometheus, Grafana, and all related services for getting information
+
+
+output "backend_namespace" {
+  value = kubernetes_namespace.backend.metadata[0].name
+}
+
+output "frontend_namespace" {
+  value = kubernetes_namespace.frontend.metadata[0].name
+}
+
+output "celery_workers_namespace" {
+  value = kubernetes_namespace.celery-workers.metadata[0].name
+}
+
+output "celery_beat_namespace" {
+  value = kubernetes_namespace.celery-beat.metadata[0].name
+}
+
+output "monitoring_namespace" {
+  value = kubernetes_namespace.monitoring.metadata[0].name
+}

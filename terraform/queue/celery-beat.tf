@@ -1,7 +1,7 @@
 resource "kubernetes_deployment" "celery-beat" {
   metadata {
     name = "celery-beat"
-    namespace = "queue"
+    namespace = var.celery_beat_namespace
   }
   spec {
     replicas = "1"

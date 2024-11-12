@@ -1,7 +1,7 @@
 resource "kubernetes_deployment" "react" {
   metadata {
     name = "react"
-    namespace = "frontend"
+    namespace = var.frontend_namespace
   }
   spec {
     replicas = "1"
@@ -38,7 +38,7 @@ resource "kubernetes_deployment" "react" {
 resource "kubernetes_service" "react-service" {
   metadata {
     name = "react"
-    namespace = "frontend"
+    namespace = var.frontend_namespace
   }
   spec {
     type = "ClusterIP"

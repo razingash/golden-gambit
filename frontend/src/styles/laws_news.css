@@ -46,3 +46,8 @@
         margin: 8px 4px;
     }
 }
+@media (max-width: 400px) {
+    .field__laws, .fields__news {
+        margin: 0 5px;
+    }
+}

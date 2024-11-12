@@ -1,7 +1,7 @@
 resource "kubernetes_deployment" "rabbitmq" {
   metadata {
     name = "rabbitmq"
-    namespace = "backend-service"
+    namespace = var.backend_namespace
   }
   spec {
     replicas = "1"
@@ -32,7 +32,7 @@ resource "kubernetes_deployment" "rabbitmq" {
 resource "kubernetes_service" "rabbitmq-service" {
   metadata {
     name = "rabbitmq"
-    namespace = "backend-service"
+    namespace = var.backend_namespace
   }
   spec {
     type = "ClusterIP"

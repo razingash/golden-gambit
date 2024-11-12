@@ -1,7 +1,7 @@
 resource "kubernetes_deployment" "grafana" {
   metadata {
     name = "grafana"
-    namespace = "monitoring"
+    namespace = var.monitoring_namespace
   }
   spec {
     replicas = "1"
@@ -40,7 +40,7 @@ resource "kubernetes_deployment" "grafana" {
 resource "kubernetes_service" "grafana-service" {
   metadata {
     name = "grafana"
-    namespace = "monitoring"
+    namespace = var.monitoring_namespace
   }
   spec {
     type = "NodePort"

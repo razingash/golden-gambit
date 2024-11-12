@@ -133,9 +133,12 @@
 }
 
 @media (max-width: 500px) {
-    .flexible_container, .profile__header {
+    .profile__header {
         border-radius: 0 !important;
         border-left: 0 !important;
         border-right: 0 !important;
+    }
+    .flexible_container {
+        margin: 0 5px;
     }
 }

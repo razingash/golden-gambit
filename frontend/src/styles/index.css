@@ -457,5 +457,11 @@ body {
     .section__main {
         margin: 56px 0 20px 0;
     }
+    .pillar__container{
+        display: none;
+    }
+    .field__chart {
+        margin: 0;
+    }
 }
 

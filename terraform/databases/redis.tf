@@ -1,7 +1,7 @@
 resource "kubernetes_deployment" "redis" {
   metadata {
     name = "redis"
-    namespace = "backend-services"
+    namespace = var.backend_namespace
   }
   spec {
     replicas = "1"
@@ -32,7 +32,7 @@ resource "kubernetes_deployment" "redis" {
 resource "kubernetes_service" "redis-service" {
   metadata {
     name = "redis"
-    namespace = "backend-services"
+    namespace = var.backend_namespace
   }
   spec {
     type = "ClusterIP"

@@ -1,7 +1,7 @@
 resource "kubernetes_deployment" "nginx" {
   metadata {
     name = "nginx"
-    namespace = "frontend"
+    namespace = var.frontend_namespace
   }
   spec {
     replicas = "1"
@@ -45,7 +45,7 @@ resource "kubernetes_deployment" "nginx" {
 resource "kubernetes_service" "nginx-service" {
   metadata {
     name = "nginx"
-    namespace = "frontend"
+    namespace = var.frontend_namespace
   }
   spec {
     type = "NodePort"

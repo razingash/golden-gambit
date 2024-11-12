@@ -6,3 +6,8 @@ terraform {
     }
   }
 }
+
+variable "frontend_namespace" {
+  description = "Namespace for the frontend services"
+  type        = string
+}

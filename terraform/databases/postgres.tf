@@ -1,7 +1,7 @@
 resource "kubernetes_deployment" "postgres" {
   metadata {
     name = "postgres"
-    namespace = "backend-services"
+    namespace = var.backend_namespace
   }
   spec {
     replicas = "1"
@@ -44,7 +44,7 @@ resource "kubernetes_deployment" "postgres" {
 resource "kubernetes_service" "postgres_service" {
   metadata {
     name = "postgres"
-    namespace = "backend-services"
+    namespace = var.backend_namespace
   }
   spec {
     type = "ClusterIP"

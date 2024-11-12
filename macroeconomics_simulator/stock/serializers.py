@@ -122,28 +122,33 @@ class CompanyCreateSerializer(serializers.ModelSerializer):
         model = Company
         fields = ['type', 'ticker', 'name', 'shares_amount', 'preferred_shares_amount', 'dividendes_percent']
 
-    def validate_ticker(self, value):
+    @staticmethod
+    def validate_ticker(value):
         new_ticker = re_sub(r'[^a-zA-Z0-9]', '', value).upper()
-        if 3 > len(new_ticker) > 9:
+        if len(new_ticker) < 3 or len(new_ticker) > 8:
             raise serializers.ValidationError('ticker must be from 4 to 8 characters')
         return new_ticker
 
-    def validate_type(self, value):
+    @staticmethod
+    def validate_type(value):
         if value.type in [1, 2, 3, 4, 5, 6, 7]:
             return value.type
         raise serializers.ValidationError("Registration of new tickers is only available in the primary sector")
 
-    def validate_shares_amount(self, value):
+    @staticmethod
+    def validate_shares_amount(value):
         if value <= 0:
             raise serializers.ValidationError("Amount must be greater than zero, clown")
         return value
 
-    def validate_preferred_shares_amount(self, value):
+    @staticmethod
+    def validate_preferred_shares_amount(value):
         if value <= 0:
             raise serializers.ValidationError("Amount must be greater than zero, clown")
         return value
 
-    def validate_dividendes_percent(self, value):
+    @staticmethod
+    def validate_dividendes_percent(value):
         if 10 > value < 2:
             raise serializers.ValidationError("Dividendes percent must be greater or equal 2 and less than 10")
         return value
@@ -254,7 +259,8 @@ class GoldSilverRateStreamSerializer(serializers.ModelSerializer):
 class GoldAmountSerializer(serializers.Serializer):
     amount = serializers.IntegerField()
 
-    def validate_amount(self, value):
+    @staticmethod
+    def validate_amount(value):
         if value <= 0:
             raise serializers.ValidationError("Amount must be greater than zero, clown")
         return value
@@ -273,12 +279,14 @@ class ProductsTradingSerializer(serializers.Serializer): # probably redo
     ticker = serializers.CharField(max_length=8, min_length=4)
     type = serializers.ChoiceField(choices=ProductTypes.choices) # product type
 
-    def validate_amount(self, value):
+    @staticmethod
+    def validate_amount(value):
         if value <= 0:
             raise serializers.ValidationError("Amount must be greater than zero, clown")
         return value
 
-    def validate_ticker(self, value):
+    @staticmethod
+    def validate_ticker(value):
         if not Company.objects.filter(ticker=value).exists():
             raise serializers.ValidationError(f"Company with ticker {value} does not exist")
         return value
@@ -338,7 +346,8 @@ class CompanyTransmutationSerializer(serializers.Serializer):
     class Meta:
         fields = ['tickers', 'ticker', 'recipe_id', 'name', 'dividendes_percent']
 
-    def validate_dividendes_percent(self, value):
+    @staticmethod
+    def validate_dividendes_percent(value):
         if 10 > value < 2:
             raise serializers.ValidationError("Dividendes percent must be greater or equal 2 and less than 10")
         return value

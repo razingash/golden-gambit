@@ -1,7 +1,7 @@
 resource "kubernetes_deployment" "worker-redis" {
   metadata {
     name = "worker-redis"
-    namespace = "celery-workers"
+    namespace = var.celery_workers_namespace
   }
   spec {
     replicas = "1"
@@ -44,7 +44,7 @@ resource "kubernetes_deployment" "worker-redis" {
 resource "kubernetes_service" "worker-redis-service" {
   metadata {
     name = "worker-redis"
-    namespace = "celery-workers"
+    namespace = var.celery_workers_namespace
   }
   spec {
     type = "ClusterIP"

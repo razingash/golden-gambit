@@ -108,3 +108,8 @@
 .stock_products_container_fix{
     margin-bottom: 5px;
 }
+@media (max-width: 400px) {
+    .field__gold_trade {
+        margin: 0 5px 15px 5px;
+    }
+}

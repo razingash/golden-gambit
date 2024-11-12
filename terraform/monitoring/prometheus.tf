@@ -1,7 +1,7 @@
 resource "kubernetes_config_map" "prometheus-config" {
   metadata {
     name = "prometheus-config"
-    namespace = "monitoring"
+    namespace = var.monitoring_namespace
   }
   data = {
     "prometheus.yml" = <<-EOT
@@ -24,7 +24,7 @@ resource "kubernetes_config_map" "prometheus-config" {
 resource "kubernetes_deployment" "prometheus" {
   metadata {
     name = "prometheus"
-    namespace = "monitoring"
+    namespace = var.monitoring_namespace
   }
   spec {
     replicas = "1"
@@ -47,13 +47,13 @@ resource "kubernetes_deployment" "prometheus" {
             container_port = 9090
           }
           volume_mount {
-            mount_path = kubernetes_config_map.prometheus-config
+            mount_path = "/etc/prometheus"
             name       = "prometheus=config"
           }
           args = ["--config.file=/etc/prometheus/prometheus.yml"]
         }
         volume {
-          name = "prometheus-config"
+          name = kubernetes_config_map.prometheus-config.metadata[0].name
           config_map {
             name = "prometheus"
           }
@@ -66,7 +66,7 @@ resource "kubernetes_deployment" "prometheus" {
 resource "kubernetes_service" "prometheus-service" {
   metadata {
     name = "prometheus"
-    namespace = "prometheus"
+    namespace = var.monitoring_namespace
   }
   spec {
     type = "ClusterIP"

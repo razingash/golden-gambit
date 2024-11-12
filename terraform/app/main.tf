@@ -10,3 +10,13 @@ terraform {
 module "docker_image_module" {
   source = "../infrastructure/"
 }
+
+variable "backend_namespace" {
+  description = "Namespace for the backend services"
+  type        = string
+}
+
+variable "frontend_namespace" {
+  description = "Namespace for the frontend services"
+  type        = string
+}

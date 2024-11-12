@@ -14,6 +14,7 @@ resource "kubernetes_persistent_volume" "django-mediafiles-pv" {
       }
     }
   }
+  depends_on = [kubernetes_namespace.backend]
 }
 
 resource "kubernetes_persistent_volume_claim" "django-mediafiles-pvc" {
@@ -29,4 +30,5 @@ resource "kubernetes_persistent_volume_claim" "django-mediafiles-pvc" {
       }
     }
   }
+  depends_on = [kubernetes_namespace.backend]
 }

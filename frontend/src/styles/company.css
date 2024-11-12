@@ -51,6 +51,9 @@
     flex-direction: column;
     gap: 10px;
 }
-.company__products_item {
 
+@media (max-width: 400px) {
+    .form__create_company {
+        grid-template-columns: 1fr 1fr;
+    }
 }
