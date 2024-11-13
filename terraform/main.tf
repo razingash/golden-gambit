@@ -33,6 +33,7 @@ module "app" {
 
   backend_namespace = module.infrastructure.backend_namespace
   frontend_namespace = module.infrastructure.frontend_namespace
+  frontend_image = module.infrastructure.frontend_image
 }
 
 module "network" {

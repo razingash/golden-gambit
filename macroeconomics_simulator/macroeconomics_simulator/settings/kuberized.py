@@ -3,7 +3,7 @@ from .base import *
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': f'redis://redis.backend-services.svc.cluster.local:6379/1',
+        'LOCATION': 'redis://redis.backend-services.svc.cluster.local:6379/1',
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
@@ -33,3 +33,5 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+ALLOWED_HOSTS += ['django-rest.backend.svc.cluster.local']

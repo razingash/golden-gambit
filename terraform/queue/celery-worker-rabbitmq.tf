@@ -19,7 +19,7 @@ resource "kubernetes_deployment" "worker-rabbitmq" {
       spec {
         container {
           name = "worker-rabbitmq"
-          image = module.docker_image_module.backend_image_latest
+          image = module.docker_image_module.backend_image
           command= ["sh", "-c", "sleep 25 && celery -A macroeconomics_simulator worker -l info --queues=rabbitmq_queue"]
           env {
             name = "DJANGO_SETTINGS_MODULE"

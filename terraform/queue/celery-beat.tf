@@ -19,7 +19,7 @@ resource "kubernetes_deployment" "celery-beat" {
       spec {
         container {
           name = "celery-beat"
-          image = module.docker_image_module.backend_image_latest
+          image = module.docker_image_module.backend_image
           command = ["sh", "-c", "sleep 30 && celery -A macroeconomics_simulator beat -l INFO"]
           env {
             name = "DJANGO_SETTINGS_MODULE"

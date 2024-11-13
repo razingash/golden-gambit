@@ -19,7 +19,7 @@ resource "kubernetes_deployment" "react" {
       spec {
         container {
           name = "react"
-          image = module.docker_image_module.frontend_image_latest
+          image = var.frontend_image
           port {
             container_port = 3001
           }

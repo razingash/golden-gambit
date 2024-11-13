@@ -20,7 +20,7 @@ resource "kubernetes_persistent_volume" "django-mediafiles-pv" {
 resource "kubernetes_persistent_volume_claim" "django-mediafiles-pvc" {
   metadata {
     generate_name = "django-mediafiles-pvc-"
-    namespace = "backend"
+    namespace = kubernetes_namespace.backend.metadata[0].name
   }
   spec {
     access_modes = ["ReadWriteMany"]

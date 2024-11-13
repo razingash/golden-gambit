@@ -1,0 +1,35 @@
+#may be located in the queue directory, and potentially there should be no errors, but just in case, I placed it here
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: backend-services
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:4.0.3
+          ports:
+            - containerPort: 5672
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: backend-services
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5672
+      targetPort: 5672
+  selector:
+    app: rabbitmq

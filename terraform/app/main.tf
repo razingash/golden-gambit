@@ -20,3 +20,8 @@ variable "frontend_namespace" {
   description = "Namespace for the frontend services"
   type        = string
 }
+
+variable "frontend_image" {
+  description = "Docker image for the backend"
+  type        = string
+}

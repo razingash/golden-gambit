@@ -8,7 +8,6 @@
 /macroeconomics_simulator/stock/tests/logs.log
 /macroeconomics_simulator/stock/tests/.pytest_cache
 /frontend/node_modules
-/k8s/
 /terraform/.terraform/
 /terraform/.terraform.lock.hcl
 /terraform/terraform.tfstate

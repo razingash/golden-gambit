@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-rest
+  namespace: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django-rest
+  template:
+    metadata:
+      labels:
+        app: django-rest
+    spec:
+      containers:
+        - name: django-rest
+          image: kuber_macroeconomics_simulator:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DJANGO_SETTINGS_MODULE
+              value: 'macroeconomics_simulator.settings.kuberized'
+          command: [ "/bin/sh", "-c", "python manage.py initialization && python manage.py runserver 0.0.0.0:8000 --settings=macroeconomics_simulator.settings.kuberized" ]
+          volumeMounts:
+            - mountPath: /app/media
+              name: django-mediafiles-storage
+      volumes:
+        - name: django-mediafiles-storage
+          persistentVolumeClaim:
+            claimName: django-mediafiles-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-rest
+  namespace: backend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: django-rest

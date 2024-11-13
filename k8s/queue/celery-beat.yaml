@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-beat
+  namespace: celery-beat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: celery-beat
+  template:
+    metadata:
+      labels:
+        app: celery-beat
+    spec:
+      containers:
+        - name: celery-beat
+          image: kuber_macroeconomics_simulator:latest
+          command: ["sh", "-c", "sleep 30 && celery -A macroeconomics_simulator beat -l INFO"]
+          env:
+            - name: DJANGO_SETTINGS_MODULE
+              value: 'macroeconomics_simulator.settings.kuberized'
+      restartPolicy: Always

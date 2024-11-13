@@ -13,6 +13,22 @@
 2) docker compose up
 - site will be available at http://localhost:3001
 
+### using kubernetes
+1) build images for kubernetes services
+   - docker build -f ../../macroeconomics_simulator/Dockerfile -t kuber_macroeconomics_simulator:latest ../../macroeconomics_simul
+ator
+   - docker build -f ../../frontend/Dockerfile -t kuber_frontend:latest ../../frontend
+2) minikube start --driver=docker
+3) load images into minicube
+   - docker context use default
+   - minikube image load kuber_macroeconomics_simulator:latest
+   - minikube image load kuber_frontend:latest
+4) kubectl apply -f .
+   - should be done sequentially: infrastructure -- databases 
+   -- app -- network -- queue -- monitoring
+5) kubectl get pods -n frontend -l app=nginx
+6) kubectl port-forward pod/<pod-name> 80:80 -n frontend
+- site will be available at http://localhost:80
 
 ### notifications
 1) if you want to recreate database in ordinary version run python manage.py reinitialization

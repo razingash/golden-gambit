@@ -1,5 +1,5 @@
 resource "docker_image" "backend_image" {
-  name = "backend-image"
+  name = "backend-image:latest"
   build {
     context = "${path.root}/../macroeconomics_simulator"
     dockerfile = "Dockerfile"
@@ -8,7 +8,7 @@ resource "docker_image" "backend_image" {
 }
 
 resource "docker_image" "frontend_image" {
-  name = "frontend-image"
+  name = "frontend-image:latest"
   build {
     context = "${path.root}/../frontend"
     dockerfile = "Dockerfile"
@@ -16,10 +16,10 @@ resource "docker_image" "frontend_image" {
   }
 }
 
-output "backend_image_latest" {
+output "backend_image" {
   value = docker_image.backend_image.name
 }
 
-output "frontend_image_latest" {
+output "frontend_image" {
   value = docker_image.frontend_image.name
 }
