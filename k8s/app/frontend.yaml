@@ -1,0 +1,42 @@
+# nginx with react static files
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: kuber_frontend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+          command: [ "/bin/sh", "-c", "if [ ! -f /etc/nginx/ssl/nginx.key ]; then mkdir -p /etc/nginx/ssl &&
+                      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key 
+                      -out /etc/nginx/ssl/nginx.crt -subj '/CN=localhost'; fi && nginx -g 'daemon off;'" ]
+          env:
+            - name: PORT
+              value: "80"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: frontend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: nginx

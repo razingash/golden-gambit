@@ -15,9 +15,8 @@
 
 ### using kubernetes
 1) build images for kubernetes services
-   - docker build -f ../../macroeconomics_simulator/Dockerfile -t kuber_macroeconomics_simulator:latest ../../macroeconomics_simul
-ator
-   - docker build -f ../../frontend/Dockerfile -t kuber_frontend:latest ../../frontend
+   - docker build -f ../macroeconomics_simulator/Dockerfile -t kuber_macroeconomics_simulator:latest ../macroeconomics_simulator
+   - docker build -f ../frontend/Dockerfile.prod -t kuber_frontend:latest ../frontend
 2) minikube start --driver=docker
 3) load images into minicube
    - docker context use default

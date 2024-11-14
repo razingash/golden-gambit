@@ -19,6 +19,11 @@ spec:
           image: rabbitmq:4.0.3
           ports:
             - containerPort: 5672
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: "admin"
+            - name: RABBITMQ_DEFAULT_PASS
+              value: "admin"
 
 ---
 apiVersion: v1
