@@ -1,30 +1,46 @@
 
 ## QuickStart
 ### ordinary
-1) in macroeconomics_simulator directory run 
-    - pip install -r requirements/windows.txt  **choose 'windows' or 'unix'**
-    - python manage.py initialization
-    - - this command will implement database
-2) in frontend directory run npm start
+1) In the `macroeconomics_simulator` directory run:
+
+   ```bash
+   pip install -r requirements/windows.txt  # Choose 'windows' or 'unix'
+2) In the `frontend` directory run 
+
+   ```bash
+   npm start
 - site will be available at http://localhost:3000
 
 ### using docker
-1) docker compose build
-2) docker compose up
+In the project directory run
+
+    docker compose build
+    docker compose up
 - site will be available at http://localhost:3001
 
 ### using kubernetes
-1) build images for kubernetes services (from k8s directory)
-   - docker build -f ../macroeconomics_simulator/Dockerfile -t kuber_macroeconomics_simulator:latest ../macroeconomics_simulator
-   - docker build -f ../frontend/Dockerfile.prod -t kuber_frontend:latest ../frontend
-2) minikube start --driver=docker
+1) build images for kubernetes services `from k8s directory`
+   ```bash
+   docker build -f ../macroeconomics_simulator/Dockerfile -t kuber_macroeconomics_simulator:latest ../macroeconomics_simulator
+   ```
+   ```bash
+   docker build -f ../frontend/Dockerfile.prod -t kuber_frontend:latest ../frontend
+2) run minikube
+   ```bash 
+   minikube start --driver=docker
 3) load images into minicube
-   - docker context use default
-   - minikube image load kuber_macroeconomics_simulator:latest
-   - minikube image load kuber_frontend:latest
-4) kubectl apply -f .
-   - should be done sequentially: infrastructure -- databases
+   ```bash
+   docker context use default
+   ```
+   ```bash
+   minikube image load kuber_macroeconomics_simulator:latest
+   ```
+   ```bash
+   minikube image load kuber_frontend:latest
+4) consistently apply dependencies in directories: infrastructure -- databases
    -- app -- network -- queue -- monitoring
+   ```bash
+   kubectl apply -f .
 5) kubectl get pods -n frontend -l app=nginx
 6) kubectl port-forward pod/<pod-name> 80:80 -n frontend
 - site will be available at http://localhost:80

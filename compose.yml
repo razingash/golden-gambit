@@ -97,7 +97,7 @@ services:
     volumes:
       - media_data:/app/media
     command: >
-      sh -c "sleep 25 && celery -A macroeconomics_simulator worker -l info --queues=rabbitmq_queue"
+      sh -c "sleep 25 && celery -A macroeconomics_simulator worker -l info --queues=rabbitmq_queue --concurrency=3"
     networks:
       - localnet
 
