@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exporter-postgres
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exporter-postgres
+  template:
+    metadata:
+      labels:
+        app: exporter-postgres
+    spec:
+      containers:
+        - name: exporter-postgres
+          image: wrouesnel/postgres_exporter
+          ports:
+            - containerPort: 9187
+          env:
+            - name: DATA_SOURCE_NAME
+              value: "postgres.backend-services.svc.cluster.local:5432"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: exporter-postgres
+  namespace: monitoring
+spec:
+  ports:
+    - port: 9187
+      targetPort: 9187
+  selector:
+    app: exporter-postgres

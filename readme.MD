@@ -14,7 +14,7 @@
 - site will be available at http://localhost:3001
 
 ### using kubernetes
-1) build images for kubernetes services
+1) build images for kubernetes services (from k8s directory)
    - docker build -f ../macroeconomics_simulator/Dockerfile -t kuber_macroeconomics_simulator:latest ../macroeconomics_simulator
    - docker build -f ../frontend/Dockerfile.prod -t kuber_frontend:latest ../frontend
 2) minikube start --driver=docker
@@ -23,7 +23,7 @@
    - minikube image load kuber_macroeconomics_simulator:latest
    - minikube image load kuber_frontend:latest
 4) kubectl apply -f .
-   - should be done sequentially: infrastructure -- databases 
+   - should be done sequentially: infrastructure -- databases
    -- app -- network -- queue -- monitoring
 5) kubectl get pods -n frontend -l app=nginx
 6) kubectl port-forward pod/<pod-name> 80:80 -n frontend
