@@ -46,8 +46,8 @@ In the project directory run
 - site will be available at http://localhost:80
 
 ### notifications
-1) if you want to recreate database in ordinary version run python manage.py reinitialization
-
+- If you want to recreate database in ordinary version run python manage.py reinitialization
+- I decided not to auto-create dashboards in Grafana to avoid overloading the repository with redundant data. Instead, to visualize metrics, it would be easiest to import specific dashboards, such as 3662 for Minikube and 747 for Kubernetes pods.
 
 ## need to know
 1) useEffect has a missing dependency: "fetch...". Either include it or remove the dependency array
