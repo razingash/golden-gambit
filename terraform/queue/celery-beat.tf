@@ -3,6 +3,7 @@ resource "kubernetes_deployment" "celery-beat" {
     name = "celery-beat"
     namespace = var.celery_beat_namespace
   }
+  depends_on = [var.backend_image]
   spec {
     replicas = "1"
     selector {
@@ -19,7 +20,8 @@ resource "kubernetes_deployment" "celery-beat" {
       spec {
         container {
           name = "celery-beat"
-          image = module.docker_image_module.backend_image
+          image = var.backend_image
+          image_pull_policy = "Never"
           command = ["sh", "-c", "sleep 30 && celery -A macroeconomics_simulator beat -l INFO"]
           env {
             name = "DJANGO_SETTINGS_MODULE"

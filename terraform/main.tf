@@ -13,7 +13,7 @@ terraform {
 
 
 provider "kubernetes" {
-  config_path = "~/.kube/config" #??????
+  config_path = "~/.kube/config"
 }
 
 module "infrastructure" {
@@ -34,22 +34,16 @@ module "app" {
   backend_namespace = module.infrastructure.backend_namespace
   frontend_namespace = module.infrastructure.frontend_namespace
   frontend_image = module.infrastructure.frontend_image
-}
-
-module "network" {
-  source = "./network"
-  depends_on = [module.app]
-
-  frontend_namespace = module.infrastructure.frontend_namespace
+  backend_image = module.infrastructure.backend_image
 }
 
 module "queue" {
   source = "./queue"
-  depends_on = [module.network]
+  depends_on = [module.app]
 
-  backend_namespace = module.infrastructure.backend_namespace
   celery_beat_namespace = module.infrastructure.celery_beat_namespace
   celery_workers_namespace = module.infrastructure.celery_workers_namespace
+  backend_image = module.infrastructure.backend_image
 }
 
 module "monitoring" {

@@ -17,7 +17,7 @@ resource "kubernetes_namespace" "frontend" {
     name = "frontend"
   }
 }
-# Nginx and React
+# Nginx and React(in prod version, so mainly Nginx)
 
 resource "kubernetes_namespace" "celery-workers" {
   metadata {

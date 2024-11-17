@@ -6,16 +6,71 @@ resource "kubernetes_config_map" "prometheus-config" {
   data = {
     "prometheus.yml" = <<-EOT
       global:
-        scrape_interval: 15s
+      scrape_interval: 15s
 
       scrape_configs:
         - job_name: "prometheus"
+          kubernetes_sd_configs:
+            - role: pod
+          relabel_configs:
+            - source_labels: [__address__]
+              regex: ^prometheus\.monitoring\.svc\.cluster\.local:9090$
+              action: keep
           static_configs:
-            - targets: ["prometheus:9090"]
+            - targets: ["prometheus.monitoring.svc.cluster.local:9090"]
 
         - job_name: "rabbitmq"
+          kubernetes_sd_configs:
+            - role: service
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_service_name]
+              regex: ^exporter-rabbitmq$
+              target_label: service
+              action: keep
+          metric_relabel_configs:
+            - source_labels: [__name__]
+              regex: ^rabbitmq_.*
+              action: keep
           static_configs:
-            - targets: ["rabbitmq-exporter:9419"]
+            - targets: ["exporter-rabbitmq.monitoring.svc.cluster.local:9419"]
+
+        - job_name: "redis"
+          kubernetes_sd_configs:
+            - role: service
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_service_name]
+              regex: ^exporter-redis$
+              action: keep
+          static_configs:
+            - targets: ["exporter-redis.monitoring.svc.cluster.local:9121"]
+
+        - job_name: "postgres"
+          kubernetes_sd_configs:
+            - role: service
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_service_name]
+              regex: ^exporter-postgres$
+              action: keep
+          metric_relabel_configs:
+            - source_labels: [__name__]
+              regex: ^postgres_.*
+              action: keep
+          static_configs:
+            - targets: ["exporter-postgres.monitoring.svc.cluster.local:9187"]
+
+        - job_name: 'kubernetes-nodes'
+          kubernetes_sd_configs:
+            - role: node
+          metrics_path: /metrics/cadvisor
+          scheme: https
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            insecure_skip_verify: true
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_node_name]
+              target_label: node
+              action: replace
     EOT
   }
 }

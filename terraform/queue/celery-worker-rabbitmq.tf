@@ -3,8 +3,9 @@ resource "kubernetes_deployment" "worker-rabbitmq" {
     name = "worker-rabbitmq"
     namespace = var.celery_workers_namespace
   }
+  depends_on = [var.backend_image]
   spec {
-    replicas = "1" # Change to 3
+    replicas = "1"
     selector {
       match_labels = {
         app = "worker-rabbitmq"
@@ -19,11 +20,18 @@ resource "kubernetes_deployment" "worker-rabbitmq" {
       spec {
         container {
           name = "worker-rabbitmq"
-          image = module.docker_image_module.backend_image
-          command= ["sh", "-c", "sleep 25 && celery -A macroeconomics_simulator worker -l info --queues=rabbitmq_queue"]
+          image = var.backend_image
+          image_pull_policy = "Never"
+          command= [
+            "sh", "-c", "sleep 25 && celery -A macroeconomics_simulator worker -l info --queues=rabbitmq_queue --concurrency=3"
+          ]
           env {
             name = "DJANGO_SETTINGS_MODULE"
             value = "macroeconomics_simulator.settings.kuberized"
+          }
+          env {
+            name = "CELERY_BROKER_URL"
+            value = "amqp://admin:admin@rabbitmq.backend-services.svc.cluster.local:5672//"
           }
           volume_mount {
             mount_path = "/app/media"

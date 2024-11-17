@@ -11,11 +11,6 @@ module "docker_image_module" {
   source = "../infrastructure/"
 }
 
-variable "backend_namespace" {
-  description = "Namespace for the backend services"
-  type        = string
-}
-
 variable "celery_beat_namespace" {
   description = "Namespace for celery beat service"
   type        = string
@@ -23,5 +18,10 @@ variable "celery_beat_namespace" {
 
 variable "celery_workers_namespace" {
   description = "Namespace for celery workers services"
+  type        = string
+}
+
+variable "backend_image" {
+  description = "Docker image for the backend"
   type        = string
 }

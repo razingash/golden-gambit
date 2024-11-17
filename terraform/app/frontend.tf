@@ -3,6 +3,7 @@ resource "kubernetes_deployment" "nginx" {
     name = "nginx"
     namespace = var.frontend_namespace
   }
+  depends_on = [var.frontend_image]
   spec {
     replicas = "1"
     selector {
@@ -19,7 +20,8 @@ resource "kubernetes_deployment" "nginx" {
       spec {
         container {
           name = "nginx"
-          image = "nginx"
+          image = var.frontend_image
+          image_pull_policy = "Never"
           port {
             container_port = 80
           }
@@ -30,6 +32,10 @@ resource "kubernetes_deployment" "nginx" {
           command = [
             "/bin/sh", "-c", "if [ ! -f /etc/nginx/ssl/nginx.key ]; then mkdir -p /etc/nginx/ssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt -subj '/CN=localhost'; fi && nginx -g 'daemon off;'"
           ]
+          env {
+            name = "PORT"
+            value = "80"
+          }
         }
         volume {
           name = "nginx-config"
@@ -42,19 +48,26 @@ resource "kubernetes_deployment" "nginx" {
   }
 }
 
-resource "kubernetes_service" "nginx-service" {
+resource "kubernetes_ingress" "nginx-service" {
   metadata {
-    name = "nginx"
+    name = "nginx-ingress"
     namespace = var.frontend_namespace
+    annotations = {
+      "nginx.ingress.kubernetes.io/rewrite-target" = "/"
+    }
   }
   spec {
-    type = "NodePort"
-    port {
-      port = 80
-      target_port = "80"
-    }
-    selector = {
-      app = "nginx"
+    rule {
+      host = "localhost"
+      http {
+        path {
+          path = "/"
+          backend {
+            service_name = "nginx"
+            service_port = "80"
+          }
+        }
+      }
     }
   }
 }

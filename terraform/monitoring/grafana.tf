@@ -47,6 +47,7 @@ resource "kubernetes_service" "grafana-service" {
     port {
       port = 3000
       target_port = "3000"
+      node_port = 30000
     }
     selector = {
       app = "grafana"

@@ -22,6 +22,11 @@ variable "frontend_namespace" {
 }
 
 variable "frontend_image" {
+  description = "Docker image for the frontend"
+  type        = string
+}
+
+variable "backend_image" {
   description = "Docker image for the backend"
   type        = string
 }

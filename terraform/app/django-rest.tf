@@ -6,6 +6,7 @@ resource "kubernetes_deployment" "django_rest" {
       app = "django-rest"
     }
   }
+  depends_on = [var.backend_image]
   spec {
     replicas = "1"
     selector {
@@ -21,7 +22,7 @@ resource "kubernetes_deployment" "django_rest" {
       }
       spec {
         container {
-          image = module.docker_image_module.backend_image_latest
+          image = var.backend_image
           name = "django-rest"
           port {
             container_port = 8000
@@ -30,6 +31,7 @@ resource "kubernetes_deployment" "django_rest" {
             name = "DJANGO_SETTINGS_MODULE"
             value = "macroeconomics_simulator.settings.kuberized"
           }
+          command = [ "/bin/sh", "-c", "python manage.py initialization && python manage.py runserver 0.0.0.0:8000 --settings=macroeconomics_simulator.settings.kuberized" ]
           volume_mount {
             mount_path = "/app/media"
             name       = "django-mediafiles-storage"

@@ -11,7 +11,7 @@ resource "docker_image" "frontend_image" {
   name = "frontend-image:latest"
   build {
     context = "${path.root}/../frontend"
-    dockerfile = "Dockerfile"
+    dockerfile = "Dockerfile.prod"
     tag = ["frontend-image:latest"]
   }
 }
