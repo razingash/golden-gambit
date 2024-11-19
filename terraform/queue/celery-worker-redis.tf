@@ -3,7 +3,6 @@ resource "kubernetes_deployment" "worker-redis" {
     name = "worker-redis"
     namespace = var.celery_workers_namespace
   }
-  depends_on = [var.backend_image]
   spec {
     replicas = "1"
     selector {
@@ -39,7 +38,7 @@ resource "kubernetes_deployment" "worker-redis" {
         volume {
           name = "django-mediafiles-storage"
           persistent_volume_claim {
-            claim_name = "django-mediafiles-pvc"
+            claim_name = var.django_mediafiles_for_workers_pvc_name
           }
         }
       }

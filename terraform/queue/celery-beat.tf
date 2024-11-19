@@ -3,7 +3,6 @@ resource "kubernetes_deployment" "celery-beat" {
     name = "celery-beat"
     namespace = var.celery_beat_namespace
   }
-  depends_on = [var.backend_image]
   spec {
     replicas = "1"
     selector {

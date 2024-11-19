@@ -11,6 +11,45 @@ terraform {
   }
 }
 
+resource "docker_image" "backend_image" {
+  name = "backend-image:latest"
+  build {
+    context = "${path.root}/../macroeconomics_simulator"
+    dockerfile = "Dockerfile"
+    tag = ["backend-image:latest"]
+  }
+}
+
+resource "docker_image" "frontend_image" {
+  name = "frontend-image:latest"
+  build {
+    context = "${path.root}/../frontend"
+    dockerfile = "Dockerfile.prod"
+    tag = ["frontend-image:latest"]
+  }
+}
+
+resource "null_resource" "load_frontend_image" {
+  provisioner "local-exec" {
+    command = "docker context use default && minikube image load frontend-image:latest"
+  }
+
+  triggers = {
+    image_id = docker_image.frontend_image.id
+  }
+  depends_on = [docker_image.frontend_image]
+}
+
+resource "null_resource" "load_backend_image" {
+  provisioner "local-exec" {
+    command = "docker context use default && minikube image load backend-image:latest"
+  }
+
+  triggers = {
+    image_id = docker_image.backend_image.id
+  }
+  depends_on = [docker_image.backend_image]
+}
 
 provider "kubernetes" {
   config_path = "~/.kube/config"
@@ -18,13 +57,14 @@ provider "kubernetes" {
 
 module "infrastructure" {
   source = "./infrastructure"
+  depends_on = [null_resource.load_frontend_image, null_resource.load_backend_image]
 }
 
 module "databases" {
   source = "./databases"
   depends_on = [module.infrastructure]
 
-  backend_namespace = module.infrastructure.backend_namespace
+  backend_services_namespace = module.infrastructure.backend_services_namespace
 }
 
 module "app" {
@@ -33,8 +73,9 @@ module "app" {
 
   backend_namespace = module.infrastructure.backend_namespace
   frontend_namespace = module.infrastructure.frontend_namespace
-  frontend_image = module.infrastructure.frontend_image
-  backend_image = module.infrastructure.backend_image
+  frontend_image = docker_image.frontend_image.name
+  backend_image = docker_image.backend_image.name
+  django_mediafiles_pvc_name = module.infrastructure.django_mediafiles_pvc_name
 }
 
 module "queue" {
@@ -43,7 +84,8 @@ module "queue" {
 
   celery_beat_namespace = module.infrastructure.celery_beat_namespace
   celery_workers_namespace = module.infrastructure.celery_workers_namespace
-  backend_image = module.infrastructure.backend_image
+  backend_image = docker_image.backend_image.name
+  django_mediafiles_for_workers_pvc_name = module.infrastructure.django_mediafiles_for_workers_pvc
 }
 
 module "monitoring" {

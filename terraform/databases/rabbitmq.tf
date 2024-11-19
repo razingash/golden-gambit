@@ -1,7 +1,7 @@
 resource "kubernetes_deployment" "rabbitmq" {
   metadata {
     name = "rabbitmq"
-    namespace = var.backend_namespace
+    namespace = var.backend_services_namespace
   }
   spec {
     replicas = "1"
@@ -23,6 +23,14 @@ resource "kubernetes_deployment" "rabbitmq" {
           port {
             container_port = 5672
           }
+          env {
+            name  = "RABBITMQ_DEFAULT_USER"
+            value = "admin"
+          }
+          env {
+            name  = "RABBITMQ_DEFAULT_PASS"
+            value = "admin"
+          }
         }
       }
     }
@@ -32,7 +40,7 @@ resource "kubernetes_deployment" "rabbitmq" {
 resource "kubernetes_service" "rabbitmq-service" {
   metadata {
     name = "rabbitmq"
-    namespace = var.backend_namespace
+    namespace = var.backend_services_namespace
   }
   spec {
     type = "ClusterIP"

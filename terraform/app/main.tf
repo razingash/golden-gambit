@@ -7,12 +7,13 @@ terraform {
   }
 }
 
-module "docker_image_module" {
-  source = "../infrastructure/"
-}
-
 variable "backend_namespace" {
   description = "Namespace for the backend services"
+  type        = string
+}
+
+variable "backend_image" {
+  description = "Docker image for the backend"
   type        = string
 }
 
@@ -26,7 +27,7 @@ variable "frontend_image" {
   type        = string
 }
 
-variable "backend_image" {
-  description = "Docker image for the backend"
+variable "django_mediafiles_pvc_name" {
+  description = "django mediafiles"
   type        = string
 }

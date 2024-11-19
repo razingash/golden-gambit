@@ -6,7 +6,7 @@ resource "kubernetes_config_map" "prometheus-config" {
   data = {
     "prometheus.yml" = <<-EOT
       global:
-      scrape_interval: 15s
+        scrape_interval: 15s
 
       scrape_configs:
         - job_name: "prometheus"
@@ -103,14 +103,14 @@ resource "kubernetes_deployment" "prometheus" {
           }
           volume_mount {
             mount_path = "/etc/prometheus"
-            name       = "prometheus=config"
+            name       = kubernetes_config_map.prometheus-config.metadata[0].name
           }
           args = ["--config.file=/etc/prometheus/prometheus.yml"]
         }
         volume {
           name = kubernetes_config_map.prometheus-config.metadata[0].name
           config_map {
-            name = "prometheus"
+            name = kubernetes_config_map.prometheus-config.metadata[0].name
           }
         }
       }

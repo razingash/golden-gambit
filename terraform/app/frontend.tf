@@ -3,7 +3,6 @@ resource "kubernetes_deployment" "nginx" {
     name = "nginx"
     namespace = var.frontend_namespace
   }
-  depends_on = [var.frontend_image]
   spec {
     replicas = "1"
     selector {
@@ -25,10 +24,6 @@ resource "kubernetes_deployment" "nginx" {
           port {
             container_port = 80
           }
-          volume_mount {
-            mount_path = "/etc/nginx/nginx.conf"
-            name       = "nginx-config"
-          }
           command = [
             "/bin/sh", "-c", "if [ ! -f /etc/nginx/ssl/nginx.key ]; then mkdir -p /etc/nginx/ssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt -subj '/CN=localhost'; fi && nginx -g 'daemon off;'"
           ]
@@ -37,18 +32,30 @@ resource "kubernetes_deployment" "nginx" {
             value = "80"
           }
         }
-        volume {
-          name = "nginx-config"
-          config_map {
-            name = "nginx-config"
-          }
-        }
       }
     }
   }
 }
 
-resource "kubernetes_ingress" "nginx-service" {
+resource "kubernetes_service" "nginx-service" {
+  metadata {
+    name = "nginx"
+    namespace = var.frontend_namespace
+  }
+  spec {
+    type = "NodePort"
+    port {
+      port = 80
+      target_port = "80"
+    }
+    selector = {
+      app = "nginx"
+    }
+  }
+}
+/* вылетает ошибка
+Failed to create Ingress 'frontend/nginx-ingress' because: the server could not find the requested resource (post ingresses.extensions)
+resource "kubernetes_ingress" "nginx-ingress" {
   metadata {
     name = "nginx-ingress"
     namespace = var.frontend_namespace
@@ -57,6 +64,7 @@ resource "kubernetes_ingress" "nginx-service" {
     }
   }
   spec {
+    ingress_class_name = "ngixn"
     rule {
       host = "localhost"
       http {
@@ -71,3 +79,4 @@ resource "kubernetes_ingress" "nginx-service" {
     }
   }
 }
+*/

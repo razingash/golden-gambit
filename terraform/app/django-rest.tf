@@ -2,11 +2,7 @@ resource "kubernetes_deployment" "django_rest" {
   metadata {
     name = "django-rest"
     namespace = var.backend_namespace
-    labels = {
-      app = "django-rest"
-    }
   }
-  depends_on = [var.backend_image]
   spec {
     replicas = "1"
     selector {
@@ -24,6 +20,7 @@ resource "kubernetes_deployment" "django_rest" {
         container {
           image = var.backend_image
           name = "django-rest"
+          image_pull_policy = "Never"
           port {
             container_port = 8000
           }
@@ -31,7 +28,9 @@ resource "kubernetes_deployment" "django_rest" {
             name = "DJANGO_SETTINGS_MODULE"
             value = "macroeconomics_simulator.settings.kuberized"
           }
-          command = [ "/bin/sh", "-c", "python manage.py initialization && python manage.py runserver 0.0.0.0:8000 --settings=macroeconomics_simulator.settings.kuberized" ]
+          command = [
+            "/bin/sh", "-c", "python manage.py initialization && python manage.py runserver 0.0.0.0:8000 --settings=macroeconomics_simulator.settings.kuberized"
+          ]
           volume_mount {
             mount_path = "/app/media"
             name       = "django-mediafiles-storage"
@@ -40,7 +39,7 @@ resource "kubernetes_deployment" "django_rest" {
         volume {
           name = "django-mediafiles-storage"
           persistent_volume_claim {
-            claim_name = "django-mediafiles-pvc"
+            claim_name = var.django_mediafiles_pvc_name
           }
         }
       }

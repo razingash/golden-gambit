@@ -9,12 +9,18 @@ resource "kubernetes_namespace" "backend" {
   metadata {
     name = "backend"
   }
+  lifecycle { # потом попробовать убрать
+    prevent_destroy = true
+  }
 }
-# Only Django
+# Django
 
 resource "kubernetes_namespace" "frontend" {
   metadata {
     name = "frontend"
+  }
+  lifecycle {
+    prevent_destroy = true
   }
 }
 # Nginx and React(in prod version, so mainly Nginx)
@@ -38,8 +44,11 @@ resource "kubernetes_namespace" "monitoring" {
     name = "monitoring"
   }
 }
-# # Prometheus, Grafana, and all related services for getting information
+# Prometheus, Grafana, and all related services for getting information
 
+output "backend_services_namespace" {
+  value = kubernetes_namespace.backend-services.metadata[0].name
+}
 
 output "backend_namespace" {
   value = kubernetes_namespace.backend.metadata[0].name

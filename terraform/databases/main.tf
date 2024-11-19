@@ -7,7 +7,7 @@ terraform {
   }
 }
 
-variable "backend_namespace" {
+variable "backend_services_namespace" {
   description = "Namespace for the backend services"
   type        = string
 }
