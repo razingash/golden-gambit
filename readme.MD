@@ -38,12 +38,26 @@ In the project directory run
    ```bash
    minikube image load kuber_frontend:latest
 4) consistently apply dependencies in directories: infrastructure -- databases
-   -- app -- network -- queue -- monitoring
+   -- app -- queue -- monitoring
    ```bash
    kubectl apply -f .
 5) kubectl get pods -n frontend -l app=nginx
 6) kubectl port-forward pod/<pod-name> 80:80 -n frontend
 - site will be available at http://localhost:80
+
+### using terraform
+1) run minikube
+   ```bash
+   minikube start --driver=docker
+2) in `terrafrom directory` run
+   ```bash
+   terrafrom init
+3) make plan
+   ```bash
+   terraform plan
+4) apply migrations
+   ```bash
+   terraform apply -auto-approve
 
 ### notifications
 - If you want to recreate database in ordinary version run python manage.py reinitialization

@@ -2,9 +2,6 @@ resource "kubernetes_deployment" "exporter_postgres" {
   metadata {
     name = "exporter-postgres"
     namespace = var.monitoring_namespace
-    labels = {
-      app = "exporter-postgres"
-    }
   }
   spec {
     replicas = "1"
@@ -40,11 +37,9 @@ resource "kubernetes_service" "exporter_postgres" {
   metadata {
     name = "exporter-postgres"
     namespace = var.monitoring_namespace
-    labels = {
-      app = "exporter-postgres"
-    }
   }
   spec {
+    type = "ClusterIP"
     port {
       port = 9187
       target_port = "9187"

@@ -2,9 +2,6 @@ resource "kubernetes_deployment" "exporter_redis" {
   metadata {
     name = "exporter-redis"
     namespace = var.monitoring_namespace
-    labels = {
-      app = "exporter-redis"
-    }
   }
   spec {
     replicas = "1"
@@ -40,11 +37,9 @@ resource "kubernetes_service" "exporter_redis" {
   metadata {
     name = "exporter-redis"
     namespace = var.monitoring_namespace
-    labels = {
-      app = "exporter-redis"
-    }
   }
   spec {
+    type = "ClusterIP"
     port {
       port = 9121
       target_port = "9121"

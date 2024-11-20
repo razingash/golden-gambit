@@ -2,9 +2,6 @@ resource "kubernetes_deployment" "exporter_rabbitmq" {
   metadata {
     name = "exporter-rabbitmq"
     namespace = var.monitoring_namespace
-    labels = {
-      app = "exporter-rabbitmq"
-    }
   }
   spec {
     replicas = "1"
@@ -40,11 +37,9 @@ resource "kubernetes_service" "exporter_rabbitmq" {
   metadata {
     name = "exporter-rabbitmq"
     namespace = var.monitoring_namespace
-    labels = {
-      app = "exporter-rabbitmq"
-    }
   }
   spec {
+    type = "ClusterIP"
     port {
       port = 9419
       target_port = "9419"

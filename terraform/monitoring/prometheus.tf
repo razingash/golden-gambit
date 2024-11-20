@@ -95,6 +95,7 @@ resource "kubernetes_deployment" "prometheus" {
         }
       }
       spec {
+        service_account_name = "prometheus"
         container {
           name = "prometheus"
           image = "prom/prometheus"
