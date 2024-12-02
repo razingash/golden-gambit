@@ -24,7 +24,7 @@ In the project directory run
    docker build -f ../macroeconomics_simulator/Dockerfile -t kuber_macroeconomics_simulator:latest ../macroeconomics_simulator
    ```
    ```bash
-   docker build -f ../frontend/Dockerfile.prod -t kuber_frontend:latest ../frontend
+   docker build -f ../frontend/Dockerfile.k8s -t kuber_frontend:latest ../frontend
 2) run minikube
    ```bash 
    minikube start --driver=docker
@@ -51,13 +51,16 @@ In the project directory run
    minikube start --driver=docker
 2) in `terrafrom directory` run
    ```bash
-   terrafrom init
+   terraform init
 3) make plan
    ```bash
    terraform plan
 4) apply migrations
    ```bash
    terraform apply -auto-approve
+5) kubectl get pods -n frontend -l app=nginx
+6) kubectl port-forward pod/<pod-name> 443:443 -n frontend
+- site will be available at https://localhost:443
 
 ### notifications
 - If you want to recreate database in ordinary version run python manage.py reinitialization

@@ -24,7 +24,7 @@ resource "docker_image" "frontend_image" {
   name = "frontend-image:latest"
   build {
     context = "${path.root}/../frontend"
-    dockerfile = "Dockerfile.prod"
+    dockerfile = "Dockerfile.terraform"
     tag = ["frontend-image:latest"]
   }
 }
@@ -77,7 +77,7 @@ module "app" {
   backend_image = docker_image.backend_image.name
   django_mediafiles_pvc_name = module.infrastructure.django_mediafiles_pvc_name
 }
-
+/*
 module "queue" {
   source = "./queue"
   depends_on = [module.app]
@@ -93,4 +93,4 @@ module "monitoring" {
   depends_on = [module.queue]
 
   monitoring_namespace = module.infrastructure.monitoring_namespace
-}
+}*/
