@@ -58,8 +58,7 @@ In the project directory run
 4) apply migrations
    ```bash
    terraform apply -auto-approve
-5) kubectl get pods -n frontend -l app=nginx
-6) kubectl port-forward pod/<pod-name> 443:443 -n frontend
+5) kubectl port-forward -n frontend svc/nginx 443:443
 - site will be available at https://localhost:443
 
 ### notifications

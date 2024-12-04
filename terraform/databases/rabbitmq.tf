@@ -1,9 +1,10 @@
-resource "kubernetes_deployment" "rabbitmq" {
+resource "kubernetes_stateful_set" "rabbitmq" {
   metadata {
     name = "rabbitmq"
     namespace = var.backend_services_namespace
   }
   spec {
+    service_name = "rabbitmq"
     replicas = "1"
     selector {
       match_labels = {

@@ -1,9 +1,10 @@
-resource "kubernetes_deployment" "redis" {
+resource "kubernetes_stateful_set" "redis" {
   metadata {
     name = "redis"
     namespace = var.backend_services_namespace
   }
   spec {
+    service_name = "redis"
     replicas = "1"
     selector {
       match_labels = {

@@ -1,10 +1,11 @@
 #may be located in the queue directory, and potentially there should be no errors, but just in case, I placed it here
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: rabbitmq
   namespace: backend-services
 spec:
+  serviceName: rabbitmq
   replicas: 1
   selector:
     matchLabels:

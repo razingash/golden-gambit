@@ -11,7 +11,7 @@ COPY . /app/
 
 ARG REACT_APP_BASE_URL="https://localhost:443/api/v1"
 ARG REACT_APP_BASE_SSE_URL="https://localhost:443/api/sse"
-ARG REACT_APP_WEBSOCKET_URL="ws://localhost:443/ws"
+ARG REACT_APP_WEBSOCKET_URL="wss://localhost:443/ws"
 
 # http://nginx.frontend.svc.cluster.local/api/v1
 # http://nginx.frontend.svc.cluster.local/api/sse

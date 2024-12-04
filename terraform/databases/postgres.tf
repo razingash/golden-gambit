@@ -1,9 +1,10 @@
-resource "kubernetes_deployment" "postgres" {
+resource "kubernetes_stateful_set" "postgres" {
   metadata {
     name = "postgres"
     namespace = var.backend_services_namespace
   }
   spec {
+    service_name = "postgres"
     replicas = "1"
     selector {
       match_labels = {
@@ -34,6 +35,23 @@ resource "kubernetes_deployment" "postgres" {
           env {
             name = "POSTGRES_PASSWORD"
             value = "root"
+          }
+          volume_mount {
+            mount_path = "/var/lib/postgresql/data"
+            name       = "postgres-data"
+          }
+        }
+      }
+    }
+    volume_claim_template {
+      metadata {
+        name = "postgres-data"
+      }
+      spec {
+        access_modes = ["ReadWriteOnce"]
+        resources {
+          requests = {
+            storage = "10Gi"
           }
         }
       }
