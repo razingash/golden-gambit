@@ -5,7 +5,9 @@
 
    ```bash
    pip install -r requirements/windows.txt  # Choose 'windows' or 'unix'
-2) In the `frontend` directory run 
+2) In the same directory run `python manage.py initialization`
+3) run server by command `python manage.py runserver`
+4) In the `frontend` directory run 
 
    ```bash
    npm start
@@ -62,7 +64,8 @@ In the project directory run
 - site will be available at https://localhost:443
 
 ### notifications
-- If you want to recreate database in ordinary version run python manage.py reinitialization
+- The `python manage.py initialization` command initializes static data and fabricates dynamic data for company and gold price histories. Data for the charts is generated based on the initial static value and then inverted so that by the end of the simulation, all prices are balanced at the starting point.
+- If you want to recreate database in ordinary version run `python manage.py reinitialization`
 - I decided not to auto-create dashboards in Grafana to avoid overloading the repository with redundant data. Instead, to visualize metrics, it would be easiest to import specific dashboards, such as 3662 for Minikube and 747 for Kubernetes pods.
 
 ## need to know
